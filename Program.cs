@@ -27,7 +27,18 @@ app.Run();
 //oke!
 
 
+//Alololololol
+//Thiên Đây
+//123/123/123/
+
+//ALOOOOOOO
+//Tân ăn cứt
+//Tân hứa Tân vào mô, Tân ko vào??
+//YOOOOOo
+
+//dskfjskdfskfjskdfj
+
+
 
 //Tan an nhieu cut
-
 

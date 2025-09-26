@@ -1,4 +1,4 @@
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
@@ -25,4 +25,5 @@ app.MapControllers();
 app.Run();
 
 //oke!
-
+//Thiên lý ơi
+//Em có thể ở lại đây không

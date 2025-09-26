@@ -27,3 +27,7 @@ app.Run();
 //oke!
 
 
+
+//Tan an nhieu cut
+
+

@@ -24,37 +24,3 @@ app.MapControllers();
 
 app.Run();
 
-//hhhhhhhhhhhhhhhhhhhhhhhh
-//hhhhhhhhhhhhhhhhhhhhhhhh//hhhhhhhhhhhhhhhhhhhhhhhh
-//hhhhhhhhhhhhhhhhhhhhhhhh
-//hhhhhhhhhhhhhhhhhhhhhhhh
-
-
-//Thiên lý ơi
-//Em có thể ở lại đây không
-//Alololololol
-//Thiên Đây
-//123/123/123/
-//ALOOOOOOO
-//Tân ăn cứt
-//Tân hứa Tân vào mô, Tân ko vào??
-//YOOOOOo
-//dskfjskdfskfjskdfj
-//Tan an nhieu cut
-
-//MinhAnCut???!?
-
-//MinhAnCut???!?
-
-
-//yyyyyyy
-
-//dsfkfjdskj
-//yyyyyyy
-
-//dsfkfjdskj
-
-//Khanh Push
-
-//bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-//bbbbbbbbbbbbbbbbb

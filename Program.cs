@@ -30,3 +30,5 @@ app.Run();
 //hjhjhjkk
 
 ////d//sdfdsff
+//Lol Khanh Ăn Cứt
+//Quay video như cc

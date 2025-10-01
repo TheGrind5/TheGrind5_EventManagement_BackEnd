@@ -30,6 +30,8 @@
             //controller hiện form + nhập + submit
             //lưu vô hệ thống, so pass là chỗ userlist làm
             //bên controller báo tt, báo lỗi
+
+
         }
 
     }

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <None Include="efpt.config.json.user" />
   </ItemGroup>
 
 </Project>

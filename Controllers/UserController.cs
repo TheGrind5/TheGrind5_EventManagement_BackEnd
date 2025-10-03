@@ -15,11 +15,15 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         private readonly EventDBContext DBContext;
+
         [HttpGet]
         public IActionResult GetAllUsers()
         {
-            DBContext.Users.ToList();
+            var allEmployees = DBContext.Users.ToList();
+           return Ok(allEmployees);
         }
+
+
     }
 }
-//Singleton
+

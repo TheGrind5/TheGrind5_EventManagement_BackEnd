@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.Data;
 
 namespace TheGrind5_EventManagement.Controllers
 {

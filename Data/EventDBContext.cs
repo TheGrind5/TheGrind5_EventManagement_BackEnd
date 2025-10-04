@@ -1,7 +1,8 @@
 ﻿#nullable enable
 using Microsoft.EntityFrameworkCore;
+using TheGrind5_EventManagement.Models;
 
-namespace TheGrind5_EventManagement.Models;
+namespace TheGrind5_EventManagement.Data;
 
 public partial class EventDBContext : DbContext
 {
@@ -65,5 +66,16 @@ public partial class EventDBContext : DbContext
          .WithMany(e => e.TicketTypes)
          .HasForeignKey(tt => tt.EventId)
          .OnDelete(DeleteBehavior.Restrict);
+
+        // Payment -> Order : required, không cascade
+        b.Entity<Payment>()
+         .HasOne(p => p.Order)
+         .WithMany(o => o.Payments)
+         .HasForeignKey(p => p.OrderId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // Cấu hình Primary Key cho Payment
+        b.Entity<Payment>()
+         .HasKey(p => p.TransactionId);
     }
 }

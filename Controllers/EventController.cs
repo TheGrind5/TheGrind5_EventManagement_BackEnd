@@ -2,7 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.DTOs;
+using TheGrind5_EventManagement.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace TheGrind5_EventManagement.Controllers
 {
@@ -10,11 +13,11 @@ namespace TheGrind5_EventManagement.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private readonly EventDBContext _context;
+        private readonly EventService _eventService;
 
-        public EventController(EventDBContext context)
+        public EventController(EventService eventService)
         {
-            _context = context;
+            _eventService = eventService;
         }
 
         [HttpGet]
@@ -22,33 +25,30 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                var events = await _context.Events
-                    .Include(e => e.Host)
-                    .Include(e => e.TicketTypes)
-                    .Where(e => e.Status == "Active")
-                    .Select(e => new
+                var events = await _eventService.GetAllEventsAsync();
+                
+                var eventDtos = events.Select(e => new
+                {
+                    e.EventId,
+                    e.Title,
+                    e.Description,
+                    e.StartTime,
+                    e.EndTime,
+                    e.Location,
+                    e.Category,
+                    e.Status,
+                    HostName = e.Host?.FullName,
+                    TicketTypes = e.TicketTypes?.Where(tt => tt.Status == "Active").Select(tt => new
                     {
-                        e.EventId,
-                        e.Title,
-                        e.Description,
-                        e.StartTime,
-                        e.EndTime,
-                        e.Location,
-                        e.Category,
-                        e.Status,
-                        HostName = e.Host.FullName,
-                        TicketTypes = e.TicketTypes.Select(tt => new
-                        {
-                            tt.TicketTypeId,
-                            tt.TypeName,
-                            tt.Price,
-                            tt.Quantity,
-                            tt.Status
-                        })
+                        tt.TicketTypeId,
+                        tt.TypeName,
+                        tt.Price,
+                        tt.Quantity,
+                        tt.Status
                     })
-                    .ToListAsync();
+                }).ToList();
 
-                return Ok(events);
+                return Ok(eventDtos);
             }
             catch (Exception ex)
             {
@@ -61,44 +61,41 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                var eventData = await _context.Events
-                    .Include(e => e.Host)
-                    .Include(e => e.TicketTypes)
-                    .Where(e => e.EventId == id)
-                    .Select(e => new
-                    {
-                        e.EventId,
-                        e.Title,
-                        e.Description,
-                        e.StartTime,
-                        e.EndTime,
-                        e.Location,
-                        e.Category,
-                        e.Status,
-                        e.CreatedAt,
-                        HostName = e.Host.FullName,
-                        HostEmail = e.Host.Email,
-                        TicketTypes = e.TicketTypes.Select(tt => new
-                        {
-                            tt.TicketTypeId,
-                            tt.TypeName,
-                            tt.Price,
-                            tt.Quantity,
-                            tt.MinOrder,
-                            tt.MaxOrder,
-                            tt.SaleStart,
-                            tt.SaleEnd,
-                            tt.Status
-                        })
-                    })
-                    .FirstOrDefaultAsync();
+                var eventData = await _eventService.GetEventByIdAsync(id);
 
                 if (eventData == null)
                 {
                     return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
 
-                return Ok(eventData);
+                var eventDto = new
+                {
+                    eventData.EventId,
+                    eventData.Title,
+                    eventData.Description,
+                    eventData.StartTime,
+                    eventData.EndTime,
+                    eventData.Location,
+                    eventData.Category,
+                    eventData.Status,
+                    eventData.CreatedAt,
+                    HostName = eventData.Host?.FullName,
+                    HostEmail = eventData.Host?.Email,
+                    TicketTypes = eventData.TicketTypes?.Where(tt => tt.Status == "Active").Select(tt => new
+                    {
+                        tt.TicketTypeId,
+                        tt.TypeName,
+                        tt.Price,
+                        tt.Quantity,
+                        tt.MinOrder,
+                        tt.MaxOrder,
+                        tt.SaleStart,
+                        tt.SaleEnd,
+                        tt.Status
+                    })
+                };
+
+                return Ok(eventDto);
             }
             catch (Exception ex)
             {
@@ -107,15 +104,21 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateEvent([FromBody] DTOs.CreateEventRequest request)
         {
             try
             {
-                // Tạm thời sử dụng user ID = 1 (admin) làm host
-                // Sau này sẽ lấy từ authentication token
+                // Lấy user ID từ JWT token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+                }
+
                 var eventData = new Event
                 {
-                    HostId = 1, // Tạm thời
+                    HostId = userId,
                     Title = request.Title,
                     Description = request.Description,
                     StartTime = request.StartTime,
@@ -126,10 +129,9 @@ namespace TheGrind5_EventManagement.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Events.Add(eventData);
-                await _context.SaveChangesAsync();
+                var createdEvent = await _eventService.CreateEventAsync(eventData);
 
-                return Ok(new { message = "Tạo sự kiện thành công", eventId = eventData.EventId });
+                return Ok(new { message = "Tạo sự kiện thành công", eventId = createdEvent?.EventId });
             }
             catch (Exception ex)
             {
@@ -138,25 +140,28 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateEvent(int id, [FromBody] DTOs.UpdateEventRequest request)
         {
             try
             {
-                var eventData = await _context.Events.FindAsync(id);
-                if (eventData == null)
+                var eventData = new Event
+                {
+                    EventId = id,
+                    Title = request.Title,
+                    Description = request.Description,
+                    StartTime = request.StartTime,
+                    EndTime = request.EndTime,
+                    Location = request.Location,
+                    Category = request.Category,
+                    Status = "Active"
+                };
+
+                var updatedEvent = await _eventService.UpdateEventAsync(id, eventData);
+                if (updatedEvent == null)
                 {
                     return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
-
-                eventData.Title = request.Title;
-                eventData.Description = request.Description;
-                eventData.StartTime = request.StartTime;
-                eventData.EndTime = request.EndTime;
-                eventData.Location = request.Location;
-                eventData.Category = request.Category;
-                eventData.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Cập nhật sự kiện thành công" });
             }
@@ -167,20 +172,16 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteEvent(int id)
         {
             try
             {
-                var eventData = await _context.Events.FindAsync(id);
-                if (eventData == null)
+                var result = await _eventService.DeleteEventAsync(id);
+                if (!result)
                 {
                     return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
-
-                eventData.Status = "Deleted";
-                eventData.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Xóa sự kiện thành công" });
             }
@@ -189,5 +190,42 @@ namespace TheGrind5_EventManagement.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra khi xóa sự kiện", error = ex.Message });
             }
         }
+
+        [HttpGet("host/{hostId}")]
+        public async Task<IActionResult> GetEventsByHost(int hostId)
+        {
+            try
+            {
+                var events = await _eventService.GetEventsByHostAsync(hostId);
+                
+                var eventDtos = events.Select(e => new
+                {
+                    e.EventId,
+                    e.Title,
+                    e.Description,
+                    e.StartTime,
+                    e.EndTime,
+                    e.Location,
+                    e.Category,
+                    e.Status,
+                    HostName = e.Host?.FullName,
+                    TicketTypes = e.TicketTypes?.Select(tt => new
+                    {
+                        tt.TicketTypeId,
+                        tt.TypeName,
+                        tt.Price,
+                        tt.Quantity,
+                        tt.Status
+                    })
+                }).ToList();
+
+                return Ok(eventDtos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện của host", error = ex.Message });
+            }
+        }
+
     }
 }

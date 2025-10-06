@@ -7,7 +7,7 @@ namespace TheGrind5_EventManagement.Models;
 
 public partial class Payment
 {
-    public int TransactionId { get; set; }
+    public int PaymentId { get; set; }
 
     public int OrderId { get; set; }
 

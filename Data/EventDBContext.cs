@@ -76,6 +76,6 @@ public partial class EventDBContext : DbContext
 
         // Cấu hình Primary Key cho Payment
         b.Entity<Payment>()
-         .HasKey(p => p.TransactionId);
+         .HasKey(p => p.PaymentId);
     }
 }

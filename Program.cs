@@ -13,11 +13,11 @@ class Program
         // Thêm các service vào container -----------------------------------------
 
 
-            // Cấu hình EventDbContext với In-Memory Database
+            // Cấu hình EventDbContext với SQL Server Database
             builder.Services.AddDbContext<EventDBContext>(options =>
             {
-                options.UseInMemoryDatabase("AuthDb");
-                // Sử dụng In-Memory Database để dễ dàng phát triển và kiểm thử
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+                // Sử dụng SQL Server Database thật
             });
 
             builder.Services.AddAuthorization(); // Thêm service ủy quyền    
@@ -31,7 +31,7 @@ class Program
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "https://localhost:5173")
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
@@ -41,23 +41,12 @@ class Program
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             
             // Đăng ký Services
-            builder.Services.AddScoped<SeedService>();
             builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<EventSeedService>();
 
 
         // Cấu hình Swagger/OpenAPI (nếu cần) --> để dễ dàng kiểm thử API -----------------------------------------
             var app = builder.Build(); // Build app
             
-            // Seed admin user và sample events
-            using (var scope = app.Services.CreateScope())
-            {
-                var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
-                await seedService.SeedAdminUserAsync();
-                
-                var eventSeedService = scope.ServiceProvider.GetRequiredService<EventSeedService>();
-                await eventSeedService.SeedSampleEventsAsync();
-            }
 
         if (app.Environment.IsDevelopment())
             {

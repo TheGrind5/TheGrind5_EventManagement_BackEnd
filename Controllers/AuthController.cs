@@ -40,7 +40,7 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
             {
@@ -53,7 +53,14 @@ namespace TheGrind5_EventManagement.Controllers
 
                 var result = await _authService.RegisterAsync(request);
                 
-                return Ok(result);
+                return Ok(new { 
+                    message = "Đăng ký thành công", 
+                    userId = result.UserId,
+                    fullName = result.FullName,
+                    email = result.Email,
+                    phone = result.Phone,
+                    role = result.Role
+                });
             }
             catch (Exception ex)
             {

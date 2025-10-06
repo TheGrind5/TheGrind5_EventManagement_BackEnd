@@ -48,27 +48,34 @@ namespace TheGrind5_EventManagement.Services
 
         public async Task<AuthDTOs.UserReadDto> RegisterAsync(DTOs.RegisterRequest request)
         {
-            var user = new User
+            try
             {
-                Username = request.Username,
-                FullName = request.FullName,
-                Email = request.Email,
-                PasswordHash = HashPassword(request.Password),
-                Phone = request.Phone ?? "",
-                Role = "Customer", // Default role
-                CreatedAt = DateTime.UtcNow
-            };
+                var user = new User
+                {
+                    Username = request.Username,
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    PasswordHash = HashPassword(request.Password),
+                    Phone = request.Phone ?? "",
+                    Role = "Customer", // Default role
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
 
-            return new AuthDTOs.UserReadDto(
-                user.UserId,
-                user.FullName,
-                user.Email,
-                user.Phone,
-                user.Role
-            );
+                return new AuthDTOs.UserReadDto(
+                    user.UserId,
+                    user.FullName,
+                    user.Email,
+                    user.Phone,
+                    user.Role
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in RegisterAsync: {ex.Message}", ex);
+            }
         }
 
         private string HashPassword(string password)

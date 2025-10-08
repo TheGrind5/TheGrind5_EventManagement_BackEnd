@@ -1,74 +1,158 @@
+# 🚀 TheGrind5 Event Management System
 
-# TheGrind5_EventManagement
+## 📁 Cấu trúc Project
 
-# Getting Started with Create React App
+```
+TheGrind5_EventManagement_BackEnd/
+├── 📁 Scripts/                    # Development & Setup Scripts
+│   └── thegrind5-manager.bat     # All-in-one manager (Setup + Development)
+├── 📁 Docker/                     # Docker Configuration
+│   ├── docker-compose.yml         # Full production setup
+│   ├── docker-compose.dev.yml     # Development database
+│   └── Dockerfile                 # Backend container
+├── 📁 Config/                     # Configuration Files
+│   ├── appsettings.Production.json
+│   ├── appsettings.Docker.json
+│   └── env.example                # Environment template
+├── 📁 Documentation/              # Documentation
+│   └── SETUP_GUIDE.md            # Detailed setup guide
+├── 📁 src/                        # Source Code
+│   ├── 📁 Controllers/            # API Controllers
+│   ├── 📁 Services/               # Business Logic
+│   ├── 📁 Models/                 # Data Models
+│   ├── 📁 Data/                    # Database Context
+│   ├── 📁 DTOs/                   # Data Transfer Objects
+│   ├── 📁 Respositories/          # Repository Pattern
+│   ├── 📁 Migrations/             # Database Migrations
+│   ├── 📁 Properties/             # Project Properties
+│   ├── Program.cs                 # Application Entry Point
+│   └── TheGrind5_EventManagement.csproj
+└── 📄 [Other project files...]
+```
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🚀 Quick Start
 
-## Available Scripts
+### **Cách sử dụng (Simplified Menu)**
+```bash
+# Chạy universal manager
+Scripts\thegrind5-manager.bat
 
-In the project directory, you can run:
+# MAIN MENU (6 options đơn giản):
+# 1. Quick Start (Auto-detect everything) - Khuyến nghị
+# 2. Setup Project (First time only)
+# 3. Start Development
+# 4. Stop All Services
+# 5. Check Status
+# 6. Exit
 
-### `npm start`
+# SUB-MENUS (chi tiết khi cần):
+# - Setup Menu: Docker, Local SQL, Express SQL, Prerequisites
+# - Development Menu: Auto-detect, Docker, Local Database
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🛠️ Development Workflow
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### **Daily Development**
+```bash
+# 1. Start development environment
+Scripts\thegrind5-manager.bat
 
-### `npm test`
+# 2. Chọn option 1: Quick Start (Auto-detect everything)
+# Script sẽ tự động start database và services
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### **Manual Development**
+```bash
+# 1. Start database (Docker)
+Docker\docker-compose -f docker-compose.dev.yml up -d db
 
-### `npm run build`
+# 2. Run migrations
+cd src
+dotnet ef database update
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# 3. Start backend
+dotnet run
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# 4. Start frontend (in another terminal)
+cd ../TheGrind5_EventManagement_FrontEnd
+npm start
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📊 Environment Configuration
 
-### `npm run eject`
+### **Development (Default)**
+- Database: Local SQL Server hoặc Docker
+- Port: 5000 (Backend), 3000 (Frontend)
+- Environment: Development
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### **Docker Environment**
+- Database: Docker container
+- Port: 5000 (Backend), 3000 (Frontend)
+- Environment: Docker
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### **Production Environment**
+- Database: Production SQL Server
+- Port: 5000 (Backend), 3000 (Frontend)
+- Environment: Production
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔧 Troubleshooting
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### **Common Issues**
 
-## Learn More
+1. **Scripts không chạy được:**
+   ```bash
+   # Đảm bảo bạn đang ở root directory
+   cd TheGrind5_EventManagement_BackEnd
+   Scripts\setup.bat
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+2. **Database connection failed:**
+   ```bash
+   # Chạy setup script để configure database
+   Scripts\setup.bat
+   # Chọn option phù hợp với setup của bạn
+   ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+3. **Port conflicts:**
+   ```bash
+   # Stop all services
+   Scripts\dev-universal.bat
+   # Chọn option 4: Stop All Services
+   ```
 
-### Code Splitting
+## 📚 Documentation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **Detailed Setup Guide:** `Documentation/SETUP_GUIDE.md`
+- **API Documentation:** http://localhost:5000/swagger (khi chạy backend)
+- **Frontend:** http://localhost:3000 (khi chạy frontend)
 
-### Analyzing the Bundle Size
+## 🎯 Best Practices
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### **Team Development**
+1. Sử dụng Docker setup để đảm bảo consistency
+2. Commit `Config/env.example` file
+3. Không commit `appsettings.json` với credentials thật
 
-### Making a Progressive Web App
+### **Production Deployment**
+1. Sử dụng environment variables
+2. Setup proper database credentials
+3. Enable HTTPS và security features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 📞 Support
 
-### Advanced Configuration
+Nếu gặp vấn đề:
+1. Chạy `Scripts\setup.bat` → option 4: Check Prerequisites
+2. Kiểm tra logs trong console windows
+3. Verify database connection
+4. Check port availability
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
+<<<<<<< HEAD
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 
+=======
+**🎉 Chúc mừng! Project của bạn đã được tổ chức tốt và sẵn sàng cho team development!**
+>>>>>>> origin/master

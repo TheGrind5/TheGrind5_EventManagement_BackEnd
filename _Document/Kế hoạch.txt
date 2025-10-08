@@ -1,0 +1,12 @@
+8/10/25
+Thiên
+
+1. CRUD Event (Dashboard cho Event Host)
+2. Cho phép đăng ảnh
+3. Trong event detail xem danh sách vé
+4. Làm trang order
+5. Thêm thanh search bar, thuật tìm kiếm
+6. Thêm phân loại ngay dưới banner
+7. Chỉ có thằng có role = host mới đc tạo sự kiện
+8. Thông tin order (số lượng)
+9. 

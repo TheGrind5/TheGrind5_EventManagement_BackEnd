@@ -1,0 +1,59 @@
+# 1. ASP.NET Core Web API (QUAN TRỌNG NHẤT - Nền tảng chính)
+https://learn.microsoft.com/en-us/aspnet/core/web-api/
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection
+https://learn.microsoft.com/en-us/aspnet/core/tutorials/first-web-api
+https://codewithmukesh.com/blog/aspnet-core-api-with-jwt-authentication/
+
+# 2. Entity Framework Core (QUAN TRỌNG - Database ORM)
+https://learn.microsoft.com/en-us/ef/core/
+https://learn.microsoft.com/en-us/ef/core/modeling/relationships
+https://learn.microsoft.com/en-us/ef/core/get-started/overview/first-app
+https://www.c-sharpcorner.com/article/entity-framework-core-tutorial/
+
+# 3. JWT Authentication (QUAN TRỌNG - Bảo mật)
+https://jwt.io/introduction
+https://learn.microsoft.com/en-us/aspnet/core/security/authentication/jwt-authn
+https://learn.microsoft.com/en-us/aspnet/core/security/authentication/
+https://codewithmukesh.com/blog/aspnet-core-api-with-jwt-authentication/
+
+# 4. BCrypt Password Hashing (QUAN TRỌNG - Bảo mật)
+https://github.com/BcryptNet/bcrypt.net
+https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity
+https://learn.microsoft.com/en-us/aspnet/core/security/
+https://www.nuget.org/packages/BCrypt.Net-Next/
+
+# 5. CORS (QUAN TRỌNG - Frontend-Backend communication)
+https://learn.microsoft.com/en-us/aspnet/core/security/cors
+https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+https://learn.microsoft.com/en-us/aspnet/core/security/cors
+https://www.c-sharpcorner.com/article/asp-net-core-cors/
+
+# 6. Repository Pattern (QUAN TRỌNG - Architecture)
+https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-implementation
+https://refactoring.guru/design-patterns/repository
+https://www.c-sharpcorner.com/article/asp-net-core-web-api-clean-architecture-with-jwt-authentication/
+https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/
+
+# 7. React Frontend (QUAN TRỌNG - Frontend project)
+https://react.dev/learn
+https://react.dev/
+https://reactjs.org/tutorial/tutorial.html
+https://learn.microsoft.com/en-us/learn/modules/react-get-started/
+
+# 8. Swagger/OpenAPI (HỮU ÍCH - API Documentation)
+https://learn.microsoft.com/en-us/aspnet/core/tutorials/web-api-help-pages-using-swagger
+https://swagger.io/docs/
+https://learn.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle
+https://www.c-sharpcorner.com/article/swagger-in-asp-net-core-web-api/
+
+# 9. Design Patterns (NÂNG CAO - Architecture)
+https://refactoring.guru/design-patterns
+https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures
+https://learn.microsoft.com/en-us/dotnet/standard/design-patterns
+https://learn.microsoft.com/en-us/dotnet/architecture/
+
+# 10. Nguồn học tập tiếng Việt (BỔ TRỢ)
+https://viblo.asia/ - Cộng đồng developer Việt Nam
+https://topdev.vn/blog/ - Blog công nghệ Việt Nam
+https://codelearn.io/ - Học lập trình online
+https://www.howkteam.vn/ - Học lập trình miễn phí

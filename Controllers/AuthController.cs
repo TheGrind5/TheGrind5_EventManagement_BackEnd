@@ -75,5 +75,48 @@ namespace TheGrind5_EventManagement.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
             }
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] DTOs.ForgotPasswordRequest request)
+        {
+            try
+            {
+                var token = await _authService.GeneratePasswordResetTokenAsync(request.Email);
+                
+                if (token == null)
+                {
+                    // Không trả về lỗi để tránh email enumeration attack
+                    return Ok(new DTOs.ForgotPasswordResponse("Nếu email tồn tại, bạn sẽ nhận được link reset password"));
+                }
+
+                // TODO: Gửi email với token (hiện tại chỉ return token để test)
+                // Trong thực tế, nên gửi email thay vì return token
+                return Ok(new DTOs.ForgotPasswordResponse($"Reset token: {token} (Chỉ để test - trong thực tế sẽ gửi email)"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] DTOs.ResetPasswordRequest request)
+        {
+            try
+            {
+                var success = await _authService.ResetPasswordAsync(request.Token, request.NewPassword);
+                
+                if (!success)
+                {
+                    return BadRequest(new { message = "Token không hợp lệ hoặc đã hết hạn" });
+                }
+
+                return Ok(new DTOs.ResetPasswordResponse("Mật khẩu đã được đặt lại thành công"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
+            }
+        }
     }
 }

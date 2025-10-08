@@ -87,5 +87,51 @@ namespace TheGrind5_EventManagement.Services
             var tokenBytes = Encoding.UTF8.GetBytes(tokenData);
             return Convert.ToBase64String(tokenBytes);
         }
+
+        // Forgot Password methods
+        public async Task<string> GeneratePasswordResetTokenAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return null;
+
+            // Tạo reset token
+            var token = GeneratePasswordResetToken();
+            user.PasswordResetToken = token;
+            user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1); // Token expires in 1 hour
+            
+            await _context.SaveChangesAsync();
+            return token;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => 
+                u.PasswordResetToken == token && 
+                u.PasswordResetTokenExpires > DateTime.UtcNow);
+
+            if (user == null)
+                return false;
+
+            // Cập nhật password
+            user.PasswordHash = HashPassword(newPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpires = null;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        private string GeneratePasswordResetToken()
+        {
+            // Tạo random token cho password reset
+            var randomBytes = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            return Convert.ToBase64String(randomBytes);
+        }
     }
 }

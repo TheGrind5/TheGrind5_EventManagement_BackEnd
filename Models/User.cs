@@ -26,6 +26,10 @@ public partial class User
 
     public DateTime? UpdatedAt { get; set; }
 
+    // Password Reset fields
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpires { get; set; }
+
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

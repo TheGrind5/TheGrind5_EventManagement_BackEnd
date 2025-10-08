@@ -14,4 +14,14 @@
         string FullName,
         string? Phone = null
     );
+
+    // Forgot Password DTOs
+    public record ForgotPasswordRequest(string Email);
+    public record ForgotPasswordResponse(string Message);
+    
+    public record ResetPasswordRequest(
+        string Token,
+        string NewPassword
+    );
+    public record ResetPasswordResponse(string Message);
 }

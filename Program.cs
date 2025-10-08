@@ -13,11 +13,11 @@ class Program
         // Thêm các service vào container -----------------------------------------
 
 
-            // Cấu hình EventDbContext với In-Memory Database
+            // Cấu hình EventDbContext với In-Memory Database (tạm thời)
             builder.Services.AddDbContext<EventDBContext>(options =>
             {
-                options.UseInMemoryDatabase("AuthDb");
-                // Sử dụng In-Memory Database để dễ dàng phát triển và kiểm thử
+                options.UseInMemoryDatabase("EventDB");
+                // Sử dụng In-Memory Database để test
             });
 
             builder.Services.AddAuthorization(); // Thêm service ủy quyền    
@@ -49,9 +49,12 @@ class Program
         // Cấu hình Swagger/OpenAPI (nếu cần) --> để dễ dàng kiểm thử API -----------------------------------------
             var app = builder.Build(); // Build app
             
-            // Seed admin user và sample events
+            // Đảm bảo database được tạo và cập nhật schema
             using (var scope = app.Services.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<EventDBContext>();
+                await context.Database.EnsureCreatedAsync();
+                
                 var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
                 await seedService.SeedAdminUserAsync();
                 

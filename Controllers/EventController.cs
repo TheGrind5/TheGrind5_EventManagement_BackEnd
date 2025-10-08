@@ -55,7 +55,7 @@ namespace TheGrind5_EventManagement.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện", error = ex.Message });
             }
         }
-
+   
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEventById(int id)
         {

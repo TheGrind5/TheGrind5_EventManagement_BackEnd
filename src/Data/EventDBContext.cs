@@ -18,6 +18,15 @@ public partial class EventDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        // Sử dụng tên table đúng (không có "s")
+        b.Entity<User>().ToTable("User");
+        b.Entity<Event>().ToTable("Event");
+        b.Entity<Order>().ToTable("Order");
+        b.Entity<OrderItem>().ToTable("OrderItem");
+        b.Entity<Payment>().ToTable("Payment");
+        b.Entity<Ticket>().ToTable("Ticket");
+        b.Entity<TicketType>().ToTable("TicketType");
+        
         ConfigureUserRelationships(b);
         ConfigureEventRelationships(b);
         ConfigureOrderRelationships(b);

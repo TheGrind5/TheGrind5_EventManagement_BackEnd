@@ -90,7 +90,7 @@ namespace TheGrind5_EventManagement.Controllers
                     EndTime = request.EndTime,
                     Location = request.Location,
                     Category = request.Category,
-                    Status = "Active"
+                    Status = "Open"
                 };
 
                 var updatedEvent = await _eventService.UpdateEventAsync(id, eventData);
@@ -158,7 +158,7 @@ namespace TheGrind5_EventManagement.Controllers
                         EndTime = DateTime.Now.AddDays(7).AddHours(8),
                         Location = "Hà Nội",
                         Category = "Technology",
-                        Status = "Active",
+                        Status = "Open",
                         HostId = 1
                     },
                     new Event
@@ -169,7 +169,7 @@ namespace TheGrind5_EventManagement.Controllers
                         EndTime = DateTime.Now.AddDays(14).AddHours(12),
                         Location = "TP.HCM",
                         Category = "Music",
-                        Status = "Active",
+                        Status = "Open",
                         HostId = 1
                     },
                     new Event
@@ -180,7 +180,7 @@ namespace TheGrind5_EventManagement.Controllers
                         EndTime = DateTime.Now.AddDays(21).AddHours(6),
                         Location = "Đà Nẵng",
                         Category = "Business",
-                        Status = "Active",
+                        Status = "Open",
                         HostId = 1
                     }
                 };

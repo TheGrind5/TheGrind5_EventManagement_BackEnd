@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -11,20 +12,27 @@ public partial class TicketType
 
     public int EventId { get; set; }
 
+    [Required]
     public string TypeName { get; set; }
 
+    [Range(0, double.MaxValue, ErrorMessage = "Price must be non-negative")]
     public decimal Price { get; set; }
 
+    [Range(0, int.MaxValue, ErrorMessage = "Quantity must be non-negative")]
     public int Quantity { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "MinOrder must be at least 1")]
     public int? MinOrder { get; set; }
 
     public int? MaxOrder { get; set; }
 
+    [Required]
     public DateTime SaleStart { get; set; }
 
+    [Required]
     public DateTime SaleEnd { get; set; }
 
+    [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be Active or Inactive")]
     public string Status { get; set; }
 
     public virtual Event Event { get; set; }

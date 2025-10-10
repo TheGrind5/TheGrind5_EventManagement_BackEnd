@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Microsoft.EntityFrameworkCore;
 using TheGrind5_EventManagement.Models;
 
@@ -116,3 +116,5 @@ public partial class EventDBContext : DbContext
          .HasPrecision(18, 2);
     }
 }
+
+

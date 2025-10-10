@@ -1,4 +1,4 @@
-namespace TheGrind5_EventManagement.Infrastructure.Services.Password
+namespace TheGrind5_EventManagement.Services
 {
     public class PasswordService : IPasswordService
     {
@@ -13,3 +13,4 @@ namespace TheGrind5_EventManagement.Infrastructure.Services.Password
         }
     }
 }
+

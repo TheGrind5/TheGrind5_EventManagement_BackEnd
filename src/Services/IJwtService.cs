@@ -1,6 +1,6 @@
 using TheGrind5_EventManagement.Models;
 
-namespace TheGrind5_EventManagement.Infrastructure.Services.Jwt
+namespace TheGrind5_EventManagement.Services
 {
     public interface IJwtService
     {
@@ -8,3 +8,4 @@ namespace TheGrind5_EventManagement.Infrastructure.Services.Jwt
         string GenerateToken(User user, DateTime expiresAt);
     }
 }
+

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TheGrind5_EventManagement.DTOs;
-using TheGrind5_EventManagement.Services;
-using TheGrind5_EventManagement.Infrastructure.Repositories;
+using TheGrind5_EventManagement.Business;
+using TheGrind5_EventManagement.Repositories;
 using TheGrind5_EventManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -12,10 +12,10 @@ namespace TheGrind5_EventManagement.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
 
-        public AuthController(AuthService authService, IUserRepository userRepository)
+        public AuthController(IAuthService authService, IUserRepository userRepository)
         {
             _authService = authService;
             _userRepository = userRepository;
@@ -36,7 +36,7 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
             {

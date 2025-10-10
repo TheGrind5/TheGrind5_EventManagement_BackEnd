@@ -1,8 +1,9 @@
 using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.DTOs;
 
-namespace TheGrind5_EventManagement.Infrastructure.Repositories
+namespace TheGrind5_EventManagement.Business
 {
-    public interface IEventRepository
+    public interface IEventService
     {
         Task<List<Event>> GetAllEventsAsync();
         Task<Event?> GetEventByIdAsync(int eventId);
@@ -10,5 +11,9 @@ namespace TheGrind5_EventManagement.Infrastructure.Repositories
         Task<Event?> UpdateEventAsync(int eventId, Event eventData);
         Task<bool> DeleteEventAsync(int eventId);
         Task<List<Event>> GetEventsByHostAsync(int hostId);
+        object MapToEventDto(Event eventData);
+        object MapToEventDetailDto(Event eventData);
+        Event MapFromCreateEventRequest(CreateEventRequest request, int userId);
     }
 }
+

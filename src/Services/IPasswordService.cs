@@ -1,4 +1,4 @@
-namespace TheGrind5_EventManagement.Infrastructure.Services.Password
+namespace TheGrind5_EventManagement.Services
 {
     public interface IPasswordService
     {
@@ -6,3 +6,4 @@ namespace TheGrind5_EventManagement.Infrastructure.Services.Password
         bool VerifyPassword(string password, string hash);
     }
 }
+

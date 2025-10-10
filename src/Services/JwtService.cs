@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using TheGrind5_EventManagement.Models;
 
-namespace TheGrind5_EventManagement.Infrastructure.Services.Jwt
+namespace TheGrind5_EventManagement.Services
 {
     public class JwtService : IJwtService
     {
@@ -65,3 +65,4 @@ namespace TheGrind5_EventManagement.Infrastructure.Services.Jwt
         }
     }
 }
+

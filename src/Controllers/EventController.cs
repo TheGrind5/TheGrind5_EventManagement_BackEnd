@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.DTOs;
-using TheGrind5_EventManagement.Services;
+using TheGrind5_EventManagement.Business;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Linq;
@@ -12,9 +12,9 @@ namespace TheGrind5_EventManagement.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private readonly EventService _eventService;
+        private readonly IEventService _eventService;
 
-        public EventController(EventService eventService)
+        public EventController(IEventService eventService)
         {
             _eventService = eventService;
         }
@@ -56,7 +56,7 @@ namespace TheGrind5_EventManagement.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> CreateEvent([FromBody] DTOs.CreateEventRequest request)
+        public async Task<IActionResult> CreateEvent([FromBody] CreateEventRequest request)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace TheGrind5_EventManagement.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateEvent(int id, [FromBody] DTOs.UpdateEventRequest request)
+        public async Task<IActionResult> UpdateEvent(int id, [FromBody] UpdateEventRequest request)
         {
             try
             {

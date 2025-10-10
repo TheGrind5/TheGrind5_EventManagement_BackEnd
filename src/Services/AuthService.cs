@@ -1,13 +1,12 @@
-using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Models;
-using TheGrind5_EventManagement.Infrastructure.Repositories;
-using TheGrind5_EventManagement.Infrastructure.Services.Jwt;
-using TheGrind5_EventManagement.Infrastructure.Services.Password;
-using TheGrind5_EventManagement.Infrastructure.Services.Mappers;
+using TheGrind5_EventManagement.Repositories;
+using TheGrind5_EventManagement.Business;
+using TheGrind5_EventManagement.Mappers;
+using TheGrind5_EventManagement.DTOs;
 
 namespace TheGrind5_EventManagement.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
@@ -56,3 +55,5 @@ namespace TheGrind5_EventManagement.Services
 
     }
 }
+
+

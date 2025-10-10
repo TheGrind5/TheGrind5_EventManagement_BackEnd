@@ -1,6 +1,6 @@
-﻿using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.Models;
 
-namespace TheGrind5_EventManagement.Infrastructure.Repositories
+namespace TheGrind5_EventManagement.Repositories
 {
     public interface IUserRepository
     {
@@ -12,3 +12,5 @@ namespace TheGrind5_EventManagement.Infrastructure.Repositories
         Task<bool> IsEmailExistsAsync(string email);
     }
 }
+
+

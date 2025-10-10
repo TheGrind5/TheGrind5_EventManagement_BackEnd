@@ -1,11 +1,12 @@
 using TheGrind5_EventManagement.Models;
-using TheGrind5_EventManagement.Infrastructure.Repositories;
+using TheGrind5_EventManagement.Repositories;
 using TheGrind5_EventManagement.DTOs;
-using TheGrind5_EventManagement.Infrastructure.Services.Mappers;
+using TheGrind5_EventManagement.Mappers;
+using TheGrind5_EventManagement.Business;
 
 namespace TheGrind5_EventManagement.Services;
 
-public class EventService
+public class EventService : IEventService
 {
     private readonly IEventRepository _eventRepository;
     private readonly IEventMapper _eventMapper;
@@ -62,3 +63,5 @@ public class EventService
     }
 
 }
+
+

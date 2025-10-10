@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.Models;
 
-namespace TheGrind5_EventManagement.Infrastructure.Repositories
+namespace TheGrind5_EventManagement.Repositories
 {
     public class EventRepository : IEventRepository
     {
@@ -77,3 +77,5 @@ namespace TheGrind5_EventManagement.Infrastructure.Repositories
         }
     }
 }
+
+

@@ -1,7 +1,7 @@
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.DTOs;
 
-namespace TheGrind5_EventManagement.Infrastructure.Services.Mappers
+namespace TheGrind5_EventManagement.Mappers
 {
     public interface IEventMapper
     {
@@ -10,3 +10,5 @@ namespace TheGrind5_EventManagement.Infrastructure.Services.Mappers
         Event MapFromCreateEventRequest(CreateEventRequest request, int userId);
     }
 }
+
+

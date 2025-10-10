@@ -1,8 +1,8 @@
-﻿using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace TheGrind5_EventManagement.Infrastructure.Repositories
+namespace TheGrind5_EventManagement.Repositories
 {
     public class UserRepository : IUserRepository
     {
@@ -62,3 +62,5 @@ namespace TheGrind5_EventManagement.Infrastructure.Repositories
         }
     }
 }
+
+

@@ -1,4 +1,4 @@
-# 🚀 TheGrind5 Event Management System
+# TheGrind5 Event Management System
 
 ## 📁 Cấu trúc Project
 

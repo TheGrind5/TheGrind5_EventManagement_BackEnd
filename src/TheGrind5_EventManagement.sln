@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheGrind5_EventManagement", "TheGrind5_EventManagement.csproj", "{FEF5AC6E-3950-D2D8-2248-2FE3CB9B26B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEF5AC6E-3950-D2D8-2248-2FE3CB9B26B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEF5AC6E-3950-D2D8-2248-2FE3CB9B26B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEF5AC6E-3950-D2D8-2248-2FE3CB9B26B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEF5AC6E-3950-D2D8-2248-2FE3CB9B26B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {42E0FF14-E608-49E4-9EB1-C848350711F7}
+	EndGlobalSection
+EndGlobal

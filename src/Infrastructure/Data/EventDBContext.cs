@@ -18,6 +18,16 @@ public partial class EventDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        ConfigureUserRelationships(b);
+        ConfigureEventRelationships(b);
+        ConfigureOrderRelationships(b);
+        ConfigureTicketRelationships(b);
+        ConfigurePaymentRelationships(b);
+        ConfigureDecimalPrecision(b);
+    }
+
+    private void ConfigureUserRelationships(ModelBuilder b)
+    {
         // Event -> Host (User) : required, KHÔNG cascade xóa Event khi xóa Host
         b.Entity<Event>()
          .HasOne(e => e.Host)
@@ -31,7 +41,20 @@ public partial class EventDBContext : DbContext
          .WithMany(u => u.Orders)
          .HasForeignKey(o => o.CustomerId)
          .OnDelete(DeleteBehavior.Restrict);
+    }
 
+    private void ConfigureEventRelationships(ModelBuilder b)
+    {
+        // TicketType -> Event : required, không cascade
+        b.Entity<TicketType>()
+         .HasOne(tt => tt.Event)
+         .WithMany(e => e.TicketTypes)
+         .HasForeignKey(tt => tt.EventId)
+         .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    private void ConfigureOrderRelationships(ModelBuilder b)
+    {
         // OrderItem -> Order : required, không cascade
         b.Entity<OrderItem>()
          .HasOne(oi => oi.Order)
@@ -45,7 +68,10 @@ public partial class EventDBContext : DbContext
          .WithMany(tt => tt.OrderItems)
          .HasForeignKey(oi => oi.TicketTypeId)
          .OnDelete(DeleteBehavior.Restrict);
+    }
 
+    private void ConfigureTicketRelationships(ModelBuilder b)
+    {
         // Ticket -> TicketType : required, không cascade
         b.Entity<Ticket>()
          .HasOne(t => t.TicketType)
@@ -59,14 +85,10 @@ public partial class EventDBContext : DbContext
          .WithMany(oi => oi.Tickets)
          .HasForeignKey(t => t.OrderItemId)
          .OnDelete(DeleteBehavior.SetNull);
+    }
 
-        // TicketType -> Event : required, không cascade
-        b.Entity<TicketType>()
-         .HasOne(tt => tt.Event)
-         .WithMany(e => e.TicketTypes)
-         .HasForeignKey(tt => tt.EventId)
-         .OnDelete(DeleteBehavior.Restrict);
-
+    private void ConfigurePaymentRelationships(ModelBuilder b)
+    {
         // Payment -> Order : required, không cascade
         b.Entity<Payment>()
          .HasOne(p => p.Order)
@@ -77,5 +99,20 @@ public partial class EventDBContext : DbContext
         // Cấu hình Primary Key cho Payment
         b.Entity<Payment>()
          .HasKey(p => p.PaymentId);
+    }
+
+    private void ConfigureDecimalPrecision(ModelBuilder b)
+    {
+        b.Entity<Order>()
+         .Property(o => o.Amount)
+         .HasPrecision(18, 2);
+
+        b.Entity<Payment>()
+         .Property(p => p.Amount)
+         .HasPrecision(18, 2);
+
+        b.Entity<TicketType>()
+         .Property(tt => tt.Price)
+         .HasPrecision(18, 2);
     }
 }

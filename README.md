@@ -32,22 +32,22 @@ TheGrind5_EventManagement_BackEnd/
 
 ## 🚀 Quick Start
 
-### **Cách sử dụng (Simplified Menu)**
+### **Cách sử dụng (SQL Server Express Optimized)**
 ```bash
 # Chạy universal manager
 Scripts\thegrind5-manager.bat
 
 # MAIN MENU (6 options đơn giản):
-# 1. Quick Start (Auto-detect everything) - Khuyến nghị
-# 2. Setup Project (First time only)
+# 1. Quick Start (Auto-detect + SQL Express) - Khuyến nghị
+# 2. Setup with SQL Server Express - Khuyến nghị
 # 3. Start Development
 # 4. Stop All Services
 # 5. Check Status
 # 6. Exit
 
 # SUB-MENUS (chi tiết khi cần):
-# - Setup Menu: Docker, Local SQL, Express SQL, Prerequisites
-# - Development Menu: Auto-detect, Docker, Local Database
+# - Setup Menu: SQL Express (Recommended), Docker, Local SQL, Prerequisites
+# - Development Menu: Auto-detect (SQL Express preferred), SQL Express, Docker, Local Database
 ```
 
 ## 🛠️ Development Workflow
@@ -57,8 +57,8 @@ Scripts\thegrind5-manager.bat
 # 1. Start development environment
 Scripts\thegrind5-manager.bat
 
-# 2. Chọn option 1: Quick Start (Auto-detect everything)
-# Script sẽ tự động start database và services
+# 2. Chọn option 1: Quick Start (Auto-detect + SQL Express)
+# Script sẽ tự động detect SQL Server Express và start services
 ```
 
 ### **Manual Development**
@@ -138,10 +138,36 @@ npm start
 2. Setup proper database credentials
 3. Enable HTTPS và security features
 
+## 🚀 Simple All-in-One Script
+
+### Single Script for Everything:
+```bash
+# Main script with all features
+Scripts\thegrind5.bat
+```
+
+### Features:
+- **Setup Environment** (First time only)
+- **Start Development** (Backend + Frontend)
+- **Stop All Services** (Clean shutdown)
+- **Check Status** (System health check)
+
+### Quick Usage:
+```bash
+# Run the script
+Scripts\thegrind5.bat
+
+# Then choose:
+# 1. Setup Environment (first time)
+# 2. Start Development (daily use)
+# 3. Stop All Services (when done)
+# 4. Check Status (troubleshooting)
+```
+
 ## 📞 Support
 
 Nếu gặp vấn đề:
-1. Chạy `Scripts\setup.bat` → option 4: Check Prerequisites
+1. Chạy `Scripts\thegrind5.bat` → option 4 (Check Status)
 2. Kiểm tra logs trong console windows
 3. Verify database connection
 4. Check port availability

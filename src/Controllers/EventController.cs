@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Linq;
 
 namespace TheGrind5_EventManagement.Controllers
 {
@@ -26,28 +25,7 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 var events = await _eventService.GetAllEventsAsync();
-                
-                var eventDtos = events.Select(e => new
-                {
-                    e.EventId,
-                    e.Title,
-                    e.Description,
-                    e.StartTime,
-                    e.EndTime,
-                    e.Location,
-                    e.Category,
-                    e.Status,
-                    HostName = e.Host?.FullName,
-                    TicketTypes = e.TicketTypes?.Where(tt => tt.Status == "Active").Select(tt => new
-                    {
-                        tt.TicketTypeId,
-                        tt.TypeName,
-                        tt.Price,
-                        tt.Quantity,
-                        tt.Status
-                    })
-                }).ToList();
-
+                var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
                 return Ok(eventDtos);
             }
             catch (Exception ex)
@@ -61,41 +39,14 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                if (id <= 0)
+                    return BadRequest(new { message = "ID sự kiện không hợp lệ" });
+
                 var eventData = await _eventService.GetEventByIdAsync(id);
-
                 if (eventData == null)
-                {
                     return NotFound(new { message = "Không tìm thấy sự kiện" });
-                }
 
-                var eventDto = new
-                {
-                    eventData.EventId,
-                    eventData.Title,
-                    eventData.Description,
-                    eventData.StartTime,
-                    eventData.EndTime,
-                    eventData.Location,
-                    eventData.Category,
-                    eventData.Status,
-                    eventData.CreatedAt,
-                    HostName = eventData.Host?.FullName,
-                    HostEmail = eventData.Host?.Email,
-                    TicketTypes = eventData.TicketTypes?.Where(tt => tt.Status == "Active").Select(tt => new
-                    {
-                        tt.TicketTypeId,
-                        tt.TypeName,
-                        tt.Price,
-                        tt.Quantity,
-                        tt.MinOrder,
-                        tt.MaxOrder,
-                        tt.SaleStart,
-                        tt.SaleEnd,
-                        tt.Status
-                    })
-                };
-
-                return Ok(eventDto);
+                return Ok(_eventService.MapToEventDetailDto(eventData));
             }
             catch (Exception ex)
             {
@@ -109,26 +60,11 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                // Lấy user ID từ JWT token
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-                {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
-                }
 
-                var eventData = new Event
-                {
-                    HostId = userId,
-                    Title = request.Title,
-                    Description = request.Description,
-                    StartTime = request.StartTime,
-                    EndTime = request.EndTime,
-                    Location = request.Location,
-                    Category = request.Category,
-                    Status = "Active",
-                    CreatedAt = DateTime.UtcNow
-                };
-
+                var eventData = _eventService.MapFromCreateEventRequest(request, userId.Value);
                 var createdEvent = await _eventService.CreateEventAsync(eventData);
 
                 return Ok(new { message = "Tạo sự kiện thành công", eventId = createdEvent?.EventId });
@@ -197,28 +133,7 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 var events = await _eventService.GetEventsByHostAsync(hostId);
-                
-                var eventDtos = events.Select(e => new
-                {
-                    e.EventId,
-                    e.Title,
-                    e.Description,
-                    e.StartTime,
-                    e.EndTime,
-                    e.Location,
-                    e.Category,
-                    e.Status,
-                    HostName = e.Host?.FullName,
-                    TicketTypes = e.TicketTypes?.Select(tt => new
-                    {
-                        tt.TicketTypeId,
-                        tt.TypeName,
-                        tt.Price,
-                        tt.Quantity,
-                        tt.Status
-                    })
-                }).ToList();
-
+                var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
                 return Ok(eventDtos);
             }
             catch (Exception ex)
@@ -227,5 +142,66 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        [HttpPost("seed")]
+        public async Task<IActionResult> SeedSampleEvents()
+        {
+            try
+            {
+                // Tạo một số sự kiện mẫu
+                var sampleEvents = new List<Event>
+                {
+                    new Event
+                    {
+                        Title = "Tech Conference 2024",
+                        Description = "Hội nghị công nghệ lớn nhất năm",
+                        StartTime = DateTime.Now.AddDays(7),
+                        EndTime = DateTime.Now.AddDays(7).AddHours(8),
+                        Location = "Hà Nội",
+                        Category = "Technology",
+                        Status = "Active",
+                        HostId = 1
+                    },
+                    new Event
+                    {
+                        Title = "Music Festival",
+                        Description = "Lễ hội âm nhạc với nhiều nghệ sĩ nổi tiếng",
+                        StartTime = DateTime.Now.AddDays(14),
+                        EndTime = DateTime.Now.AddDays(14).AddHours(12),
+                        Location = "TP.HCM",
+                        Category = "Music",
+                        Status = "Active",
+                        HostId = 1
+                    },
+                    new Event
+                    {
+                        Title = "Startup Pitch Competition",
+                        Description = "Cuộc thi thuyết trình ý tưởng khởi nghiệp",
+                        StartTime = DateTime.Now.AddDays(21),
+                        EndTime = DateTime.Now.AddDays(21).AddHours(6),
+                        Location = "Đà Nẵng",
+                        Category = "Business",
+                        Status = "Active",
+                        HostId = 1
+                    }
+                };
+
+                foreach (var eventData in sampleEvents)
+                {
+                    await _eventService.CreateEventAsync(eventData);
+                }
+
+                return Ok(new { message = "Đã tạo thành công các sự kiện mẫu", count = sampleEvents.Count });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi tạo sự kiện mẫu", error = ex.Message });
+            }
+        }
+
+        private int? GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdClaim, out int userId) ? userId : null;
+        }
     }
 }

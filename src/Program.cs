@@ -1,97 +1,81 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TheGrind5_EventManagement.Models;
-using TheGrind5_EventManagement.Data;
-using TheGrind5_EventManagement.Respositories;
-using TheGrind5_EventManagement.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TheGrind5_EventManagement.Data;
+using TheGrind5_EventManagement.Infrastructure.Repositories;
+using TheGrind5_EventManagement.Infrastructure.Services.Jwt;
+using TheGrind5_EventManagement.Infrastructure.Services.Password;
+using TheGrind5_EventManagement.Infrastructure.Services.Mappers;
+using TheGrind5_EventManagement.Services;
 
-namespace TheGrind5_EventManagement;
+var builder = WebApplication.CreateBuilder(args);
 
-class Program
-{
-    public static void Main(string[] args)
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
     {
-        var builder = WebApplication.CreateBuilder(args); // Tạo builder -> cấu hình app 
-        
-        // Thêm các service vào container -----------------------------------------
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<EventDBContext>(options =>
+{
+    var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrEmpty(conn))
+        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    
+    options.UseSqlServer(conn);
+});
 
-            // Cấu hình EventDbContext với SQL Server Database
-            builder.Services.AddDbContext<EventDBContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-                // Sử dụng SQL Server Database thật
-            });
+// Repository Layer
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
 
-            // Cấu hình JWT Authentication
-            var jwtKey = builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
-            var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TheGrind5_EventManagement";
-            var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TheGrind5_EventManagement_Users";
+// Service Layer
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<IUserMapper, UserMapper>();
+builder.Services.AddScoped<IEventMapper, EventMapper>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<EventService>();
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtIssuer,
-                        ValidAudience = jwtAudience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                        ClockSkew = TimeSpan.Zero
-                    };
-                });
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
 
-            builder.Services.AddAuthorization(); // Thêm service ủy quyền    
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
-            // Cấu hình JSON serialization để giữ nguyên case
-            builder.Services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên case
-                });
-            builder.Services.AddEndpointsApiExplorer(); // Thêm service explore endpoint API để làm việc với Swagger
-            builder.Services.AddSwaggerGen(); // Thêm service Swagger để tạo tài liệu API
-            
-            // Cấu hình CORS để cho phép frontend gọi API
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend", policy =>
-                {
-                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
+var app = builder.Build();
 
-            // Đăng ký Repository
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            
-            // Đăng ký Services
-            builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<EventService>();
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
-
-        // Cấu hình Swagger/OpenAPI (nếu cần) --> để dễ dàng kiểm thử API -----------------------------------------
-            var app = builder.Build(); // Build app
-            
-
-        if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger(); // Kích hoạt Swagger trong môi trường phát triển
-                app.UseSwaggerUI(); // Kích hoạt giao diện người dùng Swagger
-             }
-
-            app.UseHttpsRedirection(); // Thêm middleware chuyển hướng HTTP sang HTTPS
-            app.UseCors("AllowFrontend"); // Sử dụng CORS policy
-            app.UseAuthentication(); // Thêm middleware authentication
-            app.UseAuthorization(); // Thêm middleware authorization
-
-            app.MapControllers();   // Map các controller
-            app.Run();              // Chạy ứng dụng
-    }
-}
+app.Run();

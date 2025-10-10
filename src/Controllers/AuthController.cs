@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Services;
-using TheGrind5_EventManagement.Data;
+using TheGrind5_EventManagement.Infrastructure.Repositories;
 using TheGrind5_EventManagement.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -16,93 +13,38 @@ namespace TheGrind5_EventManagement.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
-        private readonly EventDBContext _context;
+        private readonly IUserRepository _userRepository;
 
-        public AuthController(AuthService authService, EventDBContext context)
+        public AuthController(AuthService authService, IUserRepository userRepository)
         {
             _authService = authService;
-            _context = context;
+            _userRepository = userRepository;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthDTOs.LoginRequest request)
         {
-            try
-            {
-                // Debug logging
-                Console.WriteLine($"Login attempt - Email: '{request?.Email}', Password: '{request?.Password}'");
-                
-                // Check if request is null
-                if (request == null)
-                {
-                    Console.WriteLine("Request is null");
-                    return BadRequest(new { message = "Request body không hợp lệ" });
-                }
+            if (!IsValidLoginRequest(request))
+                return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
 
-                // Validate input
-                if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                {
-                    Console.WriteLine($"Validation failed - Email: '{request.Email}', Password: '{request.Password}'");
-                    return BadRequest(new { message = "Email và mật khẩu không được để trống" });
-                }
+            var result = await _authService.LoginAsync(request.Email!, request.Password!);
+            
+            if (result == null)
+                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
 
-                // Basic email validation
-                if (!request.Email.Contains("@") || !request.Email.Contains("."))
-                {
-                    Console.WriteLine($"Email validation failed: '{request.Email}'");
-                    return BadRequest(new { message = "Email không hợp lệ" });
-                }
-
-                var result = await _authService.LoginAsync(request.Email, request.Password);
-                
-                if (result == null)
-                {
-                    return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
-                }
-
-                // Trả về format phù hợp với frontend
-                return Ok(new {
-                    user = new {
-                        userId = result.User.UserId,
-                        fullName = result.User.FullName,
-                        email = result.User.Email,
-                        phone = result.User.Phone,
-                        role = result.User.Role
-                    },
-                    AccessToken = result.AccessToken,
-                    ExpiresAt = result.ExpiresAt
-                });
-            }
-            catch (Exception ex)
-            {
-                // Log the exception (in production, use proper logging)
-                Console.WriteLine($"Login error: {ex.Message}");
-                return BadRequest(new { message = "Có lỗi xảy ra khi đăng nhập", error = ex.Message });
-            }
+            return Ok(CreateLoginResponse(result));
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request)
         {
             try
             {
-                // Kiểm tra email đã tồn tại chưa
-                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-                if (existingUser != null)
-                {
+                if (await _userRepository.IsEmailExistsAsync(request.Email))
                     return BadRequest(new { message = "Email này đã được sử dụng" });
-                }
 
                 var result = await _authService.RegisterAsync(request);
-                
-                return Ok(new { 
-                    message = "Đăng ký thành công", 
-                    userId = result.UserId,
-                    fullName = result.FullName,
-                    email = result.Email,
-                    phone = result.Phone,
-                    role = result.Role
-                });
+                return Ok(CreateRegisterResponse(result));
             }
             catch (Exception ex)
             {
@@ -116,29 +58,15 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                // Lấy user ID từ JWT token
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-                {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
-                }
 
-                var user = await _context.Users.FindAsync(userId);
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
                 if (user == null)
-                {
                     return NotFound(new { message = "Không tìm thấy user" });
-                }
 
-                var userDto = new
-                {
-                    userId = user.UserId,
-                    fullName = user.FullName,
-                    email = user.Email,
-                    phone = user.Phone,
-                    role = user.Role
-                };
-
-                return Ok(userDto);
+                return Ok(CreateUserDto(user));
             }
             catch (Exception ex)
             {
@@ -151,22 +79,11 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                var user = await _context.Users.FindAsync(userId);
+                var user = await _userRepository.GetUserByIdAsync(userId);
                 if (user == null)
-                {
                     return NotFound(new { message = "Không tìm thấy user" });
-                }
 
-                var userDto = new
-                {
-                    userId = user.UserId,
-                    fullName = user.FullName,
-                    email = user.Email,
-                    phone = user.Phone,
-                    role = user.Role
-                };
-
-                return Ok(userDto);
+                return Ok(CreateUserDto(user));
             }
             catch (Exception ex)
             {
@@ -180,7 +97,7 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 // Kiểm tra xem admin đã tồn tại chưa
-                var existingAdmin = await _context.Users.FirstOrDefaultAsync(u => u.Role == "Admin");
+                var existingAdmin = await _userRepository.GetUserByEmailAsync("admin@test.com");
                 if (existingAdmin != null)
                 {
                     return Ok(new { 
@@ -202,8 +119,7 @@ namespace TheGrind5_EventManagement.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Users.Add(adminUser);
-                await _context.SaveChangesAsync();
+                await _userRepository.CreateUserAsync(adminUser);
 
                 return Ok(new { 
                     message = "Admin user created successfully", 
@@ -220,6 +136,62 @@ namespace TheGrind5_EventManagement.Controllers
         private string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        private bool IsValidLoginRequest(AuthDTOs.LoginRequest request)
+        {
+            return request != null && 
+                   !string.IsNullOrWhiteSpace(request.Email) && 
+                   !string.IsNullOrWhiteSpace(request.Password) &&
+                   request.Email.Contains("@");
+        }
+
+        private int? GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdClaim, out int userId) ? userId : null;
+        }
+
+        private object CreateUserDto(User user)
+        {
+            return new
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Role = user.Role
+            };
+        }
+
+        private object CreateLoginResponse(AuthDTOs.LoginResponse result)
+        {
+            return new
+            {
+                User = new
+                {
+                    UserId = result.User.UserId,
+                    FullName = result.User.FullName,
+                    Email = result.User.Email,
+                    Phone = result.User.Phone,
+                    Role = result.User.Role
+                },
+                AccessToken = result.AccessToken,
+                ExpiresAt = result.ExpiresAt
+            };
+        }
+
+        private object CreateRegisterResponse(AuthDTOs.UserReadDto result)
+        {
+            return new
+            {
+                Message = "Đăng ký thành công",
+                UserId = result.UserId,
+                FullName = result.FullName,
+                Email = result.Email,
+                Phone = result.Phone,
+                Role = result.Role
+            };
         }
     }
 }

@@ -12,9 +12,9 @@ graph TD
     REACT_APP["REACT APP - ENTRY POINT<br/>Tôi cần khởi động ứng dụng frontend<br/>Cần: React Router để điều hướng<br/>Cần: AuthContext để quản lý state<br/>Cần: API service để gọi backend<br/>Làm: Render App component<br/>Làm: Setup routing và context providers<br/>ĐỂ LÀM GÌ: Khởi động React app, setup routing và state management"]
     
     %% FRONTEND SERVICES - MIDDLE (REORDERED)
-    AUTH_CONTEXT["AUTH CONTEXT - STATE MANAGEMENT<br/>Tôi cần quản lý authentication state<br/>Cần: React Context API<br/>Cần: localStorage để persist token<br/>Làm: Store user info và token<br/>Làm: Provide login/logout functions<br/>Làm: Check authentication status<br/>ĐỂ LÀM GÌ: Quản lý trạng thái đăng nhập cho toàn bộ app"]
+    AUTH_CONTEXT["AUTH CONTEXT - STATE MANAGEMENT<br/>Tôi cần quản lý authentication state<br/>Cần: React Context API<br/>Cần: localStorage để persist token<br/>Làm: Store user info và token<br/>Làm: Provide login/logout/register functions<br/>Làm: Check authentication status<br/>Làm: Handle loading states<br/>ĐỂ LÀM GÌ: Quản lý trạng thái đăng nhập cho toàn bộ app"]
     
-    API_SERVICE["API SERVICE - HTTP CLIENT<br/>Tôi cần giao tiếp với backend API<br/>Cần: Axios để gửi HTTP requests<br/>Cần: JWT token để authentication<br/>Làm: Setup base URL và headers<br/>Làm: Handle authentication tokens<br/>Làm: Handle API responses và errors<br/>ĐỂ LÀM GÌ: Cung cấp interface để frontend gọi backend API"]
+    API_SERVICE["API SERVICE - HTTP CLIENT<br/>Tôi cần giao tiếp với backend API<br/>Cần: Fetch API để gửi HTTP requests<br/>Cần: JWT token để authentication<br/>Làm: Setup base URL và headers<br/>Làm: Handle authentication tokens<br/>Làm: Handle API responses và errors<br/>Làm: authAPI - login, register, getUser<br/>Làm: eventsAPI - CRUD operations<br/>ĐỂ LÀM GÌ: Cung cấp interface để frontend gọi backend API"]
     
     %% FRONTEND PAGES - REORDERED TO AVOID CROSSING
     LOGIN_PAGE["LOGIN PAGE<br/>Tôi cần xử lý đăng nhập user<br/>Cần: AuthContext để quản lý login state<br/>Cần: API service để gọi login endpoint<br/>Làm: Validate form input<br/>Làm: Gọi API login<br/>Làm: Lưu token vào localStorage<br/>ĐỂ LÀM GÌ: Cho phép user đăng nhập vào hệ thống"]
@@ -33,24 +33,24 @@ graph TD
     PROTECTED_ROUTE["PROTECTED ROUTE COMPONENT<br/>Tôi cần bảo vệ các routes yêu cầu đăng nhập<br/>Cần: AuthContext để check authentication<br/>Cần: React Router để redirect<br/>Làm: Check user đã login chưa<br/>Làm: Redirect đến login nếu chưa login<br/>Làm: Render protected content nếu đã login<br/>ĐỂ LÀM GÌ: Đảm bảo chỉ user đã đăng nhập mới truy cập được protected pages"]
     
     %% BACKEND ENTRY POINT - SEPARATE SECTION
-    PROG["PROGRAM.CS - ENTRY POINT<br/>Tôi cần khởi động ứng dụng<br/>Cần: Database connection string<br/>Cần: JWT secret key và config<br/>Cần: CORS policy cho frontend<br/>Cần: Đăng ký tất cả services vào DI container<br/>Làm: Configure middleware pipeline<br/>ĐỂ LÀM GÌ: Khởi động web server, config tất cả dependencies"]
+    PROG["PROGRAM.CS - ENTRY POINT<br/>Tôi cần khởi động ứng dụng<br/>Cần: Database connection string<br/>Cần: JWT secret key và config<br/>Cần: CORS policy cho frontend<br/>Cần: Đăng ký tất cả services vào DI container<br/>Làm: Configure middleware pipeline<br/>Làm: AddDatabase, AddRepositories, AddInfrastructureServices<br/>Làm: AddApplicationServices, AddCorsPolicy<br/>ĐỂ LÀM GÌ: Khởi động web server, config tất cả dependencies"]
     
     %% CONTROLLERS
-    AUTH_CTRL["AUTH CONTROLLER<br/>Tôi cần xử lý HTTP requests cho authentication<br/>Cần: AuthService để xử lý business logic<br/>Làm: Nhận POST /api/auth/login<br/>Làm: Nhận POST /api/auth/register<br/>Làm: Nhận GET /api/auth/me<br/>Làm: Trả về JSON response cho client<br/>ĐỂ LÀM GÌ: Cho phép user đăng nhập/đăng ký và lấy thông tin cá nhân"]
+    AUTH_CTRL["AUTH CONTROLLER<br/>Tôi cần xử lý HTTP requests cho authentication<br/>Cần: AuthService để xử lý business logic<br/>Làm: Nhận POST /api/auth/login<br/>Làm: Nhận POST /api/auth/register<br/>Làm: Nhận GET /api/auth/me<br/>Làm: Nhận GET /api/auth/user/{userId}<br/>Làm: Nhận POST /api/auth/seed-admin<br/>Làm: Trả về JSON response cho client<br/>ĐỂ LÀM GÌ: Cho phép user đăng nhập/đăng ký và lấy thông tin cá nhân"]
     
-    EVENT_CTRL["EVENT CONTROLLER<br/>Tôi cần xử lý HTTP requests cho events<br/>Cần: EventService để xử lý business logic<br/>Làm: Nhận GET /api/event (lấy danh sách)<br/>Làm: Nhận POST /api/event (tạo mới)<br/>Làm: Nhận PUT /api/event/{id} (cập nhật)<br/>Làm: Nhận DELETE /api/event/{id} (xóa)<br/>ĐỂ LÀM GÌ: Cho phép user quản lý sự kiện (xem, tạo, sửa, xóa)"]
+    EVENT_CTRL["EVENT CONTROLLER<br/>Tôi cần xử lý HTTP requests cho events<br/>Cần: EventService để xử lý business logic<br/>Làm: Nhận GET /api/event (lấy danh sách)<br/>Làm: Nhận GET /api/event/{id} (lấy chi tiết)<br/>Làm: Nhận POST /api/event (tạo mới)<br/>Làm: Nhận PUT /api/event/{id} (cập nhật)<br/>Làm: Nhận DELETE /api/event/{id} (xóa)<br/>Làm: Nhận GET /api/event/host/{hostId}<br/>Làm: Nhận POST /api/event/seed<br/>ĐỂ LÀM GÌ: Cho phép user quản lý sự kiện (xem, tạo, sửa, xóa)"]
     
-    %% CORE SERVICES
+    %% CORE SERVICES - UPDATED STRUCTURE
     AUTH_SVC["AUTH SERVICE - BUSINESS LOGIC<br/>Tôi cần xử lý logic đăng nhập và đăng ký<br/>Cần: UserRepository để truy cập database<br/>Cần: JwtService để tạo token<br/>Cần: PasswordService để hash password<br/>Cần: UserMapper để chuyển đổi dữ liệu<br/>Làm: Validate email/password<br/>Làm: Hash password với BCrypt<br/>Làm: Tạo JWT token với user info<br/>Làm: Trả về LoginResponse với token<br/>ĐỂ LÀM GÌ: Xác thực user và tạo session token để truy cập hệ thống"]
     
     EVENT_SVC["EVENT SERVICE - BUSINESS LOGIC<br/>Tôi cần xử lý logic quản lý sự kiện<br/>Cần: EventRepository để truy cập database<br/>Cần: EventMapper để chuyển đổi dữ liệu<br/>Làm: Validate event data<br/>Làm: Map DTO thành Entity<br/>Làm: Gọi repository để lưu/xóa/cập nhật<br/>Làm: Map Entity thành DTO để trả về<br/>ĐỂ LÀM GÌ: Quản lý lifecycle của sự kiện từ tạo đến xóa"]
     
-    %% INFRASTRUCTURE - AUTH SIDE
-    USER_REPO["USER REPOSITORY - DATA ACCESS<br/>Tôi cần truy cập bảng Users trong database<br/>Cần: EventDBContext để thực hiện SQL queries<br/>Làm: GetUserByEmailAsync - tìm user theo email<br/>Làm: CreateUserAsync - tạo user mới<br/>Làm: GetUserByIdAsync - tìm user theo ID<br/>Làm: IsEmailExistsAsync - kiểm tra email đã tồn tại<br/>ĐỂ LÀM GÌ: Lưu trữ và truy xuất thông tin user từ database"]
-    
     JWT_SVC["JWT SERVICE - TOKEN GENERATION<br/>Tôi cần tạo và verify JWT tokens<br/>Cần: JWT secret key từ configuration<br/>Cần: JWT issuer và audience config<br/>Làm: GenerateToken - tạo token từ user info<br/>Làm: ValidateToken - verify token hợp lệ<br/>Làm: Extract claims từ token<br/>ĐỂ LÀM GÌ: Tạo session token để user không cần đăng nhập lại"]
     
     PASS_SVC["PASSWORD SERVICE - SECURITY<br/>Tôi cần hash và verify passwords<br/>Cần: BCrypt library để hash passwords<br/>Làm: HashPassword - hash password với salt<br/>Làm: VerifyPassword - so sánh password với hash<br/>Làm: Đảm bảo password an toàn<br/>ĐỂ LÀM GÌ: Bảo mật password user, không lưu plain text"]
+    
+    %% INFRASTRUCTURE - AUTH SIDE
+    USER_REPO["USER REPOSITORY - DATA ACCESS<br/>Tôi cần truy cập bảng Users trong database<br/>Cần: EventDBContext để thực hiện SQL queries<br/>Làm: GetUserByEmailAsync - tìm user theo email<br/>Làm: CreateUserAsync - tạo user mới<br/>Làm: GetUserByIdAsync - tìm user theo ID<br/>Làm: IsEmailExistsAsync - kiểm tra email đã tồn tại<br/>ĐỂ LÀM GÌ: Lưu trữ và truy xuất thông tin user từ database"]
     
     USER_MAP["USER MAPPER - DATA TRANSFORMATION<br/>Tôi cần chuyển đổi giữa Entity và DTO<br/>Cần: User entity từ database<br/>Cần: RegisterRequest từ client<br/>Làm: MapToUserReadDto - Entity → DTO<br/>Làm: MapFromRegisterRequest - DTO → Entity<br/>Làm: Ẩn password hash khỏi response<br/>ĐỂ LÀM GÌ: Chuyển đổi dữ liệu giữa database và API, ẩn thông tin nhạy cảm"]
     

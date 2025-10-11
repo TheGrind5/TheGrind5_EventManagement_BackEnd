@@ -27,6 +27,12 @@ graph TD
     
     DASHBOARD_PAGE["DASHBOARD PAGE<br/>Tôi cần hiển thị dashboard user<br/>Cần: AuthContext để lấy user info<br/>Cần: API service để lấy user events<br/>Làm: Fetch user profile<br/>Làm: Fetch user's events<br/>Làm: Hiển thị thống kê cá nhân<br/>ĐỂ LÀM GÌ: Cho user quản lý sự kiện của mình và xem thống kê"]
     
+    ORDER_LIST_PAGE["ORDER LIST PAGE<br/>Tôi cần hiển thị danh sách orders của user<br/>Cần: AuthContext để lấy user info<br/>Cần: API service để lấy user orders<br/>Làm: Fetch user orders từ backend<br/>Làm: Hiển thị danh sách orders với status<br/>Làm: Navigate đến order details<br/>ĐỂ LÀM GÌ: Cho user xem lịch sử đặt vé và quản lý orders"]
+    
+    ORDER_DETAILS_PAGE["ORDER DETAILS PAGE<br/>Tôi cần hiển thị chi tiết 1 order<br/>Cần: API service để lấy order details<br/>Cần: AuthContext để check ownership<br/>Làm: Fetch order details từ backend<br/>Làm: Hiển thị thông tin order, items, payment<br/>Làm: Handle cancel order nếu chưa thanh toán<br/>ĐỂ LÀM GÌ: Cho user xem chi tiết đơn hàng và quản lý"]
+    
+    CREATE_ORDER_PAGE["CREATE ORDER PAGE<br/>Tôi cần tạo order mới từ event<br/>Cần: API service để tạo order<br/>Cần: AuthContext để lấy user info<br/>Làm: Hiển thị event details và ticket types<br/>Làm: Chọn số lượng vé và seat<br/>Làm: Tính toán tổng tiền<br/>Làm: Gọi API tạo order<br/>ĐỂ LÀM GÌ: Cho user đặt vé sự kiện và tạo đơn hàng"]
+    
     %% FRONTEND COMPONENTS - REORDERED
     HEADER["HEADER COMPONENT<br/>Tôi cần hiển thị navigation bar<br/>Cần: AuthContext để check login status<br/>Cần: React Router để navigate<br/>Làm: Hiển thị logo và menu<br/>Làm: Show/hide login/logout buttons<br/>Làm: Navigate giữa các pages<br/>ĐỂ LÀM GÌ: Cung cấp navigation cho user trong toàn bộ app"]
     
@@ -40,14 +46,20 @@ graph TD
     
     EVENT_CTRL["EVENT CONTROLLER<br/>Tôi cần xử lý HTTP requests cho events<br/>Cần: EventService để xử lý business logic<br/>Làm: Nhận GET /api/event (lấy danh sách)<br/>Làm: Nhận GET /api/event/{id} (lấy chi tiết)<br/>Làm: Nhận POST /api/event (tạo mới)<br/>Làm: Nhận PUT /api/event/{id} (cập nhật)<br/>Làm: Nhận DELETE /api/event/{id} (xóa)<br/>Làm: Nhận GET /api/event/host/{hostId}<br/>Làm: Nhận POST /api/event/seed<br/>ĐỂ LÀM GÌ: Cho phép user quản lý sự kiện (xem, tạo, sửa, xóa)"]
     
+    ORDER_CTRL["ORDER CONTROLLER<br/>Tôi cần xử lý HTTP requests cho orders<br/>Cần: OrderService để xử lý business logic<br/>Làm: Nhận GET /api/order (lấy danh sách orders của user)<br/>Làm: Nhận GET /api/order/{id} (lấy chi tiết order)<br/>Làm: Nhận POST /api/order (tạo order mới)<br/>Làm: Nhận PUT /api/order/{id} (cập nhật order)<br/>Làm: Nhận DELETE /api/order/{id} (hủy order)<br/>Làm: Nhận POST /api/order/{id}/payment (thanh toán)<br/>ĐỂ LÀM GÌ: Cho phép user quản lý đơn hàng và thanh toán"]
+    
     %% CORE SERVICES - UPDATED STRUCTURE
     AUTH_SVC["AUTH SERVICE - BUSINESS LOGIC<br/>Tôi cần xử lý logic đăng nhập và đăng ký<br/>Cần: UserRepository để truy cập database<br/>Cần: JwtService để tạo token<br/>Cần: PasswordService để hash password<br/>Cần: UserMapper để chuyển đổi dữ liệu<br/>Làm: Validate email/password<br/>Làm: Hash password với BCrypt<br/>Làm: Tạo JWT token với user info<br/>Làm: Trả về LoginResponse với token<br/>ĐỂ LÀM GÌ: Xác thực user và tạo session token để truy cập hệ thống"]
     
     EVENT_SVC["EVENT SERVICE - BUSINESS LOGIC<br/>Tôi cần xử lý logic quản lý sự kiện<br/>Cần: EventRepository để truy cập database<br/>Cần: EventMapper để chuyển đổi dữ liệu<br/>Làm: Validate event data<br/>Làm: Map DTO thành Entity<br/>Làm: Gọi repository để lưu/xóa/cập nhật<br/>Làm: Map Entity thành DTO để trả về<br/>ĐỂ LÀM GÌ: Quản lý lifecycle của sự kiện từ tạo đến xóa"]
     
+    ORDER_SVC["ORDER SERVICE - BUSINESS LOGIC<br/>Tôi cần xử lý logic quản lý đơn hàng<br/>Cần: OrderRepository để truy cập database<br/>Cần: OrderMapper để chuyển đổi dữ liệu<br/>Cần: PaymentService để xử lý thanh toán<br/>Làm: Validate order data và business rules<br/>Làm: Tính toán tổng tiền và kiểm tra inventory<br/>Làm: Tạo order và order items<br/>Làm: Xử lý thanh toán và cập nhật status<br/>ĐỂ LÀM GÌ: Quản lý lifecycle của đơn hàng từ tạo đến hoàn thành"]
+    
     JWT_SVC["JWT SERVICE - TOKEN GENERATION<br/>Tôi cần tạo và verify JWT tokens<br/>Cần: JWT secret key từ configuration<br/>Cần: JWT issuer và audience config<br/>Làm: GenerateToken - tạo token từ user info<br/>Làm: ValidateToken - verify token hợp lệ<br/>Làm: Extract claims từ token<br/>ĐỂ LÀM GÌ: Tạo session token để user không cần đăng nhập lại"]
     
     PASS_SVC["PASSWORD SERVICE - SECURITY<br/>Tôi cần hash và verify passwords<br/>Cần: BCrypt library để hash passwords<br/>Làm: HashPassword - hash password với salt<br/>Làm: VerifyPassword - so sánh password với hash<br/>Làm: Đảm bảo password an toàn<br/>ĐỂ LÀM GÌ: Bảo mật password user, không lưu plain text"]
+    
+    PAYMENT_SVC["PAYMENT SERVICE - PAYMENT PROCESSING<br/>Tôi cần xử lý thanh toán cho orders<br/>Cần: Payment gateway integration<br/>Cần: OrderRepository để cập nhật order status<br/>Làm: Validate payment data<br/>Làm: Process payment với gateway<br/>Làm: Cập nhật order và payment status<br/>Làm: Handle payment failures và refunds<br/>ĐỂ LÀM GÌ: Xử lý thanh toán an toàn và cập nhật trạng thái đơn hàng"]
     
     %% INFRASTRUCTURE - AUTH SIDE
     USER_REPO["USER REPOSITORY - DATA ACCESS<br/>Tôi cần truy cập bảng Users trong database<br/>Cần: EventDBContext để thực hiện SQL queries<br/>Làm: GetUserByEmailAsync - tìm user theo email<br/>Làm: CreateUserAsync - tạo user mới<br/>Làm: GetUserByIdAsync - tìm user theo ID<br/>Làm: IsEmailExistsAsync - kiểm tra email đã tồn tại<br/>ĐỂ LÀM GÌ: Lưu trữ và truy xuất thông tin user từ database"]
@@ -59,10 +71,14 @@ graph TD
     
     EVENT_MAP["EVENT MAPPER - DATA TRANSFORMATION<br/>Tôi cần chuyển đổi giữa Event Entity và DTO<br/>Cần: Event entity từ database<br/>Cần: CreateEventRequest từ client<br/>Làm: MapToEventDto - Entity → DTO<br/>Làm: MapToEventDetailDto - Entity → Detail DTO<br/>Làm: MapFromCreateEventRequest - DTO → Entity<br/>ĐỂ LÀM GÌ: Chuyển đổi dữ liệu sự kiện giữa database và API"]
     
+    ORDER_REPO["ORDER REPOSITORY - DATA ACCESS<br/>Tôi cần truy cập bảng Orders trong database<br/>Cần: EventDBContext để thực hiện SQL queries<br/>Làm: GetOrdersByUserIdAsync - lấy orders của user<br/>Làm: GetOrderByIdAsync - lấy order theo ID<br/>Làm: CreateOrderAsync - tạo order mới<br/>Làm: UpdateOrderAsync - cập nhật order<br/>Làm: DeleteOrderAsync - xóa order<br/>ĐỂ LÀM GÌ: Lưu trữ và truy xuất thông tin đơn hàng từ database"]
+    
+    ORDER_MAP["ORDER MAPPER - DATA TRANSFORMATION<br/>Tôi cần chuyển đổi giữa Order Entity và DTO<br/>Cần: Order entity từ database<br/>Cần: CreateOrderRequest từ client<br/>Làm: MapToOrderDto - Entity → DTO<br/>Làm: MapToOrderDetailDto - Entity → Detail DTO<br/>Làm: MapFromCreateOrderRequest - DTO → Entity<br/>ĐỂ LÀM GÌ: Chuyển đổi dữ liệu đơn hàng giữa database và API"]
+    
     %% DATA LAYER
     MODELS["MODELS - ENTITY DEFINITIONS<br/>Tôi cần định nghĩa cấu trúc dữ liệu<br/>Cần: Database tables để map<br/>Làm: User model - UserId, Username, Email, PasswordHash<br/>Làm: Event model - EventId, Title, Description, StartTime<br/>Làm: Order, Ticket, Payment models<br/>Làm: Định nghĩa relationships giữa các entities<br/>ĐỂ LÀM GÌ: Định nghĩa cấu trúc dữ liệu để Entity Framework tạo database"]
     
-    DTOS["DTOs - API CONTRACTS<br/>Tôi cần định nghĩa format giao tiếp API<br/>Cần: Client requirements để design<br/>Làm: LoginRequest - email, password<br/>Làm: RegisterRequest - username, email, password<br/>Làm: LoginResponse - user info + token<br/>Làm: EventDto - event info cho client<br/>Làm: CreateEventRequest - data để tạo event<br/>ĐỂ LÀM GÌ: Định nghĩa contract giữa frontend và backend, đảm bảo type safety"]
+    DTOS["DTOs - API CONTRACTS<br/>Tôi cần định nghĩa format giao tiếp API<br/>Cần: Client requirements để design<br/>Làm: LoginRequest - email, password<br/>Làm: RegisterRequest - username, email, password<br/>Làm: LoginResponse - user info + token<br/>Làm: EventDto - event info cho client<br/>Làm: CreateEventRequest - data để tạo event<br/>Làm: OrderDto - order info cho client<br/>Làm: CreateOrderRequest - data để tạo order<br/>Làm: PaymentDto - payment info cho client<br/>ĐỂ LÀM GÌ: Định nghĩa contract giữa frontend và backend, đảm bảo type safety"]
     
     %% DATABASE
     DB_CTX["EVENT DB CONTEXT - ORM LAYER<br/>Tôi cần kết nối với database<br/>Cần: SQL Server connection string<br/>Cần: Entity Framework configuration<br/>Làm: Map entities thành database tables<br/>Làm: Thực hiện LINQ queries<br/>Làm: Track changes và save changes<br/>Làm: Handle database transactions<br/>ĐỂ LÀM GÌ: Cung cấp interface để truy cập database một cách type-safe"]
@@ -88,15 +104,20 @@ graph TD
     API_SERVICE --> HOME_PAGE
     API_SERVICE --> EVENT_DETAILS_PAGE
     API_SERVICE --> DASHBOARD_PAGE
+    API_SERVICE --> ORDER_LIST_PAGE
+    API_SERVICE --> ORDER_DETAILS_PAGE
+    API_SERVICE --> CREATE_ORDER_PAGE
     
     %% BACKEND FLOW - SEPARATE SECTION
     API_SERVICE --> PROG
     
     PROG --> AUTH_CTRL
     PROG --> EVENT_CTRL
+    PROG --> ORDER_CTRL
     
     AUTH_CTRL --> AUTH_SVC
     EVENT_CTRL --> EVENT_SVC
+    ORDER_CTRL --> ORDER_SVC
     
     AUTH_SVC --> USER_REPO
     AUTH_SVC --> JWT_SVC
@@ -106,14 +127,20 @@ graph TD
     EVENT_SVC --> EVENT_REPO
     EVENT_SVC --> EVENT_MAP
     
+    ORDER_SVC --> ORDER_REPO
+    ORDER_SVC --> ORDER_MAP
+    ORDER_SVC --> PAYMENT_SVC
+    
     USER_REPO --> DB_CTX
     EVENT_REPO --> DB_CTX
+    ORDER_REPO --> DB_CTX
     
     DB_CTX --> DB
     
     MODELS --> DB_CTX
     DTOS --> AUTH_CTRL
     DTOS --> EVENT_CTRL
+    DTOS --> ORDER_CTRL
 
     %% STYLING - FRONTEND vs BACKEND COLORS
     %% FRONTEND LAYER - BLUE TONES
@@ -124,6 +151,9 @@ graph TD
     style REGISTER_PAGE fill:#bbdefb,stroke:#1976d2,stroke-width:2px
     style EVENT_DETAILS_PAGE fill:#bbdefb,stroke:#1976d2,stroke-width:2px
     style DASHBOARD_PAGE fill:#bbdefb,stroke:#1976d2,stroke-width:2px
+    style ORDER_LIST_PAGE fill:#bbdefb,stroke:#1976d2,stroke-width:2px
+    style ORDER_DETAILS_PAGE fill:#bbdefb,stroke:#1976d2,stroke-width:2px
+    style CREATE_ORDER_PAGE fill:#bbdefb,stroke:#1976d2,stroke-width:2px
     style HEADER fill:#90caf9,stroke:#1976d2,stroke-width:2px
     style PROTECTED_ROUTE fill:#90caf9,stroke:#1976d2,stroke-width:2px
     style AUTH_CONTEXT fill:#64b5f6,stroke:#1976d2,stroke-width:2px
@@ -133,14 +163,19 @@ graph TD
     style PROG fill:#ffebee,stroke:#d32f2f,stroke-width:3px
     style AUTH_CTRL fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     style EVENT_CTRL fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style ORDER_CTRL fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     style AUTH_SVC fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     style EVENT_SVC fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style ORDER_SVC fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style PAYMENT_SVC fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     style USER_REPO fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     style EVENT_REPO fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style ORDER_REPO fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     style JWT_SVC fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     style PASS_SVC fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     style USER_MAP fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     style EVENT_MAP fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style ORDER_MAP fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     style MODELS fill:#fce4ec,stroke:#c2185b,stroke-width:2px
     style DTOS fill:#fce4ec,stroke:#c2185b,stroke-width:2px
     style DB_CTX fill:#e0f2f1,stroke:#00695c,stroke-width:2px
@@ -184,6 +219,16 @@ Client → AuthController → AuthService → UserRepository + JwtService + Pass
 ### **📝 TẠO SỰ KIỆN:**
 ```
 Client → EventController → EventService → EventRepository + EventMapper → Database
+```
+
+### **📝 TẠO ĐƠN HÀNG:**
+```
+Client → OrderController → OrderService → OrderRepository + OrderMapper + PaymentService → Database
+```
+
+### **📝 THANH TOÁN:**
+```
+Client → OrderController → OrderService → PaymentService → OrderRepository → Database
 ```
 
 ## 🏆 **KẾT LUẬN**

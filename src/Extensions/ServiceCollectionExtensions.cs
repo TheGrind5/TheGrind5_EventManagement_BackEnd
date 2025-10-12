@@ -28,6 +28,7 @@ namespace TheGrind5_EventManagement.Extensions
         {
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
             
             return services;
         }
@@ -38,6 +39,7 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<IUserMapper, UserMapper>();
             services.AddScoped<IEventMapper, EventMapper>();
+            services.AddScoped<IOrderMapper, OrderMapper>();
             
             return services;
         }
@@ -46,6 +48,7 @@ namespace TheGrind5_EventManagement.Extensions
         {
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEventService, EventService>();
+            services.AddScoped<IOrderService, OrderService>();
             
             return services;
         }

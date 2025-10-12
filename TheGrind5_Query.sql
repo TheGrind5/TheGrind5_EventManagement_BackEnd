@@ -17,6 +17,7 @@ CREATE TABLE [User](
     PasswordHash NVARCHAR(200) NOT NULL,
     Phone NVARCHAR(15),
     Role VARCHAR(16) NOT NULL CHECK (Role IN ('Customer','Host','Admin')),
+    WalletBalance DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (WalletBalance >= 0),
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0)
 );
@@ -95,6 +96,11 @@ CREATE TABLE Payment(
     CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderID) REFERENCES [Order](OrderID)
 );
 
+-- Wallet functionality for users
+-- WalletBalance: Stores user's wallet balance with precision (18,2)
+-- Default value: 0 (new users start with 0 balance)
+-- Constraint: Balance cannot be negative (CHECK WalletBalance >= 0)
+
 -- Indexes
 CREATE INDEX IX_Event_HostID ON Event(HostID);
 CREATE INDEX IX_TicketType_EventID ON TicketType(EventID);
@@ -104,3 +110,10 @@ CREATE INDEX IX_OrderItem_TicketTypeID ON OrderItem(TicketTypeID);
 CREATE INDEX IX_Ticket_TicketTypeID ON Ticket(TicketTypeID);
 CREATE INDEX IX_Ticket_OrderItemID ON Ticket(OrderItemID);
 CREATE INDEX IX_Payment_OrderID ON Payment(OrderID);
+
+-- Sample data for testing wallet functionality
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance) VALUES
+('customer1', 'Nguyễn Văn A', 'customer1@test.com', '$2a$10$example_hash_1', '0123456789', 'Customer', 100000.00),
+('customer2', 'Trần Thị B', 'customer2@test.com', '$2a$10$example_hash_2', '0987654321', 'Customer', 50000.00),
+('host1', 'Lê Văn C', 'host1@test.com', '$2a$10$example_hash_3', '0369258147', 'Host', 0.00),
+('admin', 'Administrator', 'admin@test.com', '$2a$10$example_hash_4', '0123456788', 'Admin', 0.00);

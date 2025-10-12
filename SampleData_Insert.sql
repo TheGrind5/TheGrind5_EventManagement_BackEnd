@@ -74,8 +74,8 @@ VALUES (
 -- INSERT EVENTS (6 events: 3 của host1, 3 của host2)
 -- ========================================
 
--- Events của Host 1 (UserID = 1)
-INSERT INTO Event (HostID, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+-- Events của Host 1 (UserId = 1)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
 VALUES (
     1, -- HostId của host1
     N'Workshop Lập Trình Web',
@@ -89,7 +89,7 @@ VALUES (
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostID, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
 VALUES (
     1, -- HostId của host1
     N'Hội Thảo AI & Machine Learning',
@@ -103,7 +103,7 @@ VALUES (
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostID, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
 VALUES (
     1, -- HostId của host1
     N'Sự Kiện Networking Startup',
@@ -118,7 +118,7 @@ VALUES (
 );
 
 -- Events của Host 2 (UserId = 2)
-INSERT INTO Event (HostID, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
 VALUES (
     2, -- HostId của host2
     N'Concert Nhạc Acoustic',
@@ -132,7 +132,7 @@ VALUES (
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostID, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
 VALUES (
     2, -- HostId của host2
     N'Triển Lãm Nghệ Thuật Đương Đại',
@@ -146,7 +146,7 @@ VALUES (
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostID, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
 VALUES (
     2, -- HostId của host2
     N'Workshop Nấu Ăn Healthy',
@@ -161,29 +161,222 @@ VALUES (
 );
 
 -- ========================================
+-- INSERT TICKET TYPES (Ticket types cho tất cả events)
+-- ========================================
+
+-- Ticket Types cho Event 1: Workshop Lập Trình Web
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    1, -- EventId của Workshop Lập Trình Web
+    N'Vé Thường',
+    150000, -- 150k VND
+    50, -- 50 vé
+    1, -- Min order 1 vé
+    5, -- Max order 5 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 6, GETUTCDATE()), -- Bán đến 6 ngày trước event
+    'Active'
+);
+
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    1, -- EventId của Workshop Lập Trình Web
+    N'Vé VIP',
+    250000, -- 250k VND
+    20, -- 20 vé
+    1, -- Min order 1 vé
+    3, -- Max order 3 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 6, GETUTCDATE()), -- Bán đến 6 ngày trước event
+    'Active'
+);
+
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    1, -- EventId của Workshop Lập Trình Web
+    N'Vé Sinh Viên',
+    100000, -- 100k VND
+    30, -- 30 vé
+    1, -- Min order 1 vé
+    2, -- Max order 2 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 6, GETUTCDATE()), -- Bán đến 6 ngày trước event
+    'Active'
+);
+
+-- Ticket Types cho Event 2: Hội Thảo AI & Machine Learning
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    2, -- EventId của Hội Thảo AI & Machine Learning
+    N'Vé Thường',
+    200000, -- 200k VND
+    100, -- 100 vé
+    1, -- Min order 1 vé
+    10, -- Max order 10 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 13, GETUTCDATE()), -- Bán đến 13 ngày trước event
+    'Active'
+);
+
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    2, -- EventId của Hội Thảo AI & Machine Learning
+    N'Vé Premium',
+    350000, -- 350k VND
+    50, -- 50 vé
+    1, -- Min order 1 vé
+    5, -- Max order 5 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 13, GETUTCDATE()), -- Bán đến 13 ngày trước event
+    'Active'
+);
+
+-- Ticket Types cho Event 3: Sự Kiện Networking Startup
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    3, -- EventId của Sự Kiện Networking Startup
+    N'Vé Thường',
+    300000, -- 300k VND
+    80, -- 80 vé
+    1, -- Min order 1 vé
+    8, -- Max order 8 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 20, GETUTCDATE()), -- Bán đến 20 ngày trước event
+    'Active'
+);
+
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    3, -- EventId của Sự Kiện Networking Startup
+    N'Vé VIP',
+    500000, -- 500k VND
+    20, -- 20 vé
+    1, -- Min order 1 vé
+    4, -- Max order 4 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 20, GETUTCDATE()), -- Bán đến 20 ngày trước event
+    'Active'
+);
+
+-- Ticket Types cho Event 4: Concert Nhạc Acoustic
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    4, -- EventId của Concert Nhạc Acoustic
+    N'Vé Thường',
+    180000, -- 180k VND
+    150, -- 150 vé
+    1, -- Min order 1 vé
+    6, -- Max order 6 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 9, GETUTCDATE()), -- Bán đến 9 ngày trước event
+    'Active'
+);
+
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    4, -- EventId của Concert Nhạc Acoustic
+    N'Vé VIP',
+    320000, -- 320k VND
+    50, -- 50 vé
+    1, -- Min order 1 vé
+    4, -- Max order 4 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 9, GETUTCDATE()), -- Bán đến 9 ngày trước event
+    'Active'
+);
+
+-- Ticket Types cho Event 5: Triển Lãm Nghệ Thuật Đương Đại
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    5, -- EventId của Triển Lãm Nghệ Thuật Đương Đại
+    N'Vé Thường',
+    120000, -- 120k VND
+    200, -- 200 vé
+    1, -- Min order 1 vé
+    10, -- Max order 10 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 17, GETUTCDATE()), -- Bán đến 17 ngày trước event
+    'Active'
+);
+
+-- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    6, -- EventId của Workshop Nấu Ăn Healthy
+    N'Vé Thường',
+    280000, -- 280k VND
+    40, -- 40 vé
+    1, -- Min order 1 vé
+    4, -- Max order 4 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+    'Active'
+);
+
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    6, -- EventId của Workshop Nấu Ăn Healthy
+    N'Vé Cặp Đôi',
+    500000, -- 500k VND (giá cho 2 người)
+    20, -- 20 cặp (40 người)
+    1, -- Min order 1 cặp
+    2, -- Max order 2 cặp
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+    'Active'
+);
+
+-- ========================================
 -- VERIFICATION QUERIES
 -- ========================================
 
 -- Kiểm tra Users đã được tạo
 SELECT 'Users Created:' as Info, COUNT(*) as Count FROM [User];
-SELECT UserID, Username, FullName, Email, Role FROM [User] ORDER BY UserID;
+SELECT UserId, Username, FullName, Email, Role FROM [User] ORDER BY UserId;
 
 -- Kiểm tra Events đã được tạo
 SELECT 'Events Created:' as Info, COUNT(*) as Count FROM Event;
-SELECT EventID, HostID, Title, Category, Status FROM Event ORDER BY EventID;
+SELECT EventId, HostId, Title, Category, Status FROM Event ORDER BY EventId;
+
+-- Kiểm tra Ticket Types đã được tạo
+SELECT 'Ticket Types Created:' as Info, COUNT(*) as Count FROM TicketType;
+
+-- Kiểm tra Ticket Types theo Event
+SELECT 
+    e.EventId,
+    e.Title as EventTitle,
+    COUNT(tt.TicketTypeId) as TicketTypeCount
+FROM Event e
+LEFT JOIN TicketType tt ON e.EventId = tt.EventId
+GROUP BY e.EventId, e.Title
+ORDER BY e.EventId;
+
+-- Chi tiết Ticket Types
+SELECT 
+    tt.TicketTypeId,
+    tt.EventId,
+    e.Title as EventTitle,
+    tt.TypeName,
+    tt.Price,
+    tt.Quantity,
+    tt.Status
+FROM TicketType tt
+JOIN Event e ON tt.EventId = e.EventId
+ORDER BY tt.EventId, tt.Price;
 
 -- Kiểm tra Events theo Host
 SELECT 
     u.FullName as HostName,
     u.Email as HostEmail,
-    COUNT(e.EventID) as EventCount
+    COUNT(e.EventId) as EventCount
 FROM [User] u
-LEFT JOIN Event e ON u.UserID = e.HostID
+LEFT JOIN Event e ON u.UserId = e.HostId
 WHERE u.Role = 'Host'
-GROUP BY u.UserID, u.FullName, u.Email;
+GROUP BY u.UserId, u.FullName, u.Email;
 
 PRINT '========================================';
 PRINT 'Sample data injection completed successfully!';
 PRINT '3 Users created (2 Hosts, 1 Customer)';
 PRINT '6 Events created (3 per Host)';
+PRINT '11 Ticket Types created for all events';
 PRINT '========================================';

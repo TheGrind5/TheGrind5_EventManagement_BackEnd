@@ -10,7 +10,7 @@ USE EventDB;
 GO
 
 CREATE TABLE [User](
-    UserID INT IDENTITY PRIMARY KEY,
+    UserId INT IDENTITY PRIMARY KEY,
     Username NVARCHAR(100),
     FullName NVARCHAR(100) NOT NULL,
     Email NVARCHAR(100) NOT NULL UNIQUE,
@@ -22,8 +22,8 @@ CREATE TABLE [User](
 );
 
 CREATE TABLE Event(
-    EventID INT IDENTITY PRIMARY KEY,
-    HostID INT NOT NULL,
+    EventId INT IDENTITY PRIMARY KEY,
+    HostId INT NOT NULL,
     Title NVARCHAR(200) NOT NULL,
     Description NVARCHAR(MAX),
     StartTime DATETIME2(0) NOT NULL,
@@ -33,12 +33,12 @@ CREATE TABLE Event(
     Status VARCHAR(16) NOT NULL DEFAULT 'Draft' CHECK (Status IN ('Draft','Open','Closed','Cancelled')),
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0),
-    CONSTRAINT FK_Event_Host FOREIGN KEY (HostID) REFERENCES [User](UserID)
+    CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId)
 );
 
 CREATE TABLE TicketType(
-    TicketTypeID INT IDENTITY PRIMARY KEY,
-    EventID INT NOT NULL,
+    TicketTypeId INT IDENTITY PRIMARY KEY,
+    EventId INT NOT NULL,
     TypeName NVARCHAR(50) NOT NULL,
     Price DECIMAL(10,2) NOT NULL CHECK (Price >= 0),
     Quantity INT NOT NULL CHECK (Quantity >= 0),
@@ -47,60 +47,60 @@ CREATE TABLE TicketType(
     SaleStart DATETIME2(0) NOT NULL,
     SaleEnd DATETIME2(0) NOT NULL,
     Status VARCHAR(16) NOT NULL DEFAULT 'Active' CHECK (Status IN ('Active','Inactive')),
-    CONSTRAINT FK_TicketType_Event FOREIGN KEY (EventID) REFERENCES Event(EventID)
+    CONSTRAINT FK_TicketType_Event FOREIGN KEY (EventId) REFERENCES Event(EventId)
 );
 
 CREATE TABLE [Order](
-    OrderID INT IDENTITY PRIMARY KEY,
-    CustomerID INT NOT NULL,
+    OrderId INT IDENTITY PRIMARY KEY,
+    CustomerId INT NOT NULL,
     Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
     Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Paid','Failed','Cancelled','Refunded')),
     PaymentMethod VARCHAR(20),
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0),
-    CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerID) REFERENCES [User](UserID)
+    CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerId) REFERENCES [User](UserId)
 );
 
 CREATE TABLE OrderItem(
-    OrderItemID INT IDENTITY PRIMARY KEY,
-    OrderID INT NOT NULL,
-    TicketTypeID INT NOT NULL,
+    OrderItemId INT IDENTITY PRIMARY KEY,
+    OrderId INT NOT NULL,
+    TicketTypeId INT NOT NULL,
     Quantity INT NOT NULL CHECK (Quantity > 0),
     SeatNo NVARCHAR(50),
     Status VARCHAR(16) DEFAULT 'Reserved' CHECK (Status IN ('Reserved','Confirmed','Cancelled')),
-    CONSTRAINT FK_OrderItem_Order FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
-    CONSTRAINT FK_OrderItem_TicketType FOREIGN KEY (TicketTypeID) REFERENCES TicketType(TicketTypeID)
+    CONSTRAINT FK_OrderItem_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId),
+    CONSTRAINT FK_OrderItem_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId)
 );
 
 CREATE TABLE Ticket(
-    TicketID INT IDENTITY PRIMARY KEY,
-    TicketTypeID INT NOT NULL,
-    OrderItemID INT,
+    TicketId INT IDENTITY PRIMARY KEY,
+    TicketTypeId INT NOT NULL,
+    OrderItemId INT,
     SerialNumber NVARCHAR(50) NOT NULL UNIQUE,
     Status VARCHAR(16) NOT NULL DEFAULT 'Available' CHECK (Status IN ('Available','Assigned','Used','Refunded')),
     IssuedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UsedAt DATETIME2(0),
     RefundedAt DATETIME2(0),
-    CONSTRAINT FK_Ticket_TicketType FOREIGN KEY (TicketTypeID) REFERENCES TicketType(TicketTypeID),
-    CONSTRAINT FK_Ticket_OrderItem FOREIGN KEY (OrderItemID) REFERENCES OrderItem(OrderItemID)
+    CONSTRAINT FK_Ticket_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId),
+    CONSTRAINT FK_Ticket_OrderItem FOREIGN KEY (OrderItemId) REFERENCES OrderItem(OrderItemId)
 );
 
 CREATE TABLE Payment(
-    TransactionID INT IDENTITY PRIMARY KEY,
-    OrderID INT NOT NULL,
+    TransactionId INT IDENTITY PRIMARY KEY,
+    OrderId INT NOT NULL,
     Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
     Method VARCHAR(20) NOT NULL,
     Status VARCHAR(16) NOT NULL DEFAULT 'Initiated' CHECK (Status IN ('Initiated','Succeeded','Failed','Refunded')),
     PaymentDate DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderID) REFERENCES [Order](OrderID)
+    CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId)
 );
 
 -- Indexes
-CREATE INDEX IX_Event_HostID ON Event(HostID);
-CREATE INDEX IX_TicketType_EventID ON TicketType(EventID);
-CREATE INDEX IX_Order_CustomerID ON [Order](CustomerID);
-CREATE INDEX IX_OrderItem_OrderID ON OrderItem(OrderID);
-CREATE INDEX IX_OrderItem_TicketTypeID ON OrderItem(TicketTypeID);
-CREATE INDEX IX_Ticket_TicketTypeID ON Ticket(TicketTypeID);
-CREATE INDEX IX_Ticket_OrderItemID ON Ticket(OrderItemID);
-CREATE INDEX IX_Payment_OrderID ON Payment(OrderID);
+CREATE INDEX IX_Event_HostId ON Event(HostId);
+CREATE INDEX IX_TicketType_EventId ON TicketType(EventId);
+CREATE INDEX IX_Order_CustomerId ON [Order](CustomerId);
+CREATE INDEX IX_OrderItem_OrderId ON OrderItem(OrderId);
+CREATE INDEX IX_OrderItem_TicketTypeId ON OrderItem(TicketTypeId);
+CREATE INDEX IX_Ticket_TicketTypeId ON Ticket(TicketTypeId);
+CREATE INDEX IX_Ticket_OrderItemId ON Ticket(OrderItemId);
+CREATE INDEX IX_Payment_OrderId ON Payment(OrderId);

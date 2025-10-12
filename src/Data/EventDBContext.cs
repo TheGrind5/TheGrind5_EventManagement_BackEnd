@@ -123,6 +123,10 @@ public partial class EventDBContext : DbContext
         b.Entity<TicketType>()
          .Property(tt => tt.Price)
          .HasPrecision(18, 2);
+
+        b.Entity<User>()
+         .Property(u => u.WalletBalance)
+         .HasPrecision(18, 2);
     }
 }
 

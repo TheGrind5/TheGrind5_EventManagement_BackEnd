@@ -12,7 +12,8 @@ namespace TheGrind5_EventManagement.Mappers
                 user.FullName,
                 user.Email,
                 user.Phone,
-                user.Role
+                user.Role,
+                user.WalletBalance
             );
         }
 

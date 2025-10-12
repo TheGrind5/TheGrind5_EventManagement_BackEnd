@@ -28,44 +28,86 @@ DBCC CHECKIDENT ('Event', RESEED, 0);
 DBCC CHECKIDENT ('[User]', RESEED, 0);
 
 -- ========================================
--- INSERT USERS (3 users: 2 hosts, 1 customer)
+-- INSERT USERS (5 users: 2 hosts, 3 customers)
+-- ========================================
+-- 
+-- PASSWORD HASH: Tất cả users sử dụng password "123456"
+-- Hash được tạo bằng bcrypt: $2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u
+-- 
+-- LOGIN CREDENTIALS:
+-- Email: host1@example.com / Password: 123456
+-- Email: host2@example.com / Password: 123456  
+-- Email: customer1@example.com / Password: 123456 (500,000 VND)
+-- Email: customer2@example.com / Password: 123456 (1,250,000.50 VND)
+-- Email: testwallet@example.com / Password: 123456 (999,999.99 VND)
 -- ========================================
 
 -- Host 1
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
     'host1',
     N'Nguyễn Văn Host',
     'host1@example.com',
-    '$2a$11$rQZ8K9mN2pL3sT4uV5wX6yA7bC8dE9fG0hI1jK2lM3nO4pQ5rS6tU7vW8xY9zA',
+    '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
     '0123456789',
     'Host',
+    0.00,
     GETUTCDATE(),
     GETUTCDATE()
 );
 
 -- Host 2
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
     'host2',
     N'Trần Thị Host',
     'host2@example.com',
-    '$2a$11$sRZ9L0nO3qM4tT5vW6xY7zB8cD9eF0gH1iJ2kL3mN4oP5qR6sT7uV8wX9yZ0aB',
+    '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
     '0987654321',
     'Host',
+    0.00,
     GETUTCDATE(),
     GETUTCDATE()
 );
 
 -- Customer 1
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
     'customer1',
     N'Lê Văn Customer',
     'customer1@example.com',
-    '$2a$11$tSZ0M1oP4rN5uU6wX7yZ8aC9dE0fF1gH2iJ3kL4mN5oP6qR7sT8uV9wX0yZ1aB2c',
+    '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
     '0555123456',
     'Customer',
+    500000.00,
+    GETUTCDATE(),
+    GETUTCDATE()
+);
+
+-- Customer 2 (Test user with different balance)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+VALUES (
+    'customer2',
+    N'Phạm Thị Test',
+    'customer2@example.com',
+    '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
+    '0555987654',
+    'Customer',
+    1250000.50,
+    GETUTCDATE(),
+    GETUTCDATE()
+);
+
+-- Test User với wallet balance cao (để test chức năng wallet)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+VALUES (
+    'testwallet',
+    N'Test Wallet User',
+    'testwallet@example.com',
+    '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
+    '0123456789',
+    'Customer',
+    999999.99,
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -332,7 +374,9 @@ VALUES (
 
 -- Kiểm tra Users đã được tạo
 SELECT 'Users Created:' as Info, COUNT(*) as Count FROM [User];
+
 SELECT UserId, Username, FullName, Email, Role FROM [User] ORDER BY UserId;
+
 
 -- Kiểm tra Events đã được tạo
 SELECT 'Events Created:' as Info, COUNT(*) as Count FROM Event;
@@ -376,7 +420,14 @@ GROUP BY u.UserId, u.FullName, u.Email;
 
 PRINT '========================================';
 PRINT 'Sample data injection completed successfully!';
-PRINT '3 Users created (2 Hosts, 1 Customer)';
+PRINT '5 Users created (2 Hosts, 3 Customers)';
 PRINT '6 Events created (3 per Host)';
+
+PRINT 'Customer 1: 500,000 VND';
+PRINT 'Customer 2: 1,250,000.50 VND';
+PRINT 'Test Wallet User: 999,999.99 VND';
+PRINT 'All users password: 123456';
+
 PRINT '11 Ticket Types created for all events';
+
 PRINT '========================================';

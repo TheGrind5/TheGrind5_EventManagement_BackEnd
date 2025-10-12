@@ -17,6 +17,7 @@ CREATE TABLE [User](
     PasswordHash NVARCHAR(200) NOT NULL,
     Phone NVARCHAR(15),
     Role VARCHAR(16) NOT NULL CHECK (Role IN ('Customer','Host','Admin')),
+    WalletBalance DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (WalletBalance >= 0),
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0)
 );
@@ -95,7 +96,13 @@ CREATE TABLE Payment(
     CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId)
 );
 
+-- Wallet functionality for users
+-- WalletBalance: Stores user's wallet balance with precision (18,2)
+-- Default value: 0 (new users start with 0 balance)
+-- Constraint: Balance cannot be negative (CHECK WalletBalance >= 0)
+
 -- Indexes
+
 CREATE INDEX IX_Event_HostId ON Event(HostId);
 CREATE INDEX IX_TicketType_EventId ON TicketType(EventId);
 CREATE INDEX IX_Order_CustomerId ON [Order](CustomerId);
@@ -104,3 +111,4 @@ CREATE INDEX IX_OrderItem_TicketTypeId ON OrderItem(TicketTypeId);
 CREATE INDEX IX_Ticket_TicketTypeId ON Ticket(TicketTypeId);
 CREATE INDEX IX_Ticket_OrderItemId ON Ticket(OrderItemId);
 CREATE INDEX IX_Payment_OrderId ON Payment(OrderId);
+

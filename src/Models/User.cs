@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -12,19 +13,28 @@ public partial class User
 
     public string Username { get; set; }
 
+    [Required]
     public string FullName { get; set; }
 
+    [Required]
+    [EmailAddress]
     public string Email { get; set; }
 
+    [Required]
     public string PasswordHash { get; set; }
 
     public string Phone { get; set; }
 
+    [Required]
+    [RegularExpression("^(Customer|Host|Admin)$", ErrorMessage = "Role must be Customer, Host, or Admin")]
     public string Role { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    // Wallet properties
+    public decimal WalletBalance { get; set; } = 0;
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 

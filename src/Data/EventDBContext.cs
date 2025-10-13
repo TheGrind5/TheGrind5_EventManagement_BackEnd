@@ -33,6 +33,7 @@ public partial class EventDBContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Ignore(e => e.Username); // Database doesn't have Username column
         });
+
         
         ConfigureUserRelationships(b);
         ConfigureEventRelationships(b);
@@ -129,6 +130,10 @@ public partial class EventDBContext : DbContext
 
         b.Entity<TicketType>()
          .Property(tt => tt.Price)
+         .HasPrecision(18, 2);
+
+        b.Entity<User>()
+         .Property(u => u.WalletBalance)
          .HasPrecision(18, 2);
     }
 }

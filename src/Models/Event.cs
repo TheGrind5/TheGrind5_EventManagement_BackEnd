@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -11,18 +12,22 @@ public partial class Event
 
     public int HostId { get; set; }
 
+    [Required]
     public string Title { get; set; }
 
     public string Description { get; set; }
 
+    [Required]
     public DateTime StartTime { get; set; }
 
+    [Required]
     public DateTime EndTime { get; set; }
 
     public string Location { get; set; }
 
     public string Category { get; set; }
 
+    [RegularExpression("^(Draft|Open|Closed|Cancelled)$", ErrorMessage = "Status must be Draft, Open, Closed, or Cancelled")]
     public string Status { get; set; }
 
     public DateTime CreatedAt { get; set; }

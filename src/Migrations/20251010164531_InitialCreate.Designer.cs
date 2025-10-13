@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheGrind5_EventManagement.Data;
 
@@ -11,9 +12,11 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
-    partial class EventDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251010164531_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,7 +58,6 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -147,7 +149,6 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Method")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OrderId")
@@ -184,7 +185,6 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SerialNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
@@ -239,7 +239,6 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TypeName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TicketTypeId");
@@ -261,22 +260,18 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -284,10 +279,6 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Property<string>("Username")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("WalletBalance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("UserId");
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheGrind5_EventManagement.Data;
 
@@ -11,9 +12,11 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
-    partial class EventDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251010171857_FixEncoding")]
+    partial class FixEncoding
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -284,10 +287,6 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Property<string>("Username")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("WalletBalance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("UserId");
 

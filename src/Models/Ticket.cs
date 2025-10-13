@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -13,8 +14,10 @@ public partial class Ticket
 
     public int? OrderItemId { get; set; }
 
+    [Required]
     public string SerialNumber { get; set; }
 
+    [RegularExpression("^(Available|Assigned|Used|Refunded)$", ErrorMessage = "Status must be Available, Assigned, Used, or Refunded")]
     public string Status { get; set; }
 
     public DateTime IssuedAt { get; set; }

@@ -15,6 +15,7 @@ public partial class EventDBContext : DbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketType> TicketTypes => Set<TicketType>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -26,6 +27,7 @@ public partial class EventDBContext : DbContext
         b.Entity<Payment>().ToTable("Payment");
         b.Entity<Ticket>().ToTable("Ticket");
         b.Entity<TicketType>().ToTable("TicketType");
+        b.Entity<OtpCode>().ToTable("OtpCode");
         
         ConfigureUserRelationships(b);
         ConfigureEventRelationships(b);

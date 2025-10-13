@@ -49,6 +49,7 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEventService, EventService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IWalletService, WalletService>();
             
             return services;
         }

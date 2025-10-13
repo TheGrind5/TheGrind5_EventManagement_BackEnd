@@ -13,6 +13,7 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly ITicketService _ticketService;
 
+        //Hàm dựng để dùng ticket service
         public TicketController(ITicketService ticketService)
         {
             _ticketService = ticketService;

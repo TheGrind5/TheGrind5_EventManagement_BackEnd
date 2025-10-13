@@ -27,6 +27,12 @@ DBCC CHECKIDENT ('TicketType', RESEED, 0);
 DBCC CHECKIDENT ('Event', RESEED, 0);
 DBCC CHECKIDENT ('[User]', RESEED, 0);
 
+-- Verify tables are empty
+PRINT 'Verifying tables are empty...';
+SELECT COUNT(*) as UserCount FROM [User];
+SELECT COUNT(*) as EventCount FROM Event;
+SELECT COUNT(*) as TicketTypeCount FROM TicketType;
+
 -- ========================================
 -- INSERT USERS (5 users: 2 hosts, 3 customers)
 -- ========================================
@@ -202,6 +208,10 @@ VALUES (
     GETUTCDATE()
 );
 
+-- Verify Events were created successfully
+PRINT 'Verifying Events were created...';
+SELECT EventId, Title, HostId FROM Event ORDER BY EventId;
+
 -- ========================================
 -- INSERT TICKET TYPES (Ticket types cho tất cả events)
 -- ========================================
@@ -341,32 +351,43 @@ VALUES (
     'Active'
 );
 
--- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
-INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
-VALUES (
-    6, -- EventId của Workshop Nấu Ăn Healthy
-    N'Vé Thường',
-    280000, -- 280k VND
-    40, -- 40 vé
-    1, -- Min order 1 vé
-    4, -- Max order 4 vé
-    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
-    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
-    'Active'
-);
+-- Verify Event 6 exists before inserting TicketTypes
+IF EXISTS (SELECT 1 FROM Event WHERE EventId = 6)
+BEGIN
+    PRINT 'Event 6 exists, inserting TicketTypes...';
+    
+    -- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
+    INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+    VALUES (
+        6, -- EventId của Workshop Nấu Ăn Healthy
+        N'Vé Thường',
+        280000, -- 280k VND
+        40, -- 40 vé
+        1, -- Min order 1 vé
+        4, -- Max order 4 vé
+        DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+        DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+        'Active'
+    );
 
-INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
-VALUES (
-    6, -- EventId của Workshop Nấu Ăn Healthy
-    N'Vé Cặp Đôi',
-    500000, -- 500k VND (giá cho 2 người)
-    20, -- 20 cặp (40 người)
-    1, -- Min order 1 cặp
-    2, -- Max order 2 cặp
-    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
-    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
-    'Active'
-);
+    INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+    VALUES (
+        6, -- EventId của Workshop Nấu Ăn Healthy
+        N'Vé Cặp Đôi',
+        500000, -- 500k VND (giá cho 2 người)
+        20, -- 20 cặp (40 người)
+        1, -- Min order 1 cặp
+        2, -- Max order 2 cặp
+        DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+        DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+        'Active'
+    );
+END
+ELSE
+BEGIN
+    PRINT 'ERROR: Event 6 does not exist! Cannot insert TicketTypes.';
+    SELECT EventId, Title FROM Event ORDER BY EventId;
+END
 
 -- ========================================
 -- VERIFICATION QUERIES

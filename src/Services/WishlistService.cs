@@ -3,29 +3,30 @@ using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Mappers;
 using TheGrind5_EventManagement.Models;
-using TheGrind5_EventManagement.Repositories;
 
 namespace TheGrind5_EventManagement.Services;
 
 public class WishlistService : IWishlistService
 {
-    private readonly IWishlistItemRepository _wishlistItemRepository;
     private readonly IWishlistMapper _wishlistMapper;
     private readonly EventDBContext _context;
 
     public WishlistService(
-        IWishlistItemRepository wishlistItemRepository,
         IWishlistMapper wishlistMapper,
         EventDBContext context)
     {
-        _wishlistItemRepository = wishlistItemRepository;
         _wishlistMapper = wishlistMapper;
         _context = context;
     }
 
     public async Task<WishlistResponse> GetWishlistAsync(int userId)
     {
-        var wishlistItems = await _wishlistItemRepository.GetByUserIdAsync(userId);
+        var wishlistItems = await _context.Wishlists
+            .Include(w => w.TicketType)
+                .ThenInclude(tt => tt.Event)
+            .Where(w => w.UserId == userId)
+            .ToListAsync();
+        
         return _wishlistMapper.MapToWishlistResponse(wishlistItems);
     }
 
@@ -46,36 +47,41 @@ public class WishlistService : IWishlistService
             throw new InvalidOperationException("Ticket is not available for sale at this time");
 
         // Check if item already exists in wishlist
-        var existingItem = await _wishlistItemRepository.GetByUserIdAndTicketTypeIdAsync(userId, request.TicketTypeId);
+        var existingItem = await _context.Wishlists
+            .FirstOrDefaultAsync(w => w.UserId == userId && w.TicketTypeId == request.TicketTypeId);
 
         if (existingItem != null)
         {
-            // Upsert: increase quantity
+            // Update quantity if item exists
             var newQuantity = Math.Min(existingItem.Quantity + request.Quantity, ticketType.Quantity);
             existingItem.Quantity = newQuantity;
+            existingItem.UpdatedAt = DateTime.UtcNow;
             
-            var updatedItem = await _wishlistItemRepository.UpdateAsync(existingItem);
-            return _wishlistMapper.MapToDto(updatedItem);
+            await _context.SaveChangesAsync();
+            return _wishlistMapper.MapToDto(existingItem);
         }
         else
         {
             // Create new item
-            var wishlistItem = new WishlistItem
+            var wishlistItem = new Wishlist
             {
                 UserId = userId,
                 TicketTypeId = request.TicketTypeId,
                 Quantity = Math.Min(request.Quantity, ticketType.Quantity),
-                CreatedAt = DateTime.UtcNow
+                AddedAt = DateTime.UtcNow
             };
 
-            var createdItem = await _wishlistItemRepository.CreateAsync(wishlistItem);
-            return _wishlistMapper.MapToDto(createdItem);
+            _context.Wishlists.Add(wishlistItem);
+            await _context.SaveChangesAsync();
+            return _wishlistMapper.MapToDto(wishlistItem);
         }
     }
 
     public async Task<WishlistItemDto> UpdateQuantityAsync(int userId, int itemId, UpdateWishlistItemRequest request)
     {
-        var wishlistItem = await _wishlistItemRepository.GetByIdAsync(itemId);
+        var wishlistItem = await _context.Wishlists
+            .FirstOrDefaultAsync(w => w.Id == itemId);
+        
         if (wishlistItem == null)
             throw new ArgumentException("Wishlist item not found", nameof(itemId));
 
@@ -96,26 +102,38 @@ public class WishlistService : IWishlistService
         // Clamp quantity to available amount
         var newQuantity = Math.Min(request.Quantity, ticketType.Quantity);
         wishlistItem.Quantity = newQuantity;
+        wishlistItem.UpdatedAt = DateTime.UtcNow;
 
-        var updatedItem = await _wishlistItemRepository.UpdateAsync(wishlistItem);
-        return _wishlistMapper.MapToDto(updatedItem);
+        await _context.SaveChangesAsync();
+        return _wishlistMapper.MapToDto(wishlistItem);
     }
 
     public async Task DeleteItemAsync(int userId, int itemId)
     {
-        var wishlistItem = await _wishlistItemRepository.GetByIdAsync(itemId);
+        var wishlistItem = await _context.Wishlists
+            .FirstOrDefaultAsync(w => w.Id == itemId);
+        
         if (wishlistItem == null)
             throw new ArgumentException("Wishlist item not found", nameof(itemId));
 
         if (wishlistItem.UserId != userId)
             throw new UnauthorizedAccessException("You can only delete your own wishlist items");
 
-        await _wishlistItemRepository.DeleteAsync(itemId);
+        _context.Wishlists.Remove(wishlistItem);
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteItemsAsync(int userId, BulkDeleteWishlistRequest request)
     {
-        await _wishlistItemRepository.DeleteAllByUserIdAndIdsAsync(userId, request.Ids);
+        var itemsToDelete = await _context.Wishlists
+            .Where(w => w.UserId == userId && request.Ids.Contains(w.Id))
+            .ToListAsync();
+        
+        if (itemsToDelete.Count != request.Ids.Count)
+            throw new ArgumentException("Some wishlist items not found");
+
+        _context.Wishlists.RemoveRange(itemsToDelete);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<WishlistCheckoutResponse> CheckoutAsync(int userId, WishlistCheckoutRequest request)
@@ -123,28 +141,20 @@ public class WishlistService : IWishlistService
         if (!request.Ids.Any())
             throw new ArgumentException("No items selected for checkout");
 
-        var wishlistItems = await _context.WishlistItems
-            .Include(wi => wi.TicketType)
+        // Get all wishlist items for user first
+        var userWishlistItems = await _context.Wishlists
+            .Include(w => w.TicketType)
                 .ThenInclude(tt => tt.Event)
-            .Where(wi => wi.UserId == userId && request.Ids.Contains(wi.Id))
+            .Where(w => w.UserId == userId)
             .ToListAsync();
+
+        // Filter by requested IDs in memory
+        var wishlistItems = userWishlistItems
+            .Where(w => request.Ids.Contains(w.Id))
+            .ToList();
 
         if (!wishlistItems.Any())
             throw new ArgumentException("No valid items found for checkout");
-
-        // Validate all items are still available
-        foreach (var item in wishlistItems)
-        {
-            var ticketType = item.TicketType;
-            if (ticketType == null || ticketType.Status != "Active")
-                throw new InvalidOperationException($"Ticket type {ticketType?.TypeName} is no longer available");
-
-            if (DateTime.UtcNow < ticketType.SaleStart || DateTime.UtcNow > ticketType.SaleEnd)
-                throw new InvalidOperationException($"Ticket type {ticketType.TypeName} is not available for sale at this time");
-
-            if (item.Quantity > ticketType.Quantity)
-                throw new InvalidOperationException($"Insufficient quantity for ticket type {ticketType.TypeName}");
-        }
 
         // For now, return a mock order draft ID
         // In a real implementation, this would create an actual order draft

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TheGrind5_EventManagement.Models;
 
-public class WishlistItem
+public class Wishlist
 {
     [Key]
     public int Id { get; set; }
@@ -17,7 +17,8 @@ public class WishlistItem
     [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
     public int Quantity { get; set; } = 1;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
     [ForeignKey("UserId")]
@@ -26,3 +27,5 @@ public class WishlistItem
     [ForeignKey("TicketTypeId")]
     public virtual TicketType TicketType { get; set; } = null!;
 }
+
+

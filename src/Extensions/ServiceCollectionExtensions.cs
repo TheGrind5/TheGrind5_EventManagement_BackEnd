@@ -29,7 +29,6 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddScoped<IWishlistItemRepository, WishlistItemRepository>();
             
             return services;
         }

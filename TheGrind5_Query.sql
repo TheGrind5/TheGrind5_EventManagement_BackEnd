@@ -4,7 +4,7 @@ BEGIN
     DROP DATABASE EventDB;
 END;
 GO
-CREATE DATABASE EventDB;
+CREATE DATABASE EventDB COLLATE SQL_Latin1_General_CP1_CI_AI;
 GO
 USE EventDB;
 GO
@@ -96,6 +96,19 @@ CREATE TABLE Payment(
     CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId)
 );
 
+-- Wishlist table (simplified - direct relationship with User and TicketType)
+CREATE TABLE Wishlist(
+    Id INT IDENTITY PRIMARY KEY,
+    UserId INT NOT NULL,
+    TicketTypeId INT NOT NULL,
+    Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity >= 1),
+    AddedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0),
+    CONSTRAINT FK_Wishlist_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    CONSTRAINT FK_Wishlist_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId),
+    CONSTRAINT UQ_Wishlist_User_TicketType UNIQUE (UserId, TicketTypeId)
+);
+
 -- Wallet functionality for users
 -- WalletBalance: Stores user's wallet balance with precision (18,2)
 -- Default value: 0 (new users start with 0 balance)
@@ -111,4 +124,7 @@ CREATE INDEX IX_OrderItem_TicketTypeId ON OrderItem(TicketTypeId);
 CREATE INDEX IX_Ticket_TicketTypeId ON Ticket(TicketTypeId);
 CREATE INDEX IX_Ticket_OrderItemId ON Ticket(OrderItemId);
 CREATE INDEX IX_Payment_OrderId ON Payment(OrderId);
+CREATE INDEX IX_Wishlist_UserId ON Wishlist(UserId);
+CREATE INDEX IX_Wishlist_TicketTypeId ON Wishlist(TicketTypeId);
+CREATE INDEX IX_Wishlist_AddedAt ON Wishlist(AddedAt);
 

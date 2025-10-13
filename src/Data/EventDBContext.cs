@@ -16,7 +16,7 @@ public partial class EventDBContext : DbContext
     public DbSet<TicketType> TicketTypes => Set<TicketType>();
     public DbSet<User> Users => Set<User>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
-    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<Wishlist> Wishlists => Set<Wishlist>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -32,7 +32,7 @@ public partial class EventDBContext : DbContext
         b.Entity<WalletTransaction>().ToTable("WalletTransaction");
 
         b.Entity<Payment>().ToTable("Payment");
-        b.Entity<WishlistItem>().ToTable("WishlistItem");
+        b.Entity<Wishlist>().ToTable("Wishlist");
         
         // Configure column mappings for User table
         b.Entity<User>(entity =>
@@ -144,23 +144,23 @@ public partial class EventDBContext : DbContext
 
     private void ConfigureWishlistRelationships(ModelBuilder b)
     {
-        // WishlistItem -> User : required, cascade delete
-        b.Entity<WishlistItem>()
-         .HasOne(wi => wi.User)
-         .WithMany(u => u.WishlistItems)
-         .HasForeignKey(wi => wi.UserId)
+        // Wishlist -> User : required, cascade delete
+        b.Entity<Wishlist>()
+         .HasOne(w => w.User)
+         .WithMany(u => u.Wishlists)
+         .HasForeignKey(w => w.UserId)
          .OnDelete(DeleteBehavior.Cascade);
 
-        // WishlistItem -> TicketType : required, không cascade
-        b.Entity<WishlistItem>()
-         .HasOne(wi => wi.TicketType)
+        // Wishlist -> TicketType : required, không cascade
+        b.Entity<Wishlist>()
+         .HasOne(w => w.TicketType)
          .WithMany()
-         .HasForeignKey(wi => wi.TicketTypeId)
+         .HasForeignKey(w => w.TicketTypeId)
          .OnDelete(DeleteBehavior.Restrict);
 
-        // Unique constraint: mỗi user chỉ có 1 item cho mỗi TicketType
-        b.Entity<WishlistItem>()
-         .HasIndex(wi => new { wi.UserId, wi.TicketTypeId })
+        // Unique constraint: mỗi user chỉ có 1 wishlist item cho mỗi TicketType
+        b.Entity<Wishlist>()
+         .HasIndex(w => new { w.UserId, w.TicketTypeId })
          .IsUnique();
     }
 

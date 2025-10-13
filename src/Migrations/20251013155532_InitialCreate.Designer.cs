@@ -12,8 +12,8 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
-    [Migration("20251013014938_AddWalletTransactionFinal")]
-    partial class AddWalletTransactionFinal
+    [Migration("20251013155532_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -345,6 +345,39 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("WalletTransaction", (string)null);
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketTypeId");
+
+                    b.HasIndex("UserId", "TicketTypeId")
+                        .IsUnique();
+
+                    b.ToTable("Wishlist", (string)null);
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
                     b.HasOne("TheGrind5_EventManagement.Models.User", "Host")
@@ -437,6 +470,25 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
+                {
+                    b.HasOne("TheGrind5_EventManagement.Models.TicketType", "TicketType")
+                        .WithMany()
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
+                        .WithMany("Wishlists")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TicketType");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
                     b.Navigation("TicketTypes");
@@ -468,6 +520,8 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("WalletTransactions");
+
+                    b.Navigation("Wishlists");
                 });
 #pragma warning restore 612, 618
         }

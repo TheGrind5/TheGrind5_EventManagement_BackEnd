@@ -342,7 +342,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("WalletTransaction", (string)null);
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.WishlistItem", b =>
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -350,7 +350,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Quantity")
@@ -358,6 +358,9 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -369,7 +372,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.HasIndex("UserId", "TicketTypeId")
                         .IsUnique();
 
-                    b.ToTable("WishlistItem", (string)null);
+                    b.ToTable("Wishlist", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
@@ -464,7 +467,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.WishlistItem", b =>
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
                 {
                     b.HasOne("TheGrind5_EventManagement.Models.TicketType", "TicketType")
                         .WithMany()
@@ -473,7 +476,7 @@ namespace TheGrind5_EventManagement.Migrations
                         .IsRequired();
 
                     b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany("WishlistItems")
+                        .WithMany("Wishlists")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -515,7 +518,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Navigation("WalletTransactions");
 
-                    b.Navigation("WishlistItems");
+                    b.Navigation("Wishlists");
                 });
 #pragma warning restore 612, 618
         }

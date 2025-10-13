@@ -46,7 +46,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
+
+// Only use HTTPS redirection in production or when HTTPS is configured
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors(AppConstants.CORS_POLICY_NAME);
 app.UseAuthentication();
 app.UseAuthorization();

@@ -18,14 +18,22 @@ public partial class EventDBContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        // Sử dụng tên table đúng (không có "s")
+        // Configure table names to match existing database (singular names)
         b.Entity<User>().ToTable("User");
         b.Entity<Event>().ToTable("Event");
+        b.Entity<TicketType>().ToTable("TicketType");
         b.Entity<Order>().ToTable("Order");
         b.Entity<OrderItem>().ToTable("OrderItem");
-        b.Entity<Payment>().ToTable("Payment");
         b.Entity<Ticket>().ToTable("Ticket");
-        b.Entity<TicketType>().ToTable("TicketType");
+        b.Entity<Payment>().ToTable("Payment");
+        
+        // Configure column mappings for User table
+        b.Entity<User>(entity =>
+        {
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Ignore(e => e.Username); // Database doesn't have Username column
+        });
+
         
         ConfigureUserRelationships(b);
         ConfigureEventRelationships(b);

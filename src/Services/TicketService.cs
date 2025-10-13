@@ -204,5 +204,19 @@ namespace TheGrind5_EventManagement.Services
 
             return serialNumber;
         }
+
+        public async Task<TicketType> GetTicketTypeByIdAsync(int ticketTypeId)
+        {
+            return await _context.TicketTypes
+                .Include(tt => tt.Event)
+                .FirstOrDefaultAsync(tt => tt.TicketTypeId == ticketTypeId);
+        }
+
+        public async Task<int> GetSoldTicketsCountAsync(int ticketTypeId)
+        {
+            return await _context.Tickets
+                .Where(t => t.TicketTypeId == ticketTypeId && t.Status != "Refunded")
+                .CountAsync();
+        }
     }
 }

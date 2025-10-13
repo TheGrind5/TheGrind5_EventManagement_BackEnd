@@ -88,6 +88,22 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        [HttpGet("event/{eventId}/types")]
+        public async Task<IActionResult> GetTicketTypesByEvent(int eventId)
+        {
+            try
+            {
+                var ticketTypes = await _ticketService.GetTicketTypesByEventIdAsync(eventId);
+                var ticketTypeDtos = ticketTypes.Select(MapToTicketTypeDto).ToList();
+
+                return Ok(ticketTypeDtos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách loại vé của sự kiện", error = ex.Message });
+            }
+        }
+
         [HttpPut("{ticketId}/check-in")]
         public async Task<IActionResult> CheckInTicket(int ticketId)
         {
@@ -208,6 +224,24 @@ namespace TheGrind5_EventManagement.Controllers
                     Status = ticket.OrderItem.Order.Status,
                     CreatedAt = ticket.OrderItem.Order.CreatedAt
                 } : null
+            };
+        }
+
+        private TicketTypeDTO MapToTicketTypeDto(Models.TicketType ticketType)
+        {
+            return new TicketTypeDTO
+            {
+                TicketTypeId = ticketType.TicketTypeId,
+                EventId = ticketType.EventId,
+                TypeName = ticketType.TypeName,
+                Price = ticketType.Price,
+                Quantity = ticketType.Quantity,
+                MinOrder = ticketType.MinOrder,
+                MaxOrder = ticketType.MaxOrder,
+                SaleStart = ticketType.SaleStart,
+                SaleEnd = ticketType.SaleEnd,
+                Status = ticketType.Status,
+                AvailableQuantity = ticketType.Quantity // TODO: Calculate actual available quantity
             };
         }
 

@@ -95,7 +95,11 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 var ticketTypes = await _ticketService.GetTicketTypesByEventIdAsync(eventId);
-                var ticketTypeDtos = ticketTypes.Select(MapToTicketTypeDto).ToList();
+                var ticketTypeDtos = new List<TicketTypeDTO>();
+                foreach (var ticketType in ticketTypes)
+                {
+                    ticketTypeDtos.Add(await MapToTicketTypeDtoAsync(ticketType));
+                }
 
                 return Ok(ticketTypeDtos);
             }
@@ -228,7 +232,7 @@ namespace TheGrind5_EventManagement.Controllers
             };
         }
 
-        private TicketTypeDTO MapToTicketTypeDto(Models.TicketType ticketType)
+        private async Task<TicketTypeDTO> MapToTicketTypeDtoAsync(Models.TicketType ticketType)
         {
             return new TicketTypeDTO
             {
@@ -242,8 +246,28 @@ namespace TheGrind5_EventManagement.Controllers
                 SaleStart = ticketType.SaleStart,
                 SaleEnd = ticketType.SaleEnd,
                 Status = ticketType.Status,
-                AvailableQuantity = ticketType.Quantity // TODO: Calculate actual available quantity
+                AvailableQuantity = await CalculateAvailableQuantity(ticketType.TicketTypeId)
             };
+        }
+
+        private async Task<int> CalculateAvailableQuantity(int ticketTypeId)
+        {
+            try
+            {
+                // Get total quantity for this ticket type
+                var ticketType = await _ticketService.GetTicketTypeByIdAsync(ticketTypeId);
+                if (ticketType == null) return 0;
+
+                // Get count of sold tickets for this ticket type
+                var soldTickets = await _ticketService.GetSoldTicketsCountAsync(ticketTypeId);
+                
+                // Calculate available quantity
+                return Math.Max(0, ticketType.Quantity - soldTickets);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         private int? GetUserIdFromToken()

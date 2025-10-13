@@ -16,6 +16,7 @@ public partial class EventDBContext : DbContext
     public DbSet<TicketType> TicketTypes => Set<TicketType>();
     public DbSet<User> Users => Set<User>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -31,6 +32,7 @@ public partial class EventDBContext : DbContext
         b.Entity<WalletTransaction>().ToTable("WalletTransaction");
 
         b.Entity<Payment>().ToTable("Payment");
+        b.Entity<WishlistItem>().ToTable("WishlistItem");
         
         // Configure column mappings for User table
         b.Entity<User>(entity =>
@@ -47,6 +49,7 @@ public partial class EventDBContext : DbContext
         ConfigureTicketRelationships(b);
         ConfigurePaymentRelationships(b);
         ConfigureWalletRelationships(b);
+        ConfigureWishlistRelationships(b);
         ConfigureDecimalPrecision(b);
     }
 
@@ -137,6 +140,28 @@ public partial class EventDBContext : DbContext
         // Cấu hình Primary Key cho WalletTransaction
         b.Entity<WalletTransaction>()
          .HasKey(wt => wt.TransactionId);
+    }
+
+    private void ConfigureWishlistRelationships(ModelBuilder b)
+    {
+        // WishlistItem -> User : required, cascade delete
+        b.Entity<WishlistItem>()
+         .HasOne(wi => wi.User)
+         .WithMany(u => u.WishlistItems)
+         .HasForeignKey(wi => wi.UserId)
+         .OnDelete(DeleteBehavior.Cascade);
+
+        // WishlistItem -> TicketType : required, không cascade
+        b.Entity<WishlistItem>()
+         .HasOne(wi => wi.TicketType)
+         .WithMany()
+         .HasForeignKey(wi => wi.TicketTypeId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // Unique constraint: mỗi user chỉ có 1 item cho mỗi TicketType
+        b.Entity<WishlistItem>()
+         .HasIndex(wi => new { wi.UserId, wi.TicketTypeId })
+         .IsUnique();
     }
 
     private void ConfigureDecimalPrecision(ModelBuilder b)

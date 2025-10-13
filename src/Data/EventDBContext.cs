@@ -15,6 +15,7 @@ public partial class EventDBContext : DbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketType> TicketTypes => Set<TicketType>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -26,12 +27,14 @@ public partial class EventDBContext : DbContext
         b.Entity<Payment>().ToTable("Payment");
         b.Entity<Ticket>().ToTable("Ticket");
         b.Entity<TicketType>().ToTable("TicketType");
+        b.Entity<WalletTransaction>().ToTable("WalletTransaction");
         
         ConfigureUserRelationships(b);
         ConfigureEventRelationships(b);
         ConfigureOrderRelationships(b);
         ConfigureTicketRelationships(b);
         ConfigurePaymentRelationships(b);
+        ConfigureWalletRelationships(b);
         ConfigureDecimalPrecision(b);
     }
 
@@ -110,6 +113,20 @@ public partial class EventDBContext : DbContext
          .HasKey(p => p.PaymentId);
     }
 
+    private void ConfigureWalletRelationships(ModelBuilder b)
+    {
+        // WalletTransaction -> User : required, không cascade
+        b.Entity<WalletTransaction>()
+         .HasOne(wt => wt.User)
+         .WithMany(u => u.WalletTransactions)
+         .HasForeignKey(wt => wt.UserId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // Cấu hình Primary Key cho WalletTransaction
+        b.Entity<WalletTransaction>()
+         .HasKey(wt => wt.TransactionId);
+    }
+
     private void ConfigureDecimalPrecision(ModelBuilder b)
     {
         b.Entity<Order>()
@@ -126,6 +143,18 @@ public partial class EventDBContext : DbContext
 
         b.Entity<User>()
          .Property(u => u.WalletBalance)
+         .HasPrecision(18, 2);
+
+        b.Entity<WalletTransaction>()
+         .Property(wt => wt.Amount)
+         .HasPrecision(18, 2);
+
+        b.Entity<WalletTransaction>()
+         .Property(wt => wt.BalanceBefore)
+         .HasPrecision(18, 2);
+
+        b.Entity<WalletTransaction>()
+         .Property(wt => wt.BalanceAfter)
          .HasPrecision(18, 2);
     }
 }

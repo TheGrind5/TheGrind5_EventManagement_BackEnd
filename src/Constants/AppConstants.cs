@@ -4,6 +4,7 @@ namespace TheGrind5_EventManagement.Constants
     {
         public const string JWT_ISSUER = "TheGrind5_EventManagement";
         public const string JWT_AUDIENCE = "TheGrind5_EventManagement_Users";
+        public const string JWT_SECRET_KEY = "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
         public const int JWT_EXPIRY_DAYS = 7;
         
         public const string DEFAULT_ROLE = "User";

@@ -10,6 +10,10 @@ namespace TheGrind5_EventManagement.Repositories
         Task<bool> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(int userId);
         Task<bool> IsEmailExistsAsync(string email);
+        
+        // Wallet methods
+        Task<bool> UpdateWalletBalanceAsync(int userId, decimal newBalance);
+        Task<decimal> GetWalletBalanceAsync(int userId);
     }
 }
 

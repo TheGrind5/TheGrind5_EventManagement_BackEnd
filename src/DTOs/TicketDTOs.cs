@@ -22,6 +22,21 @@ namespace TheGrind5_EventManagement.DTOs
         public decimal Price { get; set; }
     }
 
+    public class TicketTypeDTO
+    {
+        public int TicketTypeId { get; set; }
+        public int EventId { get; set; }
+        public string TypeName { get; set; }
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+        public int? MinOrder { get; set; }
+        public int? MaxOrder { get; set; }
+        public DateTime SaleStart { get; set; }
+        public DateTime SaleEnd { get; set; }
+        public string Status { get; set; }
+        public int AvailableQuantity { get; set; }
+    }
+
     public class EventInfoDTO
     {
         public int EventId { get; set; }

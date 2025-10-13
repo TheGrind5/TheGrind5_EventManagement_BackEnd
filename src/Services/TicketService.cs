@@ -47,6 +47,14 @@ namespace TheGrind5_EventManagement.Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<TicketType>> GetTicketTypesByEventIdAsync(int eventId)
+        {
+            return await _context.TicketTypes
+                .Where(tt => tt.EventId == eventId && tt.Status == "Active")
+                .OrderBy(tt => tt.Price)
+                .ToListAsync();
+        }
+
         public async Task<Ticket> CheckInTicketAsync(int ticketId)
         {
             var ticket = await _context.Tickets

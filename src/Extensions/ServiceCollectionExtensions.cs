@@ -52,7 +52,11 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IEventService, EventService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IWalletService, WalletService>();
+
             services.AddScoped<IWishlistService, WishlistService>();
+
+            services.AddScoped<ITicketService, TicketService>();
+
             
             return services;
         }

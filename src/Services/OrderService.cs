@@ -12,15 +12,18 @@ namespace TheGrind5_EventManagement.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderMapper _orderMapper;
+        private readonly ITicketService _ticketService;
         private readonly EventDBContext _context;
 
         public OrderService(
             IOrderRepository orderRepository,
             IOrderMapper orderMapper,
+            ITicketService ticketService,
             EventDBContext context)
         {
             _orderRepository = orderRepository;
             _orderMapper = orderMapper;
+            _ticketService = ticketService;
             _context = context;
         }
 
@@ -129,11 +132,46 @@ namespace TheGrind5_EventManagement.Services
                 if (!validStatuses.Contains(status))
                     throw new ArgumentException($"Invalid status. Must be one of: {string.Join(", ", validStatuses)}");
 
-                return await _orderRepository.UpdateOrderStatusAsync(orderId, status);
+                var result = await _orderRepository.UpdateOrderStatusAsync(orderId, status);
+                
+                // If order is paid, create tickets
+                if (result && status == "Paid")
+                {
+                    await CreateTicketsForOrderAsync(orderId);
+                }
+                
+                return result;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error updating order status: {ex.Message}", ex);
+            }
+        }
+
+        private async Task CreateTicketsForOrderAsync(int orderId)
+        {
+            try
+            {
+                var order = await _context.Orders
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.TicketType)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+                if (order == null)
+                    throw new ArgumentException("Order not found");
+
+                foreach (var orderItem in order.OrderItems)
+                {
+                    await _ticketService.CreateTicketsForOrderItemAsync(
+                        orderItem.OrderItemId, 
+                        orderItem.Quantity, 
+                        orderItem.TicketTypeId
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error creating tickets for order: {ex.Message}", ex);
             }
         }
 

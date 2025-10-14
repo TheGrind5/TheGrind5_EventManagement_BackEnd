@@ -18,8 +18,8 @@ namespace TheGrind5_EventManagement.Extensions
                 if (string.IsNullOrEmpty(conn))
                     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 
-                // Use InMemory database for testing
-                options.UseInMemoryDatabase("EventManagementDB");
+                // Use SQL Server database
+                options.UseSqlServer(conn);
             });
             
             return services;

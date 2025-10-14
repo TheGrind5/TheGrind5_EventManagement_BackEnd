@@ -18,6 +18,7 @@ public partial class EventDBContext : DbContext
     public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
     public DbSet<Wishlist> Wishlists => Set<Wishlist>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -34,6 +35,7 @@ public partial class EventDBContext : DbContext
         b.Entity<WalletTransaction>().ToTable("WalletTransaction");
         b.Entity<Payment>().ToTable("Payment");
         b.Entity<Wishlist>().ToTable("Wishlist");
+        b.Entity<Voucher>().ToTable("Voucher");
         
         // Configure column mappings for User table
         b.Entity<User>(entity =>

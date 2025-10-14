@@ -11,10 +11,12 @@ namespace TheGrind5_EventManagement.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IWalletService _walletService;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, IWalletService walletService)
         {
             _orderService = orderService;
+            _walletService = walletService;
         }
 
         [HttpPost]
@@ -208,17 +210,47 @@ namespace TheGrind5_EventManagement.Controllers
                 if (order.Status != "Pending")
                     return BadRequest(new { message = "Chỉ có thể thanh toán order đang Pending" });
 
-                // TODO: Implement payment processing logic
-                // Tạm thời chỉ cập nhật status thành Paid
-                var result = await _orderService.UpdateOrderStatusAsync(id, "Paid");
-                if (!result)
-                    return NotFound(new { message = "Không tìm thấy order" });
+                // Process wallet payment
+                if (request.PaymentMethod.ToLower() == "wallet")
+                {
+                    // Check if user has sufficient balance
+                    var hasSufficientBalance = await _walletService.HasSufficientBalanceAsync(userId.Value, order.Amount);
+                    if (!hasSufficientBalance)
+                    {
+                        var currentBalance = await _walletService.GetWalletBalanceAsync(userId.Value);
+                        return BadRequest(new { 
+                            message = "Số dư ví không đủ để thanh toán",
+                            currentBalance = currentBalance,
+                            requiredAmount = order.Amount,
+                            shortfall = order.Amount - currentBalance
+                        });
+                    }
 
-                return Ok(new { 
-                    message = "Thanh toán thành công", 
-                    paymentMethod = request.PaymentMethod,
-                    amount = order.Amount 
-                });
+                    // Process payment from wallet
+                    var walletTransaction = await _walletService.ProcessPaymentAsync(
+                        userId.Value, 
+                        order.Amount, 
+                        id, 
+                        $"Payment for order #{id}");
+
+                    // Update order status to Paid
+                    var result = await _orderService.UpdateOrderStatusAsync(id, "Paid");
+                    if (!result)
+                        return NotFound(new { message = "Không tìm thấy order" });
+
+                    return Ok(new { 
+                        message = "Thanh toán thành công", 
+                        paymentMethod = request.PaymentMethod,
+                        amount = order.Amount,
+                        walletTransactionId = walletTransaction.TransactionId,
+                        newWalletBalance = walletTransaction.BalanceAfter
+                    });
+                }
+                else
+                {
+                    // TODO: Implement other payment methods (credit card, bank transfer, etc.)
+                    return BadRequest(new { message = "Phương thức thanh toán không được hỗ trợ. Hiện tại chỉ hỗ trợ thanh toán qua ví." });
+                }
             }
             catch (Exception ex)
             {

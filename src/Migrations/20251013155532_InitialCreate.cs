@@ -15,20 +15,20 @@ namespace TheGrind5_EventManagement.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    WalletBalance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User", x => x.UserId);
+                    table.PrimaryKey("PK_User", x => x.UserID);
                 });
 
             migrationBuilder.CreateTable(
@@ -38,7 +38,7 @@ namespace TheGrind5_EventManagement.Migrations
                     EventId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     HostId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -55,7 +55,7 @@ namespace TheGrind5_EventManagement.Migrations
                         name: "FK_Event_User_HostId",
                         column: x => x.HostId,
                         principalTable: "User",
-                        principalColumn: "UserId",
+                        principalColumn: "UserID",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -79,7 +79,35 @@ namespace TheGrind5_EventManagement.Migrations
                         name: "FK_Order_User_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "User",
-                        principalColumn: "UserId",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WalletTransaction",
+                columns: table => new
+                {
+                    TransactionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TransactionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReferenceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    BalanceBefore = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    BalanceAfter = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WalletTransaction", x => x.TransactionId);
+                    table.ForeignKey(
+                        name: "FK_WalletTransaction_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "UserID",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -90,7 +118,7 @@ namespace TheGrind5_EventManagement.Migrations
                     TicketTypeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EventId = table.Column<int>(type: "int", nullable: false),
-                    TypeName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     MinOrder = table.Column<int>(type: "int", nullable: true),
@@ -118,7 +146,7 @@ namespace TheGrind5_EventManagement.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Method = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Method = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -163,6 +191,35 @@ namespace TheGrind5_EventManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Wishlist",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    TicketTypeId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Wishlist", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Wishlist_TicketType_TicketTypeId",
+                        column: x => x.TicketTypeId,
+                        principalTable: "TicketType",
+                        principalColumn: "TicketTypeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Wishlist_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Ticket",
                 columns: table => new
                 {
@@ -170,7 +227,7 @@ namespace TheGrind5_EventManagement.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TicketTypeId = table.Column<int>(type: "int", nullable: false),
                     OrderItemId = table.Column<int>(type: "int", nullable: true),
-                    SerialNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SerialNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IssuedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UsedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -233,33 +290,37 @@ namespace TheGrind5_EventManagement.Migrations
                 table: "TicketType",
                 column: "EventId");
 
-            // Add CHECK constraints
-            migrationBuilder.Sql("ALTER TABLE [User] ADD CONSTRAINT CK_User_Role CHECK (Role IN ('Customer','Host','Admin'))");
-            migrationBuilder.Sql("ALTER TABLE Event ADD CONSTRAINT CK_Event_Status CHECK (Status IN ('Draft','Open','Closed','Cancelled'))");
-            migrationBuilder.Sql("ALTER TABLE TicketType ADD CONSTRAINT CK_TicketType_Status CHECK (Status IN ('Active','Inactive'))");
-            migrationBuilder.Sql("ALTER TABLE [Order] ADD CONSTRAINT CK_Order_Status CHECK (Status IN ('Pending','Paid','Failed','Cancelled','Refunded'))");
-            migrationBuilder.Sql("ALTER TABLE OrderItem ADD CONSTRAINT CK_OrderItem_Status CHECK (Status IN ('Reserved','Confirmed','Cancelled'))");
-            migrationBuilder.Sql("ALTER TABLE Ticket ADD CONSTRAINT CK_Ticket_Status CHECK (Status IN ('Available','Assigned','Used','Refunded'))");
-            migrationBuilder.Sql("ALTER TABLE Payment ADD CONSTRAINT CK_Payment_Status CHECK (Status IN ('Initiated','Succeeded','Failed','Refunded'))");
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransaction_UserId",
+                table: "WalletTransaction",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wishlist_TicketTypeId",
+                table: "Wishlist",
+                column: "TicketTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wishlist_UserId_TicketTypeId",
+                table: "Wishlist",
+                columns: new[] { "UserId", "TicketTypeId" },
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop CHECK constraints first
-            migrationBuilder.Sql("ALTER TABLE [User] DROP CONSTRAINT CK_User_Role");
-            migrationBuilder.Sql("ALTER TABLE Event DROP CONSTRAINT CK_Event_Status");
-            migrationBuilder.Sql("ALTER TABLE TicketType DROP CONSTRAINT CK_TicketType_Status");
-            migrationBuilder.Sql("ALTER TABLE [Order] DROP CONSTRAINT CK_Order_Status");
-            migrationBuilder.Sql("ALTER TABLE OrderItem DROP CONSTRAINT CK_OrderItem_Status");
-            migrationBuilder.Sql("ALTER TABLE Ticket DROP CONSTRAINT CK_Ticket_Status");
-            migrationBuilder.Sql("ALTER TABLE Payment DROP CONSTRAINT CK_Payment_Status");
-
             migrationBuilder.DropTable(
                 name: "Payment");
 
             migrationBuilder.DropTable(
                 name: "Ticket");
+
+            migrationBuilder.DropTable(
+                name: "WalletTransaction");
+
+            migrationBuilder.DropTable(
+                name: "Wishlist");
 
             migrationBuilder.DropTable(
                 name: "OrderItem");

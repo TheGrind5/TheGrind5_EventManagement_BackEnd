@@ -40,6 +40,8 @@ public partial class User
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    
+    public virtual ICollection<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();
+
+    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 
 }

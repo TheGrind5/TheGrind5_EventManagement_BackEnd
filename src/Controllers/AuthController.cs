@@ -78,6 +78,64 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserProfile()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
+                if (user == null)
+                    return NotFound(new { message = "Không tìm thấy user" });
+
+                return Ok(CreateProfileDetailDto(user));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
+            }
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile([FromBody] ProfileDTOs.UpdateProfileRequest request)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
+                if (user == null)
+                    return NotFound(new { message = "Không tìm thấy user" });
+
+                // Cập nhật thông tin nếu có
+                if (!string.IsNullOrWhiteSpace(request.FullName))
+                    user.FullName = request.FullName;
+                
+                if (!string.IsNullOrWhiteSpace(request.Phone))
+                    user.Phone = request.Phone;
+
+                user.UpdatedAt = DateTime.UtcNow;
+
+                await _userRepository.UpdateUserAsync(user);
+
+                return Ok(new ProfileDTOs.UpdateProfileResponse(
+                    "Cập nhật profile thành công",
+                    CreateProfileDetailDto(user)
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật profile", error = ex.Message });
+            }
+        }
+
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetUserById(int userId)
         {
@@ -281,6 +339,20 @@ namespace TheGrind5_EventManagement.Controllers
                 Role = result.Role,
                 WalletBalance = result.WalletBalance
             };
+        }
+
+        private ProfileDTOs.ProfileDetailDto CreateProfileDetailDto(User user)
+        {
+            return new ProfileDTOs.ProfileDetailDto(
+                user.UserId,
+                user.Username,
+                user.FullName,
+                user.Email,
+                user.Phone,
+                user.Role,
+                user.CreatedAt,
+                user.UpdatedAt
+            );
         }
     }
 }

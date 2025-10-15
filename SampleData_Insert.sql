@@ -17,6 +17,9 @@ DELETE FROM [Order];
 DELETE FROM TicketType;
 DELETE FROM Event;
 DELETE FROM Voucher;
+DELETE FROM Wishlist;
+DELETE FROM WalletTransaction;
+DELETE FROM OtpCode;
 DELETE FROM [User];
 
 -- Reset identity columns
@@ -27,6 +30,9 @@ DBCC CHECKIDENT ('[Order]', RESEED, 0);
 DBCC CHECKIDENT ('TicketType', RESEED, 0);
 DBCC CHECKIDENT ('Event', RESEED, 0);
 DBCC CHECKIDENT ('Voucher', RESEED, 0);
+DBCC CHECKIDENT ('Wishlist', RESEED, 0);
+DBCC CHECKIDENT ('WalletTransaction', RESEED, 0);
+DBCC CHECKIDENT ('OtpCode', RESEED, 0);
 DBCC CHECKIDENT ('[User]', RESEED, 0);
 
 -- Verify tables are empty
@@ -51,9 +57,8 @@ SELECT COUNT(*) as TicketTypeCount FROM TicketType;
 -- ========================================
 
 -- Host 1
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'host1',
     N'Nguyễn Văn Host',
     'host1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -65,9 +70,8 @@ VALUES (
 );
 
 -- Host 2
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'host2',
     N'Trần Thị Host',
     'host2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -79,9 +83,8 @@ VALUES (
 );
 
 -- Customer 1
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'customer1',
     N'Lê Văn Customer',
     'customer1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -93,9 +96,8 @@ VALUES (
 );
 
 -- Customer 2 (Test user with different balance)
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'customer2',
     N'Phạm Thị Test',
     'customer2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -107,9 +109,8 @@ VALUES (
 );
 
 -- Test User với wallet balance cao (để test chức năng wallet)
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'testwallet',
     N'Test Wallet User',
     'testwallet@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -398,7 +399,7 @@ END
 -- Kiểm tra Users đã được tạo
 SELECT 'Users Created:' as Info, COUNT(*) as Count FROM [User];
 
-SELECT UserId, Username, FullName, Email, Role FROM [User] ORDER BY UserId;
+SELECT UserId, FullName, Email, Role FROM [User] ORDER BY UserId;
 
 
 -- Kiểm tra Events đã được tạo

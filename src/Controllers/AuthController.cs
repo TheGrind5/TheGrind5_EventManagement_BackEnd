@@ -15,7 +15,6 @@ public class AuthController : ControllerBase
 
     public AuthController(IAuthService authService, IUserRepository userRepository)
     {
-
         _authService = authService;
         _userRepository = userRepository;
     }
@@ -25,20 +24,6 @@ public class AuthController : ControllerBase
     {
         if (!IsValidLoginRequest(request))
             return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
-
-        private readonly IAuthService _authService;
-        private readonly IUserRepository _userRepository;
-        // private readonly IEmailService _emailService;
-        // private readonly IOtpService _otpService;
-
-        public AuthController(IAuthService authService, IUserRepository userRepository)
-        {
-            _authService = authService;
-            _userRepository = userRepository;
-            // _emailService = emailService;
-            // _otpService = otpService;
-        }
-
 
         var result = await _authService.LoginAsync(request.Email!, request.Password!);
 
@@ -221,90 +206,22 @@ public class AuthController : ControllerBase
                     message = "Admin user already exists",
                     email = existingAdmin.Email,
                     password = "admin123"
-
-                    return Ok(new { 
-                        message = "Admin user already exists", 
-                        email = existingAdmin.Email,
-                        password = "admin123"
-                    });
-                }
-
-                // Tạo admin user
-                var adminUser = new User
-                {
-                    Username = "admin",
-                    FullName = "Administrator",
-                    Email = "admin@test.com",
-                    PasswordHash = HashPassword("admin123"),
-                    Phone = "0123456789",
-                    Role = "Admin",
-                    CreatedAt = DateTime.UtcNow,
-                    WalletBalance = 1000000
-                };
-
-                await _userRepository.CreateUserAsync(adminUser);
-
-                // Tạo thêm user test
-                var testUser = new User
-                {
-                    Username = "testuser",
-                    FullName = "Test User",
-                    Email = "test@test.com",
-                    PasswordHash = HashPassword("123456"),
-                    Phone = "0987654321",
-                    Role = "Customer",
-                    CreatedAt = DateTime.UtcNow,
-                    WalletBalance = 500000
-                };
-
-                await _userRepository.CreateUserAsync(testUser);
-
-                return Ok(new { 
-                    message = "Test users created successfully", 
-                    admin = new { email = "admin@test.com", password = "admin123" },
-                    user = new { email = "test@test.com", password = "123456" }
-
                 });
             }
 
             // Tạo admin user
             var adminUser = new User
             {
-                Username = "admin",
                 FullName = "Administrator",
                 Email = "admin@test.com",
                 PasswordHash = HashPassword("admin123"),
                 Phone = "0123456789",
                 Role = "Admin",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                WalletBalance = 1000000
             };
 
             await _userRepository.CreateUserAsync(adminUser);
-        // Forgot password endpoints temporarily disabled
-        /*
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] AuthDTOs.ForgotPasswordRequest request)
-        {
-            return BadRequest(new { message = "Tính năng này đang được phát triển" });
-        }
-
-        [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] AuthDTOs.VerifyOtpRequest request)
-        {
-            return BadRequest(new { message = "Tính năng này đang được phát triển" });
-        }
-
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] AuthDTOs.ResetPasswordRequest request)
-        {
-            return BadRequest(new { message = "Tính năng này đang được phát triển" });
-        }
-        */
-
-        private string HashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
 
             return Ok(new
             {

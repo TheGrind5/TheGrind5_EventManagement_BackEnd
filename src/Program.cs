@@ -25,6 +25,9 @@ builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
 builder.Services.AddCorsPolicy();
 
+// Add background services
+builder.Services.AddHostedService<TheGrind5_EventManagement.Services.OrderCleanupService>();
+
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

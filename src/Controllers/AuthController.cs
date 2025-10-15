@@ -1,17 +1,31 @@
-using Microsoft.AspNetCore.Mvc;
-using TheGrind5_EventManagement.DTOs;
-using TheGrind5_EventManagement.Business;
-using TheGrind5_EventManagement.Repositories;
-using TheGrind5_EventManagement.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TheGrind5_EventManagement.Business;
+using TheGrind5_EventManagement.DTOs;
+using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.Repositories;
 
-namespace TheGrind5_EventManagement.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class AuthController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AuthController : ControllerBase
+    private readonly IAuthService _authService;
+    private readonly IUserRepository _userRepository;
+
+    public AuthController(IAuthService authService, IUserRepository userRepository)
     {
+
+        _authService = authService;
+        _userRepository = userRepository;
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] AuthDTOs.LoginRequest request)
+    {
+        if (!IsValidLoginRequest(request))
+            return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
+
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
         // private readonly IEmailService _emailService;
@@ -25,188 +39,189 @@ namespace TheGrind5_EventManagement.Controllers
             // _otpService = otpService;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AuthDTOs.LoginRequest request)
+
+        var result = await _authService.LoginAsync(request.Email!, request.Password!);
+
+        if (result == null)
+            return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+
+        return Ok(CreateLoginResponse(result));
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        try
         {
-            if (!IsValidLoginRequest(request))
-                return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
+            if (await _userRepository.IsEmailExistsAsync(request.Email))
+                return BadRequest(new { message = "Email này đã được sử dụng" });
 
-            var result = await _authService.LoginAsync(request.Email!, request.Password!);
-            
-            if (result == null)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
-
-            return Ok(CreateLoginResponse(result));
+            var result = await _authService.RegisterAsync(request);
+            return Ok(CreateRegisterResponse(result));
         }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        catch (Exception ex)
         {
-            try
-            {
-                if (await _userRepository.IsEmailExistsAsync(request.Email))
-                    return BadRequest(new { message = "Email này đã được sử dụng" });
-
-                var result = await _authService.RegisterAsync(request);
-                return Ok(CreateRegisterResponse(result));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra khi đăng ký", error = ex.Message });
-            }
+            return BadRequest(new { message = "Có lỗi xảy ra khi đăng ký", error = ex.Message });
         }
+    }
 
-        [HttpGet("me")]
-        [Authorize]
-        public async Task<IActionResult> GetCurrentUser()
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        try
         {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                if (userId == null)
-                    return Unauthorized(new { message = "Token không hợp lệ" });
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized(new { message = "Token không hợp lệ" });
 
-                var user = await _userRepository.GetUserByIdAsync(userId.Value);
-                if (user == null)
-                    return NotFound(new { message = "Không tìm thấy user" });
+            var user = await _userRepository.GetUserByIdAsync(userId.Value);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy user" });
 
-                return Ok(CreateUserDto(user));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
-            }
+            return Ok(CreateUserDto(user));
         }
-
-        [HttpGet("profile")]
-        [Authorize]
-        public async Task<IActionResult> GetCurrentUserProfile()
+        catch (Exception ex)
         {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                if (userId == null)
-                    return Unauthorized(new { message = "Token không hợp lệ" });
-
-                var user = await _userRepository.GetUserByIdAsync(userId.Value);
-                if (user == null)
-                    return NotFound(new { message = "Không tìm thấy user" });
-
-                return Ok(CreateProfileDetailDto(user));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
-            }
+            return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
         }
+    }
 
-        [HttpPut("profile")]
-        [Authorize]
-        public async Task<IActionResult> UpdateProfile([FromBody] ProfileDTOs.UpdateProfileRequest request)
+    [HttpGet("profile")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUserProfile()
+    {
+        try
         {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                if (userId == null)
-                    return Unauthorized(new { message = "Token không hợp lệ" });
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized(new { message = "Token không hợp lệ" });
 
-                var user = await _userRepository.GetUserByIdAsync(userId.Value);
-                if (user == null)
-                    return NotFound(new { message = "Không tìm thấy user" });
+            var user = await _userRepository.GetUserByIdAsync(userId.Value);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy user" });
 
-                // Cập nhật thông tin nếu có
-                if (!string.IsNullOrWhiteSpace(request.FullName))
-                    user.FullName = request.FullName;
-                
-                if (!string.IsNullOrWhiteSpace(request.Phone))
-                    user.Phone = request.Phone;
-
-                user.UpdatedAt = DateTime.UtcNow;
-
-                await _userRepository.UpdateUserAsync(user);
-
-                return Ok(new ProfileDTOs.UpdateProfileResponse(
-                    "Cập nhật profile thành công",
-                    CreateProfileDetailDto(user)
-                ));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật profile", error = ex.Message });
-            }
+            return Ok(CreateProfileDetailDto(user));
         }
-
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetUserById(int userId)
+        catch (Exception ex)
         {
-            try
-            {
-                var user = await _userRepository.GetUserByIdAsync(userId);
-                if (user == null)
-                    return NotFound(new { message = "Không tìm thấy user" });
-
-                return Ok(CreateUserDto(user));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
-            }
+            return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
         }
+    }
 
-        [HttpGet("wallet")]
-        [Authorize]
-        public async Task<IActionResult> GetMyWallet()
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] ProfileDTOs.UpdateProfileRequest request)
+    {
+        try
         {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                if (userId == null)
-                    return Unauthorized(new { message = "Token không hợp lệ" });
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized(new { message = "Token không hợp lệ" });
 
-                var user = await _userRepository.GetUserByIdAsync(userId.Value);
-                if (user == null)
-                    return NotFound(new { message = "Không tìm thấy user" });
+            var user = await _userRepository.GetUserByIdAsync(userId.Value);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy user" });
 
-                var walletResponse = new AuthDTOs.WalletResponse(user.WalletBalance);
-                return Ok(walletResponse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra khi lấy thông tin ví", error = ex.Message });
-            }
+            // Cập nhật thông tin nếu có
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+                user.FullName = request.FullName;
+
+            if (!string.IsNullOrWhiteSpace(request.Phone))
+                user.Phone = request.Phone;
+
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateUserAsync(user);
+
+            return Ok(new ProfileDTOs.UpdateProfileResponse(
+                "Cập nhật profile thành công",
+                CreateProfileDetailDto(user)
+            ));
         }
-
-        [HttpGet("wallet/balance")]
-        [Authorize]
-        public async Task<IActionResult> GetWalletBalance()
+        catch (Exception ex)
         {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                if (userId == null)
-                    return Unauthorized(new { message = "Token không hợp lệ" });
-
-                var user = await _userRepository.GetUserByIdAsync(userId.Value);
-                if (user == null)
-                    return NotFound(new { message = "Không tìm thấy user" });
-
-                return Ok(new { balance = user.WalletBalance, currency = "VND" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra khi lấy số dư ví", error = ex.Message });
-            }
+            return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật profile", error = ex.Message });
         }
+    }
 
-        [HttpPost("seed-admin")]
-        public async Task<IActionResult> SeedAdmin()
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetUserById(int userId)
+    {
+        try
         {
-            try
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy user" });
+
+            return Ok(CreateUserDto(user));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Có lỗi xảy ra", error = ex.Message });
+        }
+    }
+
+    [HttpGet("wallet")]
+    [Authorize]
+    public async Task<IActionResult> GetMyWallet()
+    {
+        try
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized(new { message = "Token không hợp lệ" });
+
+            var user = await _userRepository.GetUserByIdAsync(userId.Value);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy user" });
+
+            var walletResponse = new AuthDTOs.WalletResponse(user.WalletBalance);
+            return Ok(walletResponse);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Có lỗi xảy ra khi lấy thông tin ví", error = ex.Message });
+        }
+    }
+
+    [HttpGet("wallet/balance")]
+    [Authorize]
+    public async Task<IActionResult> GetWalletBalance()
+    {
+        try
+        {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized(new { message = "Token không hợp lệ" });
+
+            var user = await _userRepository.GetUserByIdAsync(userId.Value);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy user" });
+
+            return Ok(new { balance = user.WalletBalance, currency = "VND" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Có lỗi xảy ra khi lấy số dư ví", error = ex.Message });
+        }
+    }
+
+    [HttpPost("seed-admin")]
+    public async Task<IActionResult> SeedAdmin()
+    {
+        try
+        {
+            // Kiểm tra xem admin đã tồn tại chưa
+            var existingAdmin = await _userRepository.GetUserByEmailAsync("admin@test.com");
+            if (existingAdmin != null)
             {
-                // Kiểm tra xem admin đã tồn tại chưa
-                var existingAdmin = await _userRepository.GetUserByEmailAsync("admin@test.com");
-                if (existingAdmin != null)
+                return Ok(new
                 {
+                    message = "Admin user already exists",
+                    email = existingAdmin.Email,
+                    password = "admin123"
+
                     return Ok(new { 
                         message = "Admin user already exists", 
                         email = existingAdmin.Email,
@@ -248,14 +263,23 @@ namespace TheGrind5_EventManagement.Controllers
                     message = "Test users created successfully", 
                     admin = new { email = "admin@test.com", password = "admin123" },
                     user = new { email = "test@test.com", password = "123456" }
+
                 });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Có lỗi xảy ra khi tạo admin user", error = ex.Message });
-            }
-        }
 
+            // Tạo admin user
+            var adminUser = new User
+            {
+                Username = "admin",
+                FullName = "Administrator",
+                Email = "admin@test.com",
+                PasswordHash = HashPassword("admin123"),
+                Phone = "0123456789",
+                Role = "Admin",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _userRepository.CreateUserAsync(adminUser);
         // Forgot password endpoints temporarily disabled
         /*
         [HttpPost("forgot-password")]
@@ -282,77 +306,94 @@ namespace TheGrind5_EventManagement.Controllers
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        private bool IsValidLoginRequest(AuthDTOs.LoginRequest request)
-        {
-            return request != null && 
-                   !string.IsNullOrWhiteSpace(request.Email) && 
-                   !string.IsNullOrWhiteSpace(request.Password) &&
-                   request.Email.Contains("@");
-        }
-
-        private int? GetUserIdFromToken()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(userIdClaim, out int userId) ? userId : null;
-        }
-
-        private object CreateUserDto(User user)
-        {
-            return new
+            return Ok(new
             {
-                UserId = user.UserId,
-                FullName = user.FullName,
-                Email = user.Email,
-                Phone = user.Phone,
-                Role = user.Role,
-                WalletBalance = user.WalletBalance
-            };
+                message = "Admin user created successfully",
+                email = adminUser.Email,
+                password = "admin123"
+            });
         }
-
-        private object CreateLoginResponse(AuthDTOs.LoginResponse result)
+        catch (Exception ex)
         {
-            return new
+            return BadRequest(new { message = "Có lỗi xảy ra khi tạo admin user", error = ex.Message });
+        }
+    }
+
+    private string HashPassword(string password)
+    {
+        return BCrypt.Net.BCrypt.HashPassword(password);
+    }
+
+    private bool IsValidLoginRequest(AuthDTOs.LoginRequest request)
+    {
+        return request != null &&
+               !string.IsNullOrWhiteSpace(request.Email) &&
+               !string.IsNullOrWhiteSpace(request.Password) &&
+               request.Email.Contains("@");
+    }
+
+    private int? GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out int userId) ? userId : null;
+    }
+
+    private object CreateUserDto(User user)
+    {
+        return new
+        {
+            UserId = user.UserId,
+            FullName = user.FullName,
+            Email = user.Email,
+            Phone = user.Phone,
+            Role = user.Role,
+            WalletBalance = user.WalletBalance
+        };
+    }
+
+    private object CreateLoginResponse(AuthDTOs.LoginResponse result)
+    {
+        return new
+        {
+            User = new
             {
-                User = new
-                {
-                    UserId = result.User.UserId,
-                    FullName = result.User.FullName,
-                    Email = result.User.Email,
-                    Phone = result.User.Phone,
-                    Role = result.User.Role,
-                    WalletBalance = result.User.WalletBalance
-                },
-                AccessToken = result.AccessToken,
-                ExpiresAt = result.ExpiresAt
-            };
-        }
+                UserId = result.User.UserId,
+                FullName = result.User.FullName,
+                Email = result.User.Email,
+                Phone = result.User.Phone,
+                Role = result.User.Role,
+                WalletBalance = result.User.WalletBalance
+            },
+            AccessToken = result.AccessToken,
+            ExpiresAt = result.ExpiresAt
+        };
+    }
 
-        private object CreateRegisterResponse(AuthDTOs.UserReadDto result)
+    private object CreateRegisterResponse(AuthDTOs.UserReadDto result)
+    {
+        return new
         {
-            return new
-            {
-                Message = "Đăng ký thành công",
-                UserId = result.UserId,
-                FullName = result.FullName,
-                Email = result.Email,
-                Phone = result.Phone,
-                Role = result.Role,
-                WalletBalance = result.WalletBalance
-            };
-        }
+            Message = "Đăng ký thành công",
+            UserId = result.UserId,
+            FullName = result.FullName,
+            Email = result.Email,
+            Phone = result.Phone,
+            Role = result.Role,
+            WalletBalance = result.WalletBalance
+        };
+    }
 
-        private ProfileDTOs.ProfileDetailDto CreateProfileDetailDto(User user)
-        {
-            return new ProfileDTOs.ProfileDetailDto(
-                user.UserId,
-                user.Username,
-                user.FullName,
-                user.Email,
-                user.Phone,
-                user.Role,
-                user.CreatedAt,
-                user.UpdatedAt
-            );
-        }
+    private ProfileDTOs.ProfileDetailDto CreateProfileDetailDto(User user)
+    {
+        return new ProfileDTOs.ProfileDetailDto(
+            user.UserId,
+            user.Username,
+            user.FullName,
+            user.Email,
+            user.Phone,
+            user.Role,
+            user.CreatedAt,
+            user.UpdatedAt
+        );
     }
 }

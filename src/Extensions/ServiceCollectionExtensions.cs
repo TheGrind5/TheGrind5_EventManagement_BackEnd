@@ -58,6 +58,7 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IWishlistService, WishlistService>();
 
             services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<IVoucherService, VoucherService>();
 
             
             return services;

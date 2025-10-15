@@ -81,7 +81,7 @@ Trong file `src/Properties/launchSettings.json`, có thể thay đổi port:
 
 ### 1. Cài Đặt Dependencies
 ```bash
-cd TheGrind5_EventManagement_FrontEnd
+cd ../TheGrind5_EventManagement_FrontEnd
 npm install
 ```
 
@@ -110,13 +110,13 @@ dotnet run
 
 **Terminal 2 - Frontend:**
 ```bash
-cd TheGrind5_EventManagement_FrontEnd
+cd ../TheGrind5_EventManagement_FrontEnd
 npm start
 ```
 
 ### Cách 3: Sử dụng npm script
 ```bash
-cd TheGrind5_EventManagement_FrontEnd
+cd ../TheGrind5_EventManagement_FrontEnd
 npm run dev
 ```
 

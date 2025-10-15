@@ -109,6 +109,36 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        [HttpGet("type/{ticketTypeId}/availability")]
+        public async Task<IActionResult> GetTicketTypeAvailability(int ticketTypeId)
+        {
+            try
+            {
+                var ticketType = await _ticketService.GetTicketTypeByIdAsync(ticketTypeId);
+                if (ticketType == null)
+                    return NotFound(new { message = "Không tìm thấy loại vé" });
+
+                var availableQuantity = await CalculateAvailableQuantity(ticketTypeId);
+                
+                return Ok(new {
+                    ticketTypeId = ticketTypeId,
+                    totalQuantity = ticketType.Quantity,
+                    availableQuantity = availableQuantity,
+                    soldQuantity = ticketType.Quantity - availableQuantity,
+                    isAvailable = availableQuantity > 0,
+                    minOrder = ticketType.MinOrder,
+                    maxOrder = ticketType.MaxOrder,
+                    saleStart = ticketType.SaleStart,
+                    saleEnd = ticketType.SaleEnd,
+                    isOnSale = DateTime.Now >= ticketType.SaleStart && DateTime.Now <= ticketType.SaleEnd
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi kiểm tra số lượng vé", error = ex.Message });
+            }
+        }
+
         [HttpPut("{ticketId}/check-in")]
         public async Task<IActionResult> CheckInTicket(int ticketId)
         {

@@ -266,6 +266,46 @@ namespace TheGrind5_EventManagement.Controllers
                    request.Quantity > 0;
         }
 
+        [HttpPost("cleanup-expired")]
+        [Authorize]
+        public async Task<IActionResult> CleanupExpiredOrders()
+        {
+            try
+            {
+                var cleanedCount = await _orderService.CleanupExpiredOrdersAsync();
+                
+                return Ok(new { 
+                    message = $"Đã cleanup {cleanedCount} orders hết hạn",
+                    cleanedCount = cleanedCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi cleanup orders", error = ex.Message });
+            }
+        }
+
+        [HttpGet("inventory/{ticketTypeId}")]
+        public async Task<IActionResult> GetTicketTypeInventory(int ticketTypeId)
+        {
+            try
+            {
+                if (ticketTypeId <= 0)
+                    return BadRequest(new { message = "Ticket type ID không hợp lệ" });
+
+                var inventory = await _orderService.GetTicketTypeInventoryAsync(ticketTypeId);
+                return Ok(inventory);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy thông tin inventory", error = ex.Message });
+            }
+        }
+
         private int? GetUserIdFromToken()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -26,8 +26,7 @@ public class VoucherService : IVoucherService
     {
         var response = new VoucherValidationResponse
         {
-            VoucherCode = request.VoucherCode,
-            OriginalAmount = request.OriginalAmount
+            VoucherCode = request.VoucherCode
         };
 
         // Tìm voucher theo code

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheGrind5_EventManagement.Data;
 
@@ -11,9 +12,11 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
-    partial class EventDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251013020610_FixPendingChanges")]
+    partial class FixPendingChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,40 +135,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.HasIndex("TicketTypeId");
 
                     b.ToTable("OrderItem", (string)null);
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.OtpCode", b =>
-                {
-                    b.Property<int>("OtpId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OtpId"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("OtpId");
-
-                    b.ToTable("OtpCode", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Payment", b =>
@@ -376,39 +345,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("WalletTransaction", (string)null);
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TicketTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TicketTypeId");
-
-                    b.HasIndex("UserId", "TicketTypeId")
-                        .IsUnique();
-
-                    b.ToTable("Wishlist", (string)null);
-                });
-
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
                     b.HasOne("TheGrind5_EventManagement.Models.User", "Host")
@@ -501,25 +437,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
-                {
-                    b.HasOne("TheGrind5_EventManagement.Models.TicketType", "TicketType")
-                        .WithMany()
-                        .HasForeignKey("TicketTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany("Wishlists")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TicketType");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
                     b.Navigation("TicketTypes");
@@ -551,8 +468,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("WalletTransactions");
-
-                    b.Navigation("Wishlists");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,6 +9,11 @@ namespace TheGrind5_EventManagement.DTOs
         // Wallet DTOs
         public record WalletResponse(decimal Balance, string Currency = "VND");
         public record WalletTransactionDto(int TransactionId, decimal Amount, string Type, string Description, DateTime CreatedAt);
+        
+        // Forgot Password DTOs
+        public record ForgotPasswordRequest(string Email);
+        public record VerifyOtpRequest(string Email, string OtpCode);
+        public record ResetPasswordRequest(string Email, string OtpCode, string NewPassword);
     }
 
     public record RegisterRequest(

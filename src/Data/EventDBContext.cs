@@ -15,8 +15,10 @@ public partial class EventDBContext : DbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketType> TicketTypes => Set<TicketType>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
     public DbSet<Wishlist> Wishlists => Set<Wishlist>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -29,10 +31,11 @@ public partial class EventDBContext : DbContext
         b.Entity<Ticket>().ToTable("Ticket");
 
         b.Entity<TicketType>().ToTable("TicketType");
+        b.Entity<OtpCode>().ToTable("OtpCode");
         b.Entity<WalletTransaction>().ToTable("WalletTransaction");
-
         b.Entity<Payment>().ToTable("Payment");
         b.Entity<Wishlist>().ToTable("Wishlist");
+        b.Entity<Voucher>().ToTable("Voucher");
         
         // Configure column mappings for User table
         b.Entity<User>(entity =>
@@ -40,8 +43,6 @@ public partial class EventDBContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Ignore(e => e.Username); // Database doesn't have Username column
         });
-
-
         
         ConfigureUserRelationships(b);
         ConfigureEventRelationships(b);

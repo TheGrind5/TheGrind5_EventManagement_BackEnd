@@ -109,6 +109,18 @@ CREATE TABLE Wishlist(
     CONSTRAINT UQ_Wishlist_User_TicketType UNIQUE (UserId, TicketTypeId)
 );
 
+-- Voucher table for discount management
+CREATE TABLE Voucher(
+    VoucherId INT IDENTITY PRIMARY KEY,
+    VoucherCode NVARCHAR(50) NOT NULL UNIQUE,
+    DiscountPercentage INT NOT NULL CHECK (DiscountPercentage >= 0 AND DiscountPercentage <= 100),
+    ValidFrom DATETIME2(0) NOT NULL,
+    ValidTo DATETIME2(0) NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0)
+);
+
 -- Wallet functionality for users
 -- WalletBalance: Stores user's wallet balance with precision (18,2)
 -- Default value: 0 (new users start with 0 balance)
@@ -127,4 +139,8 @@ CREATE INDEX IX_Payment_OrderId ON Payment(OrderId);
 CREATE INDEX IX_Wishlist_UserId ON Wishlist(UserId);
 CREATE INDEX IX_Wishlist_TicketTypeId ON Wishlist(TicketTypeId);
 CREATE INDEX IX_Wishlist_AddedAt ON Wishlist(AddedAt);
+CREATE INDEX IX_Voucher_VoucherCode ON Voucher(VoucherCode);
+CREATE INDEX IX_Voucher_ValidFrom ON Voucher(ValidFrom);
+CREATE INDEX IX_Voucher_ValidTo ON Voucher(ValidTo);
+CREATE INDEX IX_Voucher_IsActive ON Voucher(IsActive);
 

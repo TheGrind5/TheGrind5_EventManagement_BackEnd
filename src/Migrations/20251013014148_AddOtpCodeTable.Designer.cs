@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheGrind5_EventManagement.Data;
 
@@ -11,9 +12,11 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
-    partial class EventDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251013014148_AddOtpCodeTable")]
+    partial class AddOtpCodeTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,8 +290,7 @@ namespace TheGrind5_EventManagement.Migrations
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("UserID");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
@@ -317,6 +319,9 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("WalletBalance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -324,89 +329,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("User", (string)null);
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.WalletTransaction", b =>
-                {
-                    b.Property<int>("TransactionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceAfter")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceBefore")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ReferenceId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TransactionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("TransactionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("WalletTransaction", (string)null);
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TicketTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TicketTypeId");
-
-                    b.HasIndex("UserId", "TicketTypeId")
-                        .IsUnique();
-
-                    b.ToTable("Wishlist", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
@@ -490,36 +412,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.WalletTransaction", b =>
-                {
-                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany("WalletTransactions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
-                {
-                    b.HasOne("TheGrind5_EventManagement.Models.TicketType", "TicketType")
-                        .WithMany()
-                        .HasForeignKey("TicketTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany("Wishlists")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TicketType");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
                     b.Navigation("TicketTypes");
@@ -549,10 +441,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Orders");
-
-                    b.Navigation("WalletTransactions");
-
-                    b.Navigation("Wishlists");
                 });
 #pragma warning restore 612, 618
         }

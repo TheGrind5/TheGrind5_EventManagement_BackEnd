@@ -12,6 +12,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -48,6 +49,17 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors(AppConstants.CORS_POLICY_NAME);
+
+// Add UTF-8 encoding support
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["Content-Type"] = "application/json; charset=utf-8";
+    await next();
+});
+
+// Serve static files (for uploaded images)
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

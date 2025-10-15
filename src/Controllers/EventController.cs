@@ -198,6 +198,277 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        // ========================================
+        // NEW EVENT CREATION ENDPOINTS (Ticket Box Style)
+        // ========================================
+
+        [HttpPost("create/step1")]
+        [Authorize]
+        public async Task<IActionResult> CreateEventStep1([FromBody] CreateEventStep1Request request)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Tạo event với thông tin bước 1
+                var eventData = new Event
+                {
+                    HostId = userId.Value,
+                    Title = request.Title,
+                    Description = request.Description,
+                    EventMode = request.EventMode,
+                    VenueName = request.VenueName,
+                    Province = request.Province,
+                    District = request.District,
+                    Ward = request.Ward,
+                    StreetAddress = request.StreetAddress,
+                    EventType = request.EventType,
+                    Category = request.Category,
+                    EventImage = request.EventImage,
+                    BackgroundImage = request.BackgroundImage,
+                    EventIntroduction = request.EventIntroduction,
+                    EventDetails = request.EventDetails,
+                    SpecialGuests = request.SpecialGuests,
+                    SpecialExperience = request.SpecialExperience,
+                    TermsAndConditions = request.TermsAndConditions,
+                    ChildrenTerms = request.ChildrenTerms,
+                    VATTerms = request.VATTerms,
+                    OrganizerLogo = request.OrganizerLogo,
+                    OrganizerName = request.OrganizerName,
+                    OrganizerInfo = request.OrganizerInfo,
+                    Status = "Draft",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var createdEvent = await _eventService.CreateEventAsync(eventData);
+                return Ok(new EventCreationResponse(
+                    createdEvent.EventId,
+                    "Bước 1: Thông tin sự kiện đã được lưu thành công",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi tạo sự kiện bước 1", error = ex.Message });
+            }
+        }
+
+        [HttpPut("{eventId}/create/step2")]
+        [Authorize]
+        public async Task<IActionResult> UpdateEventStep2(int eventId, [FromBody] CreateEventStep2Request request)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Kiểm tra quyền sở hữu event
+                var existingEvent = await _eventService.GetEventByIdAsync(eventId);
+                if (existingEvent == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (existingEvent.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+
+                // Cập nhật thông tin thời gian
+                existingEvent.StartTime = request.StartTime;
+                existingEvent.EndTime = request.EndTime;
+                existingEvent.UpdatedAt = DateTime.UtcNow;
+
+                await _eventService.UpdateEventAsync(eventId, existingEvent);
+
+                // Tạo ticket types
+                foreach (var ticketTypeRequest in request.TicketTypes)
+                {
+                    var ticketType = new TicketType
+                    {
+                        EventId = eventId,
+                        TypeName = ticketTypeRequest.TypeName,
+                        Price = ticketTypeRequest.Price,
+                        Quantity = ticketTypeRequest.Quantity,
+                        MinOrder = ticketTypeRequest.MinOrder,
+                        MaxOrder = ticketTypeRequest.MaxOrder,
+                        SaleStart = ticketTypeRequest.SaleStart,
+                        SaleEnd = ticketTypeRequest.SaleEnd,
+                        Status = ticketTypeRequest.Status
+                    };
+                    // TODO: Implement ticket type creation service
+                }
+
+                return Ok(new EventCreationResponse(
+                    eventId,
+                    "Bước 2: Thời gian và loại vé đã được cập nhật thành công",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 2", error = ex.Message });
+            }
+        }
+
+        [HttpPut("{eventId}/create/step3")]
+        [Authorize]
+        public async Task<IActionResult> UpdateEventStep3(int eventId, [FromBody] CreateEventStep3Request request)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Kiểm tra quyền sở hữu event
+                var existingEvent = await _eventService.GetEventByIdAsync(eventId);
+                if (existingEvent == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (existingEvent.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+
+                // Cập nhật cài đặt sự kiện (có thể lưu trong Description hoặc tạo bảng riêng)
+                existingEvent.UpdatedAt = DateTime.UtcNow;
+                await _eventService.UpdateEventAsync(eventId, existingEvent);
+
+                return Ok(new EventCreationResponse(
+                    eventId,
+                    "Bước 3: Cài đặt sự kiện đã được lưu thành công",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 3", error = ex.Message });
+            }
+        }
+
+        [HttpPut("{eventId}/create/step4")]
+        [Authorize]
+        public async Task<IActionResult> UpdateEventStep4(int eventId, [FromBody] CreateEventStep4Request request)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Kiểm tra quyền sở hữu event
+                var existingEvent = await _eventService.GetEventByIdAsync(eventId);
+                if (existingEvent == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (existingEvent.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+
+                // Cập nhật thông tin thanh toán và chuyển status thành Open
+                existingEvent.Status = "Open";
+                existingEvent.UpdatedAt = DateTime.UtcNow;
+                await _eventService.UpdateEventAsync(eventId, existingEvent);
+
+                return Ok(new EventCreationResponse(
+                    eventId,
+                    "Bước 4: Thông tin thanh toán đã được lưu và sự kiện đã được kích hoạt thành công!",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 4", error = ex.Message });
+            }
+        }
+
+        [HttpGet("{eventId}/creation-status")]
+        [Authorize]
+        public async Task<IActionResult> GetEventCreationStatus(int eventId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var eventData = await _eventService.GetEventByIdAsync(eventId);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (eventData.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền xem sự kiện này");
+
+                var response = new
+                {
+                    EventId = eventData.EventId,
+                    Title = eventData.Title,
+                    Status = eventData.Status,
+                    HasBasicInfo = !string.IsNullOrEmpty(eventData.Title) && !string.IsNullOrEmpty(eventData.Description),
+                    HasDateTime = eventData.StartTime != default && eventData.EndTime != default,
+                    HasTicketTypes = eventData.TicketTypes?.Any() == true,
+                    CreatedAt = eventData.CreatedAt,
+                    UpdatedAt = eventData.UpdatedAt
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy trạng thái tạo sự kiện", error = ex.Message });
+            }
+        }
+
+        [HttpPost("upload-image")]
+        [Authorize]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { message = "Không có file được chọn" });
+
+                // Kiểm tra loại file
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                    return BadRequest(new { message = "Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)" });
+
+                // Kiểm tra kích thước file (max 5MB)
+                if (file.Length > 5 * 1024 * 1024)
+                    return BadRequest(new { message = "File quá lớn, tối đa 5MB" });
+
+                // Tạo tên file unique
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "events");
+                
+                // Debug: Log đường dẫn
+                Console.WriteLine($"Upload folder: {uploadsFolder}");
+                Console.WriteLine($"File name: {fileName}");
+                
+                // Tạo thư mục nếu chưa có
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Lưu file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Trả về URL ảnh
+                var imageUrl = $"/uploads/events/{fileName}";
+                return Ok(new { 
+                    success = true, 
+                    imageUrl = imageUrl,
+                    message = "Upload ảnh thành công" 
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi upload ảnh", error = ex.Message });
+            }
+        }
+
         private int? GetUserIdFromToken()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

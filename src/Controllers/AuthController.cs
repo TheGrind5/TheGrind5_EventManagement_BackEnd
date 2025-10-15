@@ -14,11 +14,15 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
+        // private readonly IEmailService _emailService;
+        // private readonly IOtpService _otpService;
 
         public AuthController(IAuthService authService, IUserRepository userRepository)
         {
             _authService = authService;
             _userRepository = userRepository;
+            // _emailService = emailService;
+            // _otpService = otpService;
         }
 
         [HttpPost("login")]
@@ -219,15 +223,31 @@ namespace TheGrind5_EventManagement.Controllers
                     PasswordHash = HashPassword("admin123"),
                     Phone = "0123456789",
                     Role = "Admin",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    WalletBalance = 1000000
                 };
 
                 await _userRepository.CreateUserAsync(adminUser);
 
+                // Tạo thêm user test
+                var testUser = new User
+                {
+                    Username = "testuser",
+                    FullName = "Test User",
+                    Email = "test@test.com",
+                    PasswordHash = HashPassword("123456"),
+                    Phone = "0987654321",
+                    Role = "Customer",
+                    CreatedAt = DateTime.UtcNow,
+                    WalletBalance = 500000
+                };
+
+                await _userRepository.CreateUserAsync(testUser);
+
                 return Ok(new { 
-                    message = "Admin user created successfully", 
-                    email = adminUser.Email,
-                    password = "admin123"
+                    message = "Test users created successfully", 
+                    admin = new { email = "admin@test.com", password = "admin123" },
+                    user = new { email = "test@test.com", password = "123456" }
                 });
             }
             catch (Exception ex)
@@ -235,6 +255,27 @@ namespace TheGrind5_EventManagement.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra khi tạo admin user", error = ex.Message });
             }
         }
+
+        // Forgot password endpoints temporarily disabled
+        /*
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] AuthDTOs.ForgotPasswordRequest request)
+        {
+            return BadRequest(new { message = "Tính năng này đang được phát triển" });
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] AuthDTOs.VerifyOtpRequest request)
+        {
+            return BadRequest(new { message = "Tính năng này đang được phát triển" });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] AuthDTOs.ResetPasswordRequest request)
+        {
+            return BadRequest(new { message = "Tính năng này đang được phát triển" });
+        }
+        */
 
         private string HashPassword(string password)
         {

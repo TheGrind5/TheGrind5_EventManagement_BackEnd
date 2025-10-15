@@ -16,6 +16,7 @@ DELETE FROM OrderItem;
 DELETE FROM [Order];
 DELETE FROM TicketType;
 DELETE FROM Event;
+DELETE FROM Voucher;
 DELETE FROM [User];
 
 -- Reset identity columns
@@ -25,6 +26,7 @@ DBCC CHECKIDENT ('OrderItem', RESEED, 0);
 DBCC CHECKIDENT ('[Order]', RESEED, 0);
 DBCC CHECKIDENT ('TicketType', RESEED, 0);
 DBCC CHECKIDENT ('Event', RESEED, 0);
+DBCC CHECKIDENT ('Voucher', RESEED, 0);
 DBCC CHECKIDENT ('[User]', RESEED, 0);
 
 -- Verify tables are empty
@@ -439,10 +441,74 @@ LEFT JOIN Event e ON u.UserId = e.HostId
 WHERE u.Role = 'Host'
 GROUP BY u.UserId, u.FullName, u.Email;
 
+-- ========================================
+-- INSERT VOUCHERS
+-- ========================================
+
+-- Voucher giảm 10%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'WELCOME10',
+    10, -- Giảm 10%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 3, GETUTCDATE()), -- Hết hạn sau 3 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Voucher giảm 20%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'SAVE20',
+    20, -- Giảm 20%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 2, GETUTCDATE()), -- Hết hạn sau 2 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Voucher giảm 15% (đã hết hạn để test)
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'EXPIRED15',
+    15, -- Giảm 15%
+    DATEADD(month, -2, GETUTCDATE()), -- Có hiệu lực từ 2 tháng trước
+    DATEADD(month, -1, GETUTCDATE()), -- Hết hạn 1 tháng trước
+    1, -- Active (nhưng đã hết hạn)
+    GETUTCDATE()
+);
+
+-- Voucher giảm 25%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'SUMMER25',
+    25, -- Giảm 25%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 1, GETUTCDATE()), -- Hết hạn sau 1 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Voucher giảm 30%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'VIP30',
+    30, -- Giảm 30%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 6, GETUTCDATE()), -- Hết hạn sau 6 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Kiểm tra Vouchers đã được tạo
+SELECT 'Vouchers Created:' as Info, COUNT(*) as Count FROM Voucher;
+SELECT VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive FROM Voucher ORDER BY VoucherCode;
+
 PRINT '========================================';
 PRINT 'Sample data injection completed successfully!';
 PRINT '5 Users created (2 Hosts, 3 Customers)';
 PRINT '6 Events created (3 per Host)';
+PRINT '5 Vouchers created';
 
 PRINT 'Customer 1: 500,000 VND';
 PRINT 'Customer 2: 1,250,000.50 VND';
@@ -450,5 +516,6 @@ PRINT 'Test Wallet User: 999,999.99 VND';
 PRINT 'All users password: 123456';
 
 PRINT '11 Ticket Types created for all events';
+PRINT '5 Vouchers created (WELCOME10, SAVE20, EXPIRED15, SUMMER25, VIP30)';
 
 PRINT '========================================';

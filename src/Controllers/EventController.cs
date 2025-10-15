@@ -147,7 +147,21 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                // Tạo một số sự kiện mẫu
+                // This endpoint is kept for development/testing purposes only
+                // In production, this should be removed or restricted to admin users only
+                
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Only allow seeding if no events exist (first time setup)
+                var existingEvents = await _eventService.GetAllEventsAsync();
+                if (existingEvents.Any())
+                {
+                    return BadRequest(new { message = "Sample data seeding is only allowed when no events exist" });
+                }
+
+                // Tạo một số sự kiện mẫu cho development
                 var sampleEvents = new List<Event>
                 {
                     new Event
@@ -159,7 +173,7 @@ namespace TheGrind5_EventManagement.Controllers
                         Location = "Hà Nội",
                         Category = "Technology",
                         Status = "Open",
-                        HostId = 1
+                        HostId = userId.Value
                     },
                     new Event
                     {
@@ -170,7 +184,7 @@ namespace TheGrind5_EventManagement.Controllers
                         Location = "TP.HCM",
                         Category = "Music",
                         Status = "Open",
-                        HostId = 1
+                        HostId = userId.Value
                     },
                     new Event
                     {
@@ -181,7 +195,7 @@ namespace TheGrind5_EventManagement.Controllers
                         Location = "Đà Nẵng",
                         Category = "Business",
                         Status = "Open",
-                        HostId = 1
+                        HostId = userId.Value
                     }
                 };
 
@@ -190,7 +204,11 @@ namespace TheGrind5_EventManagement.Controllers
                     await _eventService.CreateEventAsync(eventData);
                 }
 
-                return Ok(new { message = "Đã tạo thành công các sự kiện mẫu", count = sampleEvents.Count });
+                return Ok(new { 
+                    message = "Đã tạo thành công các sự kiện mẫu cho development", 
+                    count = sampleEvents.Count,
+                    note = "This is for development purposes only"
+                });
             }
             catch (Exception ex)
             {

@@ -4,7 +4,7 @@ BEGIN
     DROP DATABASE EventDB;
 END;
 GO
-CREATE DATABASE EventDB;
+CREATE DATABASE EventDB COLLATE SQL_Latin1_General_CP1_CI_AI;
 GO
 USE EventDB;
 GO
@@ -96,6 +96,31 @@ CREATE TABLE Payment(
     CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId)
 );
 
+-- Wishlist table (simplified - direct relationship with User and TicketType)
+CREATE TABLE Wishlist(
+    Id INT IDENTITY PRIMARY KEY,
+    UserId INT NOT NULL,
+    TicketTypeId INT NOT NULL,
+    Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity >= 1),
+    AddedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0),
+    CONSTRAINT FK_Wishlist_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    CONSTRAINT FK_Wishlist_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId),
+    CONSTRAINT UQ_Wishlist_User_TicketType UNIQUE (UserId, TicketTypeId)
+);
+
+-- Voucher table for discount management
+CREATE TABLE Voucher(
+    VoucherId INT IDENTITY PRIMARY KEY,
+    VoucherCode NVARCHAR(50) NOT NULL UNIQUE,
+    DiscountPercentage INT NOT NULL CHECK (DiscountPercentage >= 0 AND DiscountPercentage <= 100),
+    ValidFrom DATETIME2(0) NOT NULL,
+    ValidTo DATETIME2(0) NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0)
+);
+
 -- Wallet functionality for users
 -- WalletBalance: Stores user's wallet balance with precision (18,2)
 -- Default value: 0 (new users start with 0 balance)
@@ -111,4 +136,44 @@ CREATE INDEX IX_OrderItem_TicketTypeId ON OrderItem(TicketTypeId);
 CREATE INDEX IX_Ticket_TicketTypeId ON Ticket(TicketTypeId);
 CREATE INDEX IX_Ticket_OrderItemId ON Ticket(OrderItemId);
 CREATE INDEX IX_Payment_OrderId ON Payment(OrderId);
+CREATE INDEX IX_Wishlist_UserId ON Wishlist(UserId);
+CREATE INDEX IX_Wishlist_TicketTypeId ON Wishlist(TicketTypeId);
+CREATE INDEX IX_Wishlist_AddedAt ON Wishlist(AddedAt);
+CREATE INDEX IX_Voucher_VoucherCode ON Voucher(VoucherCode);
+CREATE INDEX IX_Voucher_ValidFrom ON Voucher(ValidFrom);
+CREATE INDEX IX_Voucher_ValidTo ON Voucher(ValidTo);
+CREATE INDEX IX_Voucher_IsActive ON Voucher(IsActive);
+
+-- WalletTransaction table for tracking wallet operations
+CREATE TABLE WalletTransaction(
+    TransactionId INT IDENTITY PRIMARY KEY,
+    UserId INT NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL CHECK (Amount > 0),
+    TransactionType VARCHAR(20) NOT NULL CHECK (TransactionType IN ('Deposit','Withdraw','Payment','Refund','Transfer_In','Transfer_Out')),
+    Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Completed','Failed','Cancelled')),
+    Description NVARCHAR(500),
+    ReferenceId NVARCHAR(100), -- Reference to OrderId, PaymentId, etc.
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    CompletedAt DATETIME2(0),
+    BalanceBefore DECIMAL(18,2) NOT NULL,
+    BalanceAfter DECIMAL(18,2) NOT NULL,
+    CONSTRAINT FK_WalletTransaction_User FOREIGN KEY (UserId) REFERENCES [User](UserId)
+);
+
+-- OtpCode table for OTP verification
+CREATE TABLE OtpCode(
+    Id INT IDENTITY PRIMARY KEY,
+    Email NVARCHAR(100) NOT NULL,
+    Code NVARCHAR(10) NOT NULL,
+    ExpiresAt DATETIME2(0) NOT NULL,
+    IsUsed BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
+);
+
+-- Additional indexes for new tables
+CREATE INDEX IX_WalletTransaction_UserId ON WalletTransaction(UserId);
+CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
+CREATE INDEX IX_WalletTransaction_CreatedAt ON WalletTransaction(CreatedAt);
+CREATE INDEX IX_OtpCode_Email ON OtpCode(Email);
+CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
 

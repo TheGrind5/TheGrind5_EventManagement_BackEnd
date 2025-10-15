@@ -60,6 +60,32 @@ namespace TheGrind5_EventManagement.Repositories
             var normalizedEmail = email.ToLowerInvariant().Trim();
             return await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail);
         }
+
+        public async Task<bool> UpdateWalletBalanceAsync(int userId, decimal newBalance)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return false;
+
+                user.WalletBalance = newBalance;
+                user.UpdatedAt = DateTime.UtcNow;
+                
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<decimal> GetWalletBalanceAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user?.WalletBalance ?? 0;
+        }
     }
 }
 

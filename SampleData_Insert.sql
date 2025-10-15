@@ -16,6 +16,10 @@ DELETE FROM OrderItem;
 DELETE FROM [Order];
 DELETE FROM TicketType;
 DELETE FROM Event;
+DELETE FROM Voucher;
+DELETE FROM Wishlist;
+DELETE FROM WalletTransaction;
+DELETE FROM OtpCode;
 DELETE FROM [User];
 
 -- Reset identity columns
@@ -25,7 +29,17 @@ DBCC CHECKIDENT ('OrderItem', RESEED, 0);
 DBCC CHECKIDENT ('[Order]', RESEED, 0);
 DBCC CHECKIDENT ('TicketType', RESEED, 0);
 DBCC CHECKIDENT ('Event', RESEED, 0);
+DBCC CHECKIDENT ('Voucher', RESEED, 0);
+DBCC CHECKIDENT ('Wishlist', RESEED, 0);
+DBCC CHECKIDENT ('WalletTransaction', RESEED, 0);
+DBCC CHECKIDENT ('OtpCode', RESEED, 0);
 DBCC CHECKIDENT ('[User]', RESEED, 0);
+
+-- Verify tables are empty
+PRINT 'Verifying tables are empty...';
+SELECT COUNT(*) as UserCount FROM [User];
+SELECT COUNT(*) as EventCount FROM Event;
+SELECT COUNT(*) as TicketTypeCount FROM TicketType;
 
 -- ========================================
 -- INSERT USERS (5 users: 2 hosts, 3 customers)
@@ -43,9 +57,8 @@ DBCC CHECKIDENT ('[User]', RESEED, 0);
 -- ========================================
 
 -- Host 1
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'host1',
     N'Nguyễn Văn Host',
     'host1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -57,9 +70,8 @@ VALUES (
 );
 
 -- Host 2
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'host2',
     N'Trần Thị Host',
     'host2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -71,9 +83,8 @@ VALUES (
 );
 
 -- Customer 1
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'customer1',
     N'Lê Văn Customer',
     'customer1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -85,9 +96,8 @@ VALUES (
 );
 
 -- Customer 2 (Test user with different balance)
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'customer2',
     N'Phạm Thị Test',
     'customer2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -99,9 +109,8 @@ VALUES (
 );
 
 -- Test User với wallet balance cao (để test chức năng wallet)
-INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
-    'testwallet',
     N'Test Wallet User',
     'testwallet@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -201,6 +210,10 @@ VALUES (
     GETUTCDATE(),
     GETUTCDATE()
 );
+
+-- Verify Events were created successfully
+PRINT 'Verifying Events were created...';
+SELECT EventId, Title, HostId FROM Event ORDER BY EventId;
 
 -- ========================================
 -- INSERT TICKET TYPES (Ticket types cho tất cả events)
@@ -341,32 +354,43 @@ VALUES (
     'Active'
 );
 
--- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
-INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
-VALUES (
-    6, -- EventId của Workshop Nấu Ăn Healthy
-    N'Vé Thường',
-    280000, -- 280k VND
-    40, -- 40 vé
-    1, -- Min order 1 vé
-    4, -- Max order 4 vé
-    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
-    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
-    'Active'
-);
+-- Verify Event 6 exists before inserting TicketTypes
+IF EXISTS (SELECT 1 FROM Event WHERE EventId = 6)
+BEGIN
+    PRINT 'Event 6 exists, inserting TicketTypes...';
+    
+    -- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
+    INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+    VALUES (
+        6, -- EventId của Workshop Nấu Ăn Healthy
+        N'Vé Thường',
+        280000, -- 280k VND
+        40, -- 40 vé
+        1, -- Min order 1 vé
+        4, -- Max order 4 vé
+        DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+        DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+        'Active'
+    );
 
-INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
-VALUES (
-    6, -- EventId của Workshop Nấu Ăn Healthy
-    N'Vé Cặp Đôi',
-    500000, -- 500k VND (giá cho 2 người)
-    20, -- 20 cặp (40 người)
-    1, -- Min order 1 cặp
-    2, -- Max order 2 cặp
-    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
-    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
-    'Active'
-);
+    INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+    VALUES (
+        6, -- EventId của Workshop Nấu Ăn Healthy
+        N'Vé Cặp Đôi',
+        500000, -- 500k VND (giá cho 2 người)
+        20, -- 20 cặp (40 người)
+        1, -- Min order 1 cặp
+        2, -- Max order 2 cặp
+        DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+        DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+        'Active'
+    );
+END
+ELSE
+BEGIN
+    PRINT 'ERROR: Event 6 does not exist! Cannot insert TicketTypes.';
+    SELECT EventId, Title FROM Event ORDER BY EventId;
+END
 
 -- ========================================
 -- VERIFICATION QUERIES
@@ -375,7 +399,7 @@ VALUES (
 -- Kiểm tra Users đã được tạo
 SELECT 'Users Created:' as Info, COUNT(*) as Count FROM [User];
 
-SELECT UserId, Username, FullName, Email, Role FROM [User] ORDER BY UserId;
+SELECT UserId, FullName, Email, Role FROM [User] ORDER BY UserId;
 
 
 -- Kiểm tra Events đã được tạo
@@ -418,10 +442,74 @@ LEFT JOIN Event e ON u.UserId = e.HostId
 WHERE u.Role = 'Host'
 GROUP BY u.UserId, u.FullName, u.Email;
 
+-- ========================================
+-- INSERT VOUCHERS
+-- ========================================
+
+-- Voucher giảm 10%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'WELCOME10',
+    10, -- Giảm 10%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 3, GETUTCDATE()), -- Hết hạn sau 3 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Voucher giảm 20%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'SAVE20',
+    20, -- Giảm 20%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 2, GETUTCDATE()), -- Hết hạn sau 2 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Voucher giảm 15% (đã hết hạn để test)
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'EXPIRED15',
+    15, -- Giảm 15%
+    DATEADD(month, -2, GETUTCDATE()), -- Có hiệu lực từ 2 tháng trước
+    DATEADD(month, -1, GETUTCDATE()), -- Hết hạn 1 tháng trước
+    1, -- Active (nhưng đã hết hạn)
+    GETUTCDATE()
+);
+
+-- Voucher giảm 25%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'SUMMER25',
+    25, -- Giảm 25%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 1, GETUTCDATE()), -- Hết hạn sau 1 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Voucher giảm 30%
+INSERT INTO Voucher (VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive, CreatedAt)
+VALUES (
+    'VIP30',
+    30, -- Giảm 30%
+    GETUTCDATE(), -- Có hiệu lực từ hôm nay
+    DATEADD(month, 6, GETUTCDATE()), -- Hết hạn sau 6 tháng
+    1, -- Active
+    GETUTCDATE()
+);
+
+-- Kiểm tra Vouchers đã được tạo
+SELECT 'Vouchers Created:' as Info, COUNT(*) as Count FROM Voucher;
+SELECT VoucherCode, DiscountPercentage, ValidFrom, ValidTo, IsActive FROM Voucher ORDER BY VoucherCode;
+
 PRINT '========================================';
 PRINT 'Sample data injection completed successfully!';
 PRINT '5 Users created (2 Hosts, 3 Customers)';
 PRINT '6 Events created (3 per Host)';
+PRINT '5 Vouchers created';
 
 PRINT 'Customer 1: 500,000 VND';
 PRINT 'Customer 2: 1,250,000.50 VND';
@@ -429,5 +517,6 @@ PRINT 'Test Wallet User: 999,999.99 VND';
 PRINT 'All users password: 123456';
 
 PRINT '11 Ticket Types created for all events';
+PRINT '5 Vouchers created (WELCOME10, SAVE20, EXPIRED15, SUMMER25, VIP30)';
 
 PRINT '========================================';

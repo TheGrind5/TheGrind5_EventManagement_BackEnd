@@ -5,6 +5,16 @@
 
 use EventDB
 
+-- Fix database collation for Vietnamese characters
+ALTER DATABASE EventDB COLLATE Vietnamese_CI_AS;
+
+-- Fix table collations for Vietnamese text
+ALTER TABLE [User] ALTER COLUMN FullName NVARCHAR(255) COLLATE Vietnamese_CI_AS;
+ALTER TABLE [User] ALTER COLUMN Email NVARCHAR(255) COLLATE Vietnamese_CI_AS;
+ALTER TABLE Event ALTER COLUMN Title NVARCHAR(255) COLLATE Vietnamese_CI_AS;
+ALTER TABLE Event ALTER COLUMN Description NVARCHAR(MAX) COLLATE Vietnamese_CI_AS;
+ALTER TABLE Event ALTER COLUMN Location NVARCHAR(255) COLLATE Vietnamese_CI_AS;
+
 -- ========================================
 -- CLEAR EXISTING DATA (in correct order due to foreign keys)
 -- ========================================
@@ -57,8 +67,9 @@ SELECT COUNT(*) as TicketTypeCount FROM TicketType;
 -- ========================================
 
 -- Host 1
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
+    'host1',
     N'Nguyễn Văn Host',
     'host1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -70,8 +81,9 @@ VALUES (
 );
 
 -- Host 2
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
+    'host2',
     N'Trần Thị Host',
     'host2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -83,8 +95,9 @@ VALUES (
 );
 
 -- Customer 1
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
+    'customer1',
     N'Lê Văn Customer',
     'customer1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -96,8 +109,9 @@ VALUES (
 );
 
 -- Customer 2 (Test user with different balance)
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
+    'customer2',
     N'Phạm Thị Test',
     'customer2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -109,8 +123,9 @@ VALUES (
 );
 
 -- Test User với wallet balance cao (để test chức năng wallet)
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
 VALUES (
+    'testwallet',
     N'Test Wallet User',
     'testwallet@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',

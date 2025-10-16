@@ -27,6 +27,9 @@ namespace TheGrind5_EventManagement.Business
         // Inventory methods
         Task<object> GetTicketTypeInventoryAsync(int ticketTypeId);
         
+        // User validation methods
+        Task<bool> ValidateUserExistsAsync(int userId);
+        
         // Mapping methods
         OrderDTO MapToOrderDto(Order order);
         Order MapFromCreateOrderRequest(CreateOrderRequestDTO request, int customerId);

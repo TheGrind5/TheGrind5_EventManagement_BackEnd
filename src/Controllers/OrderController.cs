@@ -26,8 +26,15 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 var userId = GetUserIdFromToken();
+                Console.WriteLine($"Extracted userId from token: {userId}");
+                
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Validate user exists in database
+                var userExists = await _orderService.ValidateUserExistsAsync(userId.Value);
+                if (!userExists)
+                    return Unauthorized(new { message = "Người dùng không tồn tại trong hệ thống" });
 
                 if (!IsValidCreateOrderRequest(request))
                     return BadRequest(new { message = "Dữ liệu order không hợp lệ" });
@@ -45,6 +52,8 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
+                // Log the full exception for debugging
+                Console.WriteLine($"Error creating order: {ex}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi tạo order", error = ex.Message });
             }
         }

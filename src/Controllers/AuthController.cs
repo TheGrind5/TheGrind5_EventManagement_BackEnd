@@ -219,7 +219,8 @@ namespace TheGrind5_EventManagement.Controllers
                     PasswordHash = HashPassword("admin123"),
                     Phone = "0123456789",
                     Role = "Admin",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    WalletBalance = 1000000
                 };
 
                 await _userRepository.CreateUserAsync(adminUser);

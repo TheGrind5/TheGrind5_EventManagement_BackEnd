@@ -26,28 +26,28 @@ public class VoucherController : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(request.VoucherCode))
             {
-                return ApiResponseHelper.BadRequest("Mã voucher không được để trống");
+                return BadRequest(ApiResponseHelper.BadRequest("Mã voucher không được để trống"));
             }
 
             if (request.OriginalAmount <= 0)
             {
-                return ApiResponseHelper.BadRequest("Số tiền phải lớn hơn 0");
+                return BadRequest(ApiResponseHelper.BadRequest("Số tiền phải lớn hơn 0"));
             }
 
             var result = await _voucherService.ValidateVoucherAsync(request);
             
             if (result.IsValid)
             {
-                return ApiResponseHelper.Success(result, "Voucher hợp lệ");
+                return Ok(ApiResponseHelper.Success(result, "Voucher hợp lệ"));
             }
             else
             {
-                return ApiResponseHelper.BadRequest(result.Message);
+                return BadRequest(ApiResponseHelper.BadRequest(result.Message));
             }
         }
         catch (Exception ex)
         {
-            return ApiResponseHelper.InternalServerError($"Lỗi khi validate voucher: {ex.Message}");
+            return StatusCode(500, ApiResponseHelper.InternalServerError($"Lỗi khi validate voucher: {ex.Message}"));
         }
     }
 
@@ -63,14 +63,14 @@ public class VoucherController : ControllerBase
             
             if (voucher == null)
             {
-                return ApiResponseHelper.NotFound("Voucher không tồn tại");
+                return NotFound(ApiResponseHelper.NotFound("Voucher không tồn tại"));
             }
 
-            return ApiResponseHelper.Success(voucher);
+            return Ok(ApiResponseHelper.Success(voucher));
         }
         catch (Exception ex)
         {
-            return ApiResponseHelper.InternalServerError($"Lỗi khi lấy thông tin voucher: {ex.Message}");
+            return StatusCode(500, ApiResponseHelper.InternalServerError($"Lỗi khi lấy thông tin voucher: {ex.Message}"));
         }
     }
 
@@ -83,11 +83,11 @@ public class VoucherController : ControllerBase
         try
         {
             var vouchers = await _voucherService.GetAllVouchersAsync();
-            return ApiResponseHelper.Success(vouchers);
+            return Ok(ApiResponseHelper.Success(vouchers));
         }
         catch (Exception ex)
         {
-            return ApiResponseHelper.InternalServerError($"Lỗi khi lấy danh sách voucher: {ex.Message}");
+            return StatusCode(500, ApiResponseHelper.InternalServerError($"Lỗi khi lấy danh sách voucher: {ex.Message}"));
         }
     }
 
@@ -101,25 +101,25 @@ public class VoucherController : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(createDto.VoucherCode))
             {
-                return ApiResponseHelper.BadRequest("Mã voucher không được để trống");
+                return BadRequest(ApiResponseHelper.BadRequest("Mã voucher không được để trống"));
             }
 
             if (createDto.DiscountPercentage <= 0 || createDto.DiscountPercentage > 100)
             {
-                return ApiResponseHelper.BadRequest("Phần trăm giảm giá phải từ 1 đến 100");
+                return BadRequest(ApiResponseHelper.BadRequest("Phần trăm giảm giá phải từ 1 đến 100"));
             }
 
             if (createDto.ValidFrom >= createDto.ValidTo)
             {
-                return ApiResponseHelper.BadRequest("Ngày bắt đầu phải nhỏ hơn ngày kết thúc");
+                return BadRequest(ApiResponseHelper.BadRequest("Ngày bắt đầu phải nhỏ hơn ngày kết thúc"));
             }
 
             var voucher = await _voucherService.CreateVoucherAsync(createDto);
-            return ApiResponseHelper.Success(voucher, "Tạo voucher thành công");
+            return Ok(ApiResponseHelper.Success(voucher, "Tạo voucher thành công"));
         }
         catch (Exception ex)
         {
-            return ApiResponseHelper.InternalServerError($"Lỗi khi tạo voucher: {ex.Message}");
+            return StatusCode(500, ApiResponseHelper.InternalServerError($"Lỗi khi tạo voucher: {ex.Message}"));
         }
     }
 }

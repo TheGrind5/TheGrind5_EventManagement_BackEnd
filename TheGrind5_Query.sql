@@ -144,3 +144,36 @@ CREATE INDEX IX_Voucher_ValidFrom ON Voucher(ValidFrom);
 CREATE INDEX IX_Voucher_ValidTo ON Voucher(ValidTo);
 CREATE INDEX IX_Voucher_IsActive ON Voucher(IsActive);
 
+-- WalletTransaction table for tracking wallet operations
+CREATE TABLE WalletTransaction(
+    TransactionId INT IDENTITY PRIMARY KEY,
+    UserId INT NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL CHECK (Amount > 0),
+    TransactionType VARCHAR(20) NOT NULL CHECK (TransactionType IN ('Deposit','Withdraw','Payment','Refund','Transfer_In','Transfer_Out')),
+    Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Completed','Failed','Cancelled')),
+    Description NVARCHAR(500),
+    ReferenceId NVARCHAR(100), -- Reference to OrderId, PaymentId, etc.
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    CompletedAt DATETIME2(0),
+    BalanceBefore DECIMAL(18,2) NOT NULL,
+    BalanceAfter DECIMAL(18,2) NOT NULL,
+    CONSTRAINT FK_WalletTransaction_User FOREIGN KEY (UserId) REFERENCES [User](UserId)
+);
+
+-- OtpCode table for OTP verification
+CREATE TABLE OtpCode(
+    Id INT IDENTITY PRIMARY KEY,
+    Email NVARCHAR(100) NOT NULL,
+    Code NVARCHAR(10) NOT NULL,
+    ExpiresAt DATETIME2(0) NOT NULL,
+    IsUsed BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
+);
+
+-- Additional indexes for new tables
+CREATE INDEX IX_WalletTransaction_UserId ON WalletTransaction(UserId);
+CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
+CREATE INDEX IX_WalletTransaction_CreatedAt ON WalletTransaction(CreatedAt);
+CREATE INDEX IX_OtpCode_Email ON OtpCode(Email);
+CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
+

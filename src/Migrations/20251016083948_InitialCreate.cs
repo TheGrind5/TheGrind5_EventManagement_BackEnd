@@ -12,6 +12,24 @@ namespace TheGrind5_EventManagement.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "OtpCode",
+                columns: table => new
+                {
+                    OtpId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false),
+                    UsedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OtpCode", x => x.OtpId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "User",
                 columns: table => new
                 {
@@ -29,6 +47,25 @@ namespace TheGrind5_EventManagement.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.UserID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Voucher",
+                columns: table => new
+                {
+                    VoucherId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VoucherCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DiscountPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ValidFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ValidTo = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Voucher", x => x.VoucherId);
                 });
 
             migrationBuilder.CreateTable(
@@ -311,10 +348,16 @@ namespace TheGrind5_EventManagement.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "OtpCode");
+
+            migrationBuilder.DropTable(
                 name: "Payment");
 
             migrationBuilder.DropTable(
                 name: "Ticket");
+
+            migrationBuilder.DropTable(
+                name: "Voucher");
 
             migrationBuilder.DropTable(
                 name: "WalletTransaction");

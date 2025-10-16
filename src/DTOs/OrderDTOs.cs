@@ -61,4 +61,32 @@ namespace TheGrind5_EventManagement.DTOs
         public string? SeatNo { get; init; }
         public string Status { get; init; } = string.Empty;
     }
+
+    // DTO cho order detail (có thêm payments)
+    public record OrderDetailDto
+    {
+        public int OrderId { get; init; }
+        public int CustomerId { get; init; }
+        public string CustomerName { get; init; } = string.Empty;
+        public string CustomerEmail { get; init; } = string.Empty;
+        public decimal Amount { get; init; }
+        public string Status { get; init; } = string.Empty;
+        public string PaymentMethod { get; init; } = string.Empty;
+        public DateTime CreatedAt { get; init; }
+        public DateTime? UpdatedAt { get; init; }
+        public List<OrderItemDTO> OrderItems { get; init; } = new();
+        public List<PaymentDTO> Payments { get; init; } = new();
+    }
+
+    // DTO cho payment details
+    public record PaymentDTO
+    {
+        public int PaymentId { get; init; }
+        public int OrderId { get; init; }
+        public decimal Amount { get; init; }
+        public string PaymentMethod { get; init; } = string.Empty;
+        public string Status { get; init; } = string.Empty;
+        public DateTime CreatedAt { get; init; }
+        public string TransactionId { get; init; } = string.Empty;
+    }
 }

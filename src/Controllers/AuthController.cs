@@ -111,11 +111,11 @@ namespace TheGrind5_EventManagement.Controllers
                     return NotFound(new { message = "Không tìm thấy user" });
 
                 // Cập nhật thông tin nếu có
-                if (!string.IsNullOrWhiteSpace(request.FullName))
-                    user.FullName = request.FullName;
+                if (!string.IsNullOrWhiteSpace(request.fullName))
+                    user.FullName = request.fullName;
                 
-                if (!string.IsNullOrWhiteSpace(request.Phone))
-                    user.Phone = request.Phone;
+                if (!string.IsNullOrWhiteSpace(request.phone))
+                    user.Phone = request.phone;
 
                 user.UpdatedAt = DateTime.UtcNow;
 
@@ -260,12 +260,12 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                UserId = user.UserId,
-                FullName = user.FullName,
-                Email = user.Email,
-                Phone = user.Phone,
-                Role = user.Role,
-                WalletBalance = user.WalletBalance
+                userId = user.UserId,
+                fullName = user.FullName,
+                email = user.Email,
+                phone = user.Phone,
+                role = user.Role,
+                walletBalance = user.WalletBalance
             };
         }
 
@@ -273,17 +273,17 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                User = new
+                user = new
                 {
-                    UserId = result.User.UserId,
-                    FullName = result.User.FullName,
-                    Email = result.User.Email,
-                    Phone = result.User.Phone,
-                    Role = result.User.Role,
-                    WalletBalance = result.User.WalletBalance
+                    userId = result.User.UserId,
+                    fullName = result.User.FullName,
+                    email = result.User.Email,
+                    phone = result.User.Phone,
+                    role = result.User.Role,
+                    walletBalance = result.User.WalletBalance
                 },
-                AccessToken = result.AccessToken,
-                ExpiresAt = result.ExpiresAt
+                accessToken = result.AccessToken,
+                expiresAt = result.ExpiresAt
             };
         }
 
@@ -291,13 +291,13 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                Message = "Đăng ký thành công",
-                UserId = result.UserId,
-                FullName = result.FullName,
-                Email = result.Email,
-                Phone = result.Phone,
-                Role = result.Role,
-                WalletBalance = result.WalletBalance
+                message = "Đăng ký thành công",
+                userId = result.UserId,
+                fullName = result.FullName,
+                email = result.Email,
+                phone = result.Phone,
+                role = result.Role,
+                walletBalance = result.WalletBalance
             };
         }
 

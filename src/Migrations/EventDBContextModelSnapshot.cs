@@ -326,6 +326,42 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Voucher", b =>
+                {
+                    b.Property<int>("VoucherId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoucherId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VoucherCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("VoucherId");
+
+                    b.ToTable("Voucher", (string)null);
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.WalletTransaction", b =>
                 {
                     b.Property<int>("TransactionId")

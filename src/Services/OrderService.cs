@@ -90,6 +90,10 @@ namespace TheGrind5_EventManagement.Services
                 var createdOrder = await _orderRepository.CreateOrderAsync(order);
 
                 // Load ticket type info cho response
+                await _context.Entry(createdOrder)
+                    .Collection(o => o.OrderItems)
+                    .LoadAsync();
+                    
                 if (createdOrder.OrderItems.Any()) // Kiểm tra nếu có order items
                 {
                     var orderItem = createdOrder.OrderItems.First(); // Lấy order item đầu tiên
@@ -295,6 +299,22 @@ namespace TheGrind5_EventManagement.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error cleaning up expired orders: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Validate user exists in database
+        /// </summary>
+        public async Task<bool> ValidateUserExistsAsync(int userId)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                return user != null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error validating user: {ex.Message}", ex);
             }
         }
 

@@ -24,12 +24,19 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                Console.WriteLine("Getting all events...");
                 var events = await _eventService.GetAllEventsAsync();
+                Console.WriteLine($"Found {events.Count} events");
+                
                 var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
+                Console.WriteLine($"Mapped {eventDtos.Count} event DTOs");
+                
                 return Ok(eventDtos);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetAllEvents: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện", error = ex.Message });
             }
         }

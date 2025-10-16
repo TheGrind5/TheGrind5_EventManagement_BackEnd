@@ -7,19 +7,26 @@ namespace TheGrind5_EventManagement.Mappers
     {
         public OrderDTO MapToOrderDto(Order order)
         {
-            return new OrderDTO
+            try
             {
-                OrderId = order.OrderId,
-                CustomerId = order.CustomerId,
-                CustomerName = order.Customer?.Username ?? string.Empty,
-                CustomerEmail = order.Customer?.Email ?? string.Empty,
-                Amount = order.Amount,
-                Status = order.Status,
-                PaymentMethod = order.PaymentMethod ?? string.Empty,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt,
-                OrderItems = order.OrderItems?.Select(MapToOrderItemDto).ToList() ?? new List<OrderItemDTO>()
-            };
+                return new OrderDTO
+                {
+                    OrderId = order.OrderId,
+                    CustomerId = order.CustomerId,
+                    CustomerName = order.Customer?.Username ?? string.Empty,
+                    CustomerEmail = order.Customer?.Email ?? string.Empty,
+                    Amount = order.Amount,
+                    Status = order.Status,
+                    PaymentMethod = order.PaymentMethod ?? string.Empty,
+                    CreatedAt = order.CreatedAt,
+                    UpdatedAt = order.UpdatedAt,
+                    OrderItems = order.OrderItems?.Select(MapToOrderItemDto).ToList() ?? new List<OrderItemDTO>()
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error mapping order to DTO: {ex.Message}", ex);
+            }
         }
 
         public OrderDetailDto MapToOrderDetailDto(Order order)
@@ -36,16 +43,7 @@ namespace TheGrind5_EventManagement.Mappers
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 OrderItems = order.OrderItems?.Select(MapToOrderItemDto).ToList() ?? new List<OrderItemDTO>(),
-                Payments = order.Payments?.Select(p => new PaymentDTO
-                {
-                    PaymentId = p.PaymentId,
-                    OrderId = p.OrderId,
-                    Amount = p.Amount,
-                    PaymentMethod = p.Method ?? string.Empty,
-                    Status = p.Status ?? string.Empty,
-                    CreatedAt = p.PaymentDate,
-                    TransactionId = string.Empty // Payment model không có TransactionId
-                }).ToList() ?? new List<PaymentDTO>()
+                Payments = new List<PaymentDTO>() // Tạm thời để trống vì chưa cần Payments
             };
         }
 
@@ -77,42 +75,56 @@ namespace TheGrind5_EventManagement.Mappers
 
         public OrderItemDTO MapToOrderItemDto(OrderItem orderItem)
         {
-            // Tính toán giá từ TicketType nếu không có UnitPrice
-            var unitPrice = orderItem.TicketType?.Price ?? 0;
-            var totalPrice = unitPrice * orderItem.Quantity;
-            
-            return new OrderItemDTO
+            try
             {
-                OrderItemId = orderItem.OrderItemId,
-                TicketTypeId = orderItem.TicketTypeId,
-                TicketTypeName = orderItem.TicketType?.TypeName ?? string.Empty,
-                Quantity = orderItem.Quantity,
-                UnitPrice = unitPrice,
-                TotalPrice = totalPrice,
-                SeatNo = orderItem.SeatNo,
-                Status = orderItem.Status
-            };
+                // Tính toán giá từ TicketType nếu không có UnitPrice
+                var unitPrice = orderItem.TicketType?.Price ?? 0;
+                var totalPrice = unitPrice * orderItem.Quantity;
+                
+                return new OrderItemDTO
+                {
+                    OrderItemId = orderItem.OrderItemId,
+                    TicketTypeId = orderItem.TicketTypeId,
+                    TicketTypeName = orderItem.TicketType?.TypeName ?? string.Empty,
+                    Quantity = orderItem.Quantity,
+                    UnitPrice = unitPrice,
+                    TotalPrice = totalPrice,
+                    SeatNo = orderItem.SeatNo,
+                    Status = orderItem.Status
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error mapping order item to DTO: {ex.Message}", ex);
+            }
         }
 
         public CreateOrderResponseDTO MapToCreateOrderResponse(Order order)
         {
-            var firstOrderItem = order.OrderItems?.FirstOrDefault();
-            var ticketType = firstOrderItem?.TicketType;
-
-            return new CreateOrderResponseDTO
+            try
             {
-                OrderId = order.OrderId,
-                CustomerId = order.CustomerId,
-                EventId = firstOrderItem?.TicketType?.EventId ?? 0,
-                EventTitle = ticketType?.Event?.Title ?? string.Empty,
-                TicketTypeName = ticketType?.TypeName ?? string.Empty,
-                Quantity = firstOrderItem?.Quantity ?? 0,
-                UnitPrice = ticketType?.Price ?? 0, // Sử dụng giá từ TicketType
-                TotalAmount = order.Amount,
-                Status = order.Status,
-                CreatedAt = order.CreatedAt,
-                Message = "Order created successfully"
-            };
+                var firstOrderItem = order.OrderItems?.FirstOrDefault();
+                var ticketType = firstOrderItem?.TicketType;
+
+                return new CreateOrderResponseDTO
+                {
+                    OrderId = order.OrderId,
+                    CustomerId = order.CustomerId,
+                    EventId = firstOrderItem?.TicketType?.EventId ?? 0,
+                    EventTitle = ticketType?.Event?.Title ?? string.Empty,
+                    TicketTypeName = ticketType?.TypeName ?? string.Empty,
+                    Quantity = firstOrderItem?.Quantity ?? 0,
+                    UnitPrice = ticketType?.Price ?? 0, // Sử dụng giá từ TicketType
+                    TotalAmount = order.Amount,
+                    Status = order.Status,
+                    CreatedAt = order.CreatedAt,
+                    Message = "Order created successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error mapping to CreateOrderResponse: {ex.Message}", ex);
+            }
         }
     }
 }

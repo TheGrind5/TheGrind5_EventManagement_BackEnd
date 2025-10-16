@@ -31,6 +31,14 @@ namespace TheGrind5_EventManagement.Repositories
                 await _context.Entry(order)
                     .Collection(o => o.OrderItems)
                     .LoadAsync();
+                    
+                // Load TicketType for each OrderItem
+                foreach (var orderItem in order.OrderItems)
+                {
+                    await _context.Entry(orderItem)
+                        .Reference(oi => oi.TicketType)
+                        .LoadAsync();
+                }
 
                 return order;
             }
@@ -48,7 +56,7 @@ namespace TheGrind5_EventManagement.Repositories
                     .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.TicketType)
-                    .Include(o => o.Payments)
+                            .ThenInclude(tt => tt.Event)
                     .FirstOrDefaultAsync(o => o.OrderId == orderId);
             }
             catch (Exception ex)
@@ -65,7 +73,6 @@ namespace TheGrind5_EventManagement.Repositories
                     .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.TicketType)
-                    .Include(o => o.Payments)
                     .Where(o => o.CustomerId == userId)
                     .OrderByDescending(o => o.CreatedAt)
                     .ToListAsync();

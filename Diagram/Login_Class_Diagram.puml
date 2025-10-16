@@ -1,0 +1,119 @@
+@startuml Login Flow Class Diagram
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam linetype polyline
+skinparam roundcorner 0
+
+' Layer 1: DTOs (Input/Output)
+package "DTOs" {
+    class LoginRequest {
+        + string? Email
+        + string? Password
+    }
+    
+    class LoginResponse {
+        + string AccessToken
+        + DateTime ExpiresAt
+        + UserReadDto User
+    }
+    
+    class UserReadDto {
+        + int UserId
+        + string FullName
+        + string Email
+        + string Phone
+        + string Role
+        + decimal WalletBalance
+    }
+}
+
+' Layer 2: Controllers
+package "Controllers" {
+    class AuthController {
+        - IAuthService _authService
+        - IUserRepository _userRepository
+        --
+        + Login(LoginRequest) : IActionResult
+        - IsValidLoginRequest(LoginRequest) : bool
+        - CreateLoginResponse(LoginResponse) : object
+    }
+}
+
+' Layer 3: Services
+package "Services" {
+    interface IAuthService {
+        + LoginAsync(email, password) : LoginResponse?
+    }
+    
+    class AuthService {
+        - IUserRepository _userRepository
+        - IJwtService _jwtService
+        - IPasswordService _passwordService
+        - IUserMapper _userMapper
+        --
+        + LoginAsync(email, password) : LoginResponse?
+    }
+    
+    interface IJwtService {
+        + GenerateToken(User) : string
+    }
+    
+    interface IPasswordService {
+        + HashPassword(password) : string
+        + VerifyPassword(password, hash) : bool
+    }
+}
+
+' Layer 4: Repositories
+package "Repositories" {
+    interface IUserRepository {
+        + GetUserByEmailAsync(email) : User?
+        + GetUserByIdAsync(userId) : User?
+    }
+    
+    class UserRepository {
+        - EventDBContext _context
+        --
+        + GetUserByEmailAsync(email) : User?
+        + GetUserByIdAsync(userId) : User?
+    }
+}
+
+' Layer 5: Models & Data
+package "Models" {
+    class User {
+        + int UserId
+        + string Username
+        + string FullName
+        + string Email
+        + string PasswordHash
+        + string Phone
+        + string Role
+        + decimal WalletBalance
+        + DateTime CreatedAt
+        + DateTime? UpdatedAt
+    }
+}
+
+package "Data" {
+    class EventDBContext {
+        + DbSet<User> Users
+    }
+}
+
+' Vertical flow (top to bottom)
+LoginRequest ||--|| AuthController : "1. receives"
+AuthController ||--|| IAuthService : "2. calls"
+IAuthService <|-- AuthService : implements
+AuthService ||--|| IUserRepository : "3. queries"
+IUserRepository <|-- UserRepository : implements
+UserRepository ||--|| EventDBContext : "4. uses"
+EventDBContext ||--|| User : "5. manages"
+AuthService ||--|| IJwtService : uses
+AuthService ||--|| IPasswordService : uses
+AuthService ||--|| LoginResponse : "6. returns"
+AuthService ||--|| UserReadDto : creates
+
+@enduml

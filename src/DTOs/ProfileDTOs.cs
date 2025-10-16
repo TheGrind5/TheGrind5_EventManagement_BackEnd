@@ -10,12 +10,18 @@ namespace TheGrind5_EventManagement.DTOs
             string Phone,
             string Role,
             DateTime CreatedAt,
-            DateTime? UpdatedAt
+            DateTime? UpdatedAt,
+            string? Avatar,
+            DateTime? DateOfBirth,
+            string? Gender
         );
 
         public record UpdateProfileRequest(
             string? FullName = null,
-            string? Phone = null
+            string? Phone = null,
+            string? Avatar = null,
+            DateTime? DateOfBirth = null,
+            string? Gender = null
         );
 
         public record UpdateProfileResponse(

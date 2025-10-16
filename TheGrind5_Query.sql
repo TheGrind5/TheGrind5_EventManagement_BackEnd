@@ -17,7 +17,11 @@ CREATE TABLE [User](
     Phone NVARCHAR(15),
     Role VARCHAR(16) NOT NULL CHECK (Role IN ('Customer','Host','Admin')),
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2(0)
+    UpdatedAt DATETIME2(0),
+    -- User Profile Fields (Added for profile management)
+    Avatar NVARCHAR(MAX),           -- Profile avatar image path
+    DateOfBirth DATETIME2,          -- User's date of birth
+    Gender NVARCHAR(MAX)             -- User's gender
 );
 
 CREATE TABLE Event(
@@ -103,3 +107,11 @@ CREATE INDEX IX_OrderItem_TicketTypeID ON OrderItem(TicketTypeID);
 CREATE INDEX IX_Ticket_TicketTypeID ON Ticket(TicketTypeID);
 CREATE INDEX IX_Ticket_OrderItemID ON Ticket(OrderItemID);
 CREATE INDEX IX_Payment_OrderID ON Payment(OrderID);
+
+-- ============================================
+-- User Profile Fields Added:
+-- ============================================
+-- Avatar: Stores the file path to user's profile picture
+-- DateOfBirth: User's birth date for age verification and personalization
+-- Gender: User's gender for demographic analysis and personalization
+-- ============================================

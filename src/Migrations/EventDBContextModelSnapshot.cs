@@ -64,7 +64,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.HasIndex("HostId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Event", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Order", b =>
@@ -76,6 +76,7 @@ namespace TheGrind5_EventManagement.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -97,7 +98,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Order", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.OrderItem", b =>
@@ -129,7 +130,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.HasIndex("TicketTypeId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItem", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Payment", b =>
@@ -141,6 +142,7 @@ namespace TheGrind5_EventManagement.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Method")
@@ -159,7 +161,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payment", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Ticket", b =>
@@ -197,7 +199,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.HasIndex("TicketTypeId");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Ticket", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.TicketType", b =>
@@ -218,6 +220,7 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Quantity")
@@ -239,14 +242,15 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("TicketTypes");
+                    b.ToTable("TicketType", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.User", b =>
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("UserID");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
@@ -271,12 +275,18 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("Avatar")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>

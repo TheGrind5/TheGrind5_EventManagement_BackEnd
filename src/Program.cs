@@ -57,7 +57,19 @@ if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
+// Enable static files to serve uploaded files (phải đặt trước CORS)
+app.UseStaticFiles();
+
+// Enable static files for uploads directory specifically
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseCors(AppConstants.CORS_POLICY_NAME);
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

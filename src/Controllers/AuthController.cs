@@ -117,6 +117,15 @@ namespace TheGrind5_EventManagement.Controllers
                 if (!string.IsNullOrWhiteSpace(request.phone))
                     user.Phone = request.phone;
 
+                if (!string.IsNullOrWhiteSpace(request.Avatar))
+                    user.Avatar = request.Avatar;
+
+                if (request.DateOfBirth.HasValue)
+                    user.DateOfBirth = request.DateOfBirth;
+
+                if (!string.IsNullOrWhiteSpace(request.Gender))
+                    user.Gender = request.Gender;
+
                 user.UpdatedAt = DateTime.UtcNow;
 
                 await _userRepository.UpdateUserAsync(user);
@@ -130,6 +139,114 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật profile", error = ex.Message });
             }
+        }
+
+        [HttpPost("upload-avatar")]
+        [Authorize]
+        public async Task<IActionResult> UploadAvatar(IFormFile avatar)
+        {
+            try
+            {
+                if (avatar == null || avatar.Length == 0)
+                    return BadRequest(new { message = "Không có file được upload" });
+
+                // Kiểm tra loại file
+                if (!avatar.ContentType.StartsWith("image/"))
+                    return BadRequest(new { message = "Chỉ được upload file ảnh" });
+
+                // Kiểm tra kích thước file (max 5MB)
+                if (avatar.Length > 5 * 1024 * 1024)
+                    return BadRequest(new { message = "Kích thước file không được vượt quá 5MB" });
+
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Tạo thư mục uploads nếu chưa tồn tại
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                // Xóa file avatar cũ (nếu có) - XÓA TRƯỚC
+                var oldFiles = Directory.GetFiles(uploadsFolder, $"user_{userId}.*");
+                foreach (var oldFile in oldFiles)
+                {
+                    try
+                    {
+                        System.IO.File.Delete(oldFile);
+                        Console.WriteLine($"Đã xóa file cũ: {oldFile}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Không thể xóa file cũ {oldFile}: {ex.Message}");
+                    }
+                }
+
+                // Tạo tên file cố định
+                var fileExtension = Path.GetExtension(avatar.FileName);
+                var fileName = $"user_{userId}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Lưu file mới - LƯU SAU
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await avatar.CopyToAsync(stream);
+                }
+
+                // Cập nhật DB
+                var avatarUrl = $"/uploads/avatars/{fileName}";
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
+                if (user != null)
+                {
+                    user.Avatar = avatarUrl;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _userRepository.UpdateUserAsync(user);
+                }
+
+                return Ok(new { 
+                    message = "Upload avatar thành công", 
+                    avatarUrl = avatarUrl,
+                    fileName = fileName
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi upload avatar", error = ex.Message });
+            }
+        }
+
+        [HttpGet("avatar/{fileName}")]
+        public IActionResult GetAvatar(string fileName)
+        {
+            try
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars", fileName);
+                
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound(new { message = "Avatar not found" });
+
+                var fileBytes = System.IO.File.ReadAllBytes(filePath);
+                var contentType = GetContentType(fileName);
+                
+                return File(fileBytes, contentType);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error serving avatar", error = ex.Message });
+            }
+        }
+
+        private string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
         }
 
         [HttpGet("user/{userId}")]
@@ -265,6 +382,7 @@ namespace TheGrind5_EventManagement.Controllers
                 email = user.Email,
                 phone = user.Phone,
                 role = user.Role,
+                avatar = user.Avatar
                 walletBalance = user.WalletBalance
             };
         }
@@ -280,6 +398,7 @@ namespace TheGrind5_EventManagement.Controllers
                     email = result.User.Email,
                     phone = result.User.Phone,
                     role = result.User.Role,
+                    avatar = result.User.Avatar
                     walletBalance = result.User.WalletBalance
                 },
                 accessToken = result.AccessToken,
@@ -311,7 +430,10 @@ namespace TheGrind5_EventManagement.Controllers
                 user.Phone,
                 user.Role,
                 user.CreatedAt,
-                user.UpdatedAt
+                user.UpdatedAt,
+                user.Avatar,
+                user.DateOfBirth,
+                user.Gender
             );
         }
     }

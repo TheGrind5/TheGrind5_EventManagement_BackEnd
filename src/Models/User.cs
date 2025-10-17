@@ -34,6 +34,11 @@ public partial class User
 
     public DateTime? UpdatedAt { get; set; }
 
+    public string? Avatar { get; set; }
+
+    public DateTime? DateOfBirth { get; set; }
+
+    public string? Gender { get; set; }
     // Wallet properties
     public decimal WalletBalance { get; set; } = 0;
 

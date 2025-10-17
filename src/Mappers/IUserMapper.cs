@@ -7,6 +7,7 @@ namespace TheGrind5_EventManagement.Mappers
     {
         AuthDTOs.UserReadDto MapToUserReadDto(User user);
         User MapFromRegisterRequest(RegisterRequest request, string passwordHash);
+        ProfileDTOs.ProfileDetailDto MapToProfileDetailDto(User user);
     }
 }
 

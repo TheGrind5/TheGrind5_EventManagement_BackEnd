@@ -13,6 +13,7 @@ namespace TheGrind5_EventManagement.Mappers
                 user.Email,
                 user.Phone,
                 user.Role,
+                user.Avatar
                 user.WalletBalance
             );
         }
@@ -27,8 +28,28 @@ namespace TheGrind5_EventManagement.Mappers
                 PasswordHash = passwordHash,
                 Phone = request.Phone ?? "",
                 Role = "Customer", // Default role
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Avatar = request.Avatar,
+                DateOfBirth = request.DateOfBirth,
+                Gender = request.Gender
             };
+        }
+
+        public ProfileDTOs.ProfileDetailDto MapToProfileDetailDto(User user)
+        {
+            return new ProfileDTOs.ProfileDetailDto(
+                user.UserId,
+                user.Username,
+                user.FullName,
+                user.Email,
+                user.Phone,
+                user.Role,
+                user.CreatedAt,
+                user.UpdatedAt,
+                user.Avatar,
+                user.DateOfBirth,
+                user.Gender
+            );
         }
     }
 }

@@ -4,30 +4,51 @@
 
 ```
 TheGrind5_EventManagement_BackEnd/
-├── 📁 Scripts/                    # Development & Setup Scripts
-│   └── thegrind5-manager.bat     # All-in-one manager (Setup + Development)
-├── 📁 Docker/                     # Docker Configuration
-│   ├── docker-compose.yml         # Full production setup
-│   ├── docker-compose.dev.yml     # Development database
-│   └── Dockerfile                 # Backend container
-├── 📁 Config/                     # Configuration Files
-│   ├── appsettings.Production.json
-│   ├── appsettings.Docker.json
-│   └── env.example                # Environment template
-├── 📁 Documentation/              # Documentation
-│   └── SETUP_GUIDE.md            # Detailed setup guide
+├── 📁 Diagram/                    # Architecture & Documentation
+│   ├── Backend_Architecture_Mermaid.md
+│   ├── Business_Flow_User_Order_Process.md
+│   ├── Class_Diagram_Backend.md
+│   ├── CreateOrder.md
+│   ├── SampleData_Passwords.md
+│   └── SETUP_GUIDE.md
 ├── 📁 src/                        # Source Code
 │   ├── 📁 Controllers/            # API Controllers
 │   ├── 📁 Services/               # Business Logic
 │   ├── 📁 Models/                 # Data Models
-│   ├── 📁 Data/                    # Database Context
+│   ├── 📁 Data/                   # Database Context
 │   ├── 📁 DTOs/                   # Data Transfer Objects
-│   ├── 📁 Respositories/          # Repository Pattern
+│   ├── 📁 Repositories/           # Repository Pattern
 │   ├── 📁 Migrations/             # Database Migrations
+│   ├── 📁 Business/               # Business Interfaces
+│   ├── 📁 Constants/              # Application Constants
+│   ├── 📁 Extensions/             # Service Extensions
+│   ├── 📁 Helpers/                # Helper Classes
+│   ├── 📁 Mappers/                # Object Mappers
 │   ├── 📁 Properties/             # Project Properties
 │   ├── Program.cs                 # Application Entry Point
+│   ├── appsettings.json           # Configuration
 │   └── TheGrind5_EventManagement.csproj
-└── 📄 [Other project files...]
+├── 📄 run.bat                     # Development startup script
+├── 📄 README.md                   # This file
+├── 📄 SampleData_Insert.sql       # Sample data for database
+└── 📄 TheGrind5_Query.sql         # Database queries
+```
+
+## 🚀 Quick Start
+
+### Chạy ứng dụng
+```bash
+# Chạy cả Backend và Frontend
+.\run.bat
+
+# Hoặc chạy riêng lẻ:
+# Backend
+cd src
+dotnet run
+
+# Frontend (từ thư mục gốc)
+cd ..\TheGrind5_EventManagement_FrontEnd
+npm start
 ```
 
 

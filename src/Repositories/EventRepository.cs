@@ -18,7 +18,7 @@ namespace TheGrind5_EventManagement.Repositories
             return await _context.Events
                 .Include(e => e.Host)
                 .Include(e => e.TicketTypes)
-                .Where(e => e.Status == "Active")
+                .Where(e => e.Status == "Open")
                 .OrderBy(e => e.StartTime)
                 .ToListAsync();
         }

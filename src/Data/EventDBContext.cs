@@ -15,6 +15,10 @@ public partial class EventDBContext : DbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketType> TicketTypes => Set<TicketType>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<Wishlist> Wishlists => Set<Wishlist>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -25,7 +29,13 @@ public partial class EventDBContext : DbContext
         b.Entity<Order>().ToTable("Order");
         b.Entity<OrderItem>().ToTable("OrderItem");
         b.Entity<Ticket>().ToTable("Ticket");
+
+        b.Entity<TicketType>().ToTable("TicketType");
+        b.Entity<OtpCode>().ToTable("OtpCode");
+        b.Entity<WalletTransaction>().ToTable("WalletTransaction");
         b.Entity<Payment>().ToTable("Payment");
+        b.Entity<Wishlist>().ToTable("Wishlist");
+        b.Entity<Voucher>().ToTable("Voucher");
         
         // Configure column mappings for User table
         b.Entity<User>(entity =>
@@ -39,6 +49,8 @@ public partial class EventDBContext : DbContext
         ConfigureOrderRelationships(b);
         ConfigureTicketRelationships(b);
         ConfigurePaymentRelationships(b);
+        ConfigureWalletRelationships(b);
+        ConfigureWishlistRelationships(b);
         ConfigureDecimalPrecision(b);
     }
 
@@ -117,6 +129,42 @@ public partial class EventDBContext : DbContext
          .HasKey(p => p.PaymentId);
     }
 
+    private void ConfigureWalletRelationships(ModelBuilder b)
+    {
+        // WalletTransaction -> User : required, không cascade
+        b.Entity<WalletTransaction>()
+         .HasOne(wt => wt.User)
+         .WithMany(u => u.WalletTransactions)
+         .HasForeignKey(wt => wt.UserId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // Cấu hình Primary Key cho WalletTransaction
+        b.Entity<WalletTransaction>()
+         .HasKey(wt => wt.TransactionId);
+    }
+
+    private void ConfigureWishlistRelationships(ModelBuilder b)
+    {
+        // Wishlist -> User : required, cascade delete
+        b.Entity<Wishlist>()
+         .HasOne(w => w.User)
+         .WithMany(u => u.Wishlists)
+         .HasForeignKey(w => w.UserId)
+         .OnDelete(DeleteBehavior.Cascade);
+
+        // Wishlist -> TicketType : required, không cascade
+        b.Entity<Wishlist>()
+         .HasOne(w => w.TicketType)
+         .WithMany()
+         .HasForeignKey(w => w.TicketTypeId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // Unique constraint: mỗi user chỉ có 1 wishlist item cho mỗi TicketType
+        b.Entity<Wishlist>()
+         .HasIndex(w => new { w.UserId, w.TicketTypeId })
+         .IsUnique();
+    }
+
     private void ConfigureDecimalPrecision(ModelBuilder b)
     {
         b.Entity<Order>()
@@ -129,6 +177,22 @@ public partial class EventDBContext : DbContext
 
         b.Entity<TicketType>()
          .Property(tt => tt.Price)
+         .HasPrecision(18, 2);
+
+        b.Entity<User>()
+         .Property(u => u.WalletBalance)
+         .HasPrecision(18, 2);
+
+        b.Entity<WalletTransaction>()
+         .Property(wt => wt.Amount)
+         .HasPrecision(18, 2);
+
+        b.Entity<WalletTransaction>()
+         .Property(wt => wt.BalanceBefore)
+         .HasPrecision(18, 2);
+
+        b.Entity<WalletTransaction>()
+         .Property(wt => wt.BalanceAfter)
          .HasPrecision(18, 2);
     }
 }

@@ -24,12 +24,19 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                Console.WriteLine("Getting all events...");
                 var events = await _eventService.GetAllEventsAsync();
+                Console.WriteLine($"Found {events.Count} events");
+                
                 var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
+                Console.WriteLine($"Mapped {eventDtos.Count} event DTOs");
+                
                 return Ok(eventDtos);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetAllEvents: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện", error = ex.Message });
             }
         }
@@ -90,7 +97,7 @@ namespace TheGrind5_EventManagement.Controllers
                     EndTime = request.EndTime,
                     Location = request.Location,
                     Category = request.Category,
-                    Status = "Active"
+                    Status = "Open"
                 };
 
                 var updatedEvent = await _eventService.UpdateEventAsync(id, eventData);
@@ -147,7 +154,21 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                // Tạo một số sự kiện mẫu
+                // This endpoint is kept for development/testing purposes only
+                // In production, this should be removed or restricted to admin users only
+                
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Only allow seeding if no events exist (first time setup)
+                var existingEvents = await _eventService.GetAllEventsAsync();
+                if (existingEvents.Any())
+                {
+                    return BadRequest(new { message = "Sample data seeding is only allowed when no events exist" });
+                }
+
+                // Tạo một số sự kiện mẫu cho development
                 var sampleEvents = new List<Event>
                 {
                     new Event
@@ -158,8 +179,8 @@ namespace TheGrind5_EventManagement.Controllers
                         EndTime = DateTime.Now.AddDays(7).AddHours(8),
                         Location = "Hà Nội",
                         Category = "Technology",
-                        Status = "Active",
-                        HostId = 1
+                        Status = "Open",
+                        HostId = userId.Value
                     },
                     new Event
                     {
@@ -169,8 +190,8 @@ namespace TheGrind5_EventManagement.Controllers
                         EndTime = DateTime.Now.AddDays(14).AddHours(12),
                         Location = "TP.HCM",
                         Category = "Music",
-                        Status = "Active",
-                        HostId = 1
+                        Status = "Open",
+                        HostId = userId.Value
                     },
                     new Event
                     {
@@ -180,8 +201,8 @@ namespace TheGrind5_EventManagement.Controllers
                         EndTime = DateTime.Now.AddDays(21).AddHours(6),
                         Location = "Đà Nẵng",
                         Category = "Business",
-                        Status = "Active",
-                        HostId = 1
+                        Status = "Open",
+                        HostId = userId.Value
                     }
                 };
 
@@ -190,7 +211,11 @@ namespace TheGrind5_EventManagement.Controllers
                     await _eventService.CreateEventAsync(eventData);
                 }
 
-                return Ok(new { message = "Đã tạo thành công các sự kiện mẫu", count = sampleEvents.Count });
+                return Ok(new { 
+                    message = "Đã tạo thành công các sự kiện mẫu cho development", 
+                    count = sampleEvents.Count,
+                    note = "This is for development purposes only"
+                });
             }
             catch (Exception ex)
             {

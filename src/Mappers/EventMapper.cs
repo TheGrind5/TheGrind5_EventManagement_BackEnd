@@ -52,7 +52,7 @@ namespace TheGrind5_EventManagement.Mappers
                 EndTime = request.EndTime,
                 Location = request.Location,
                 Category = request.Category,
-                Status = "Active",
+                Status = "Open",
                 CreatedAt = DateTime.UtcNow
             };
         }

@@ -111,11 +111,11 @@ namespace TheGrind5_EventManagement.Controllers
                     return NotFound(new { message = "Không tìm thấy user" });
 
                 // Cập nhật thông tin nếu có
-                if (!string.IsNullOrWhiteSpace(request.FullName))
-                    user.FullName = request.FullName;
+                if (!string.IsNullOrWhiteSpace(request.fullName))
+                    user.FullName = request.fullName;
                 
-                if (!string.IsNullOrWhiteSpace(request.Phone))
-                    user.Phone = request.Phone;
+                if (!string.IsNullOrWhiteSpace(request.phone))
+                    user.Phone = request.phone;
 
                 if (!string.IsNullOrWhiteSpace(request.Avatar))
                     user.Avatar = request.Avatar;
@@ -266,6 +266,51 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        [HttpGet("wallet")]
+        [Authorize]
+        public async Task<IActionResult> GetMyWallet()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
+                if (user == null)
+                    return NotFound(new { message = "Không tìm thấy user" });
+
+                var walletResponse = new AuthDTOs.WalletResponse(user.WalletBalance);
+                return Ok(walletResponse);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy thông tin ví", error = ex.Message });
+            }
+        }
+
+        [HttpGet("wallet/balance")]
+        [Authorize]
+        public async Task<IActionResult> GetWalletBalance()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
+                if (user == null)
+                    return NotFound(new { message = "Không tìm thấy user" });
+
+                return Ok(new { balance = user.WalletBalance, currency = "VND" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy số dư ví", error = ex.Message });
+            }
+        }
+
         [HttpPost("seed-admin")]
         public async Task<IActionResult> SeedAdmin()
         {
@@ -291,7 +336,8 @@ namespace TheGrind5_EventManagement.Controllers
                     PasswordHash = HashPassword("admin123"),
                     Phone = "0123456789",
                     Role = "Admin",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    WalletBalance = 1000000
                 };
 
                 await _userRepository.CreateUserAsync(adminUser);
@@ -331,12 +377,13 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                UserId = user.UserId,
-                FullName = user.FullName,
-                Email = user.Email,
-                Phone = user.Phone,
-                Role = user.Role,
-                Avatar = user.Avatar
+                userId = user.UserId,
+                fullName = user.FullName,
+                email = user.Email,
+                phone = user.Phone,
+                role = user.Role,
+                avatar = user.Avatar
+                walletBalance = user.WalletBalance
             };
         }
 
@@ -344,17 +391,18 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                User = new
+                user = new
                 {
-                    UserId = result.User.UserId,
-                    FullName = result.User.FullName,
-                    Email = result.User.Email,
-                    Phone = result.User.Phone,
-                    Role = result.User.Role,
-                    Avatar = result.User.Avatar
+                    userId = result.User.UserId,
+                    fullName = result.User.FullName,
+                    email = result.User.Email,
+                    phone = result.User.Phone,
+                    role = result.User.Role,
+                    avatar = result.User.Avatar
+                    walletBalance = result.User.WalletBalance
                 },
-                AccessToken = result.AccessToken,
-                ExpiresAt = result.ExpiresAt
+                accessToken = result.AccessToken,
+                expiresAt = result.ExpiresAt
             };
         }
 
@@ -362,12 +410,13 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                Message = "Đăng ký thành công",
-                UserId = result.UserId,
-                FullName = result.FullName,
-                Email = result.Email,
-                Phone = result.Phone,
-                Role = result.Role
+                message = "Đăng ký thành công",
+                userId = result.UserId,
+                fullName = result.FullName,
+                email = result.Email,
+                phone = result.Phone,
+                role = result.Role,
+                walletBalance = result.WalletBalance
             };
         }
 

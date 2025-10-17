@@ -18,6 +18,7 @@ namespace TheGrind5_EventManagement.Extensions
                 if (string.IsNullOrEmpty(conn))
                     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 
+                // Use SQL Server database
                 options.UseSqlServer(conn);
             });
             
@@ -28,6 +29,7 @@ namespace TheGrind5_EventManagement.Extensions
         {
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
             
             return services;
         }
@@ -36,8 +38,12 @@ namespace TheGrind5_EventManagement.Extensions
         {
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<IEmailService, EmailService>();
+            // services.AddScoped<IOtpService, OtpService>();
             services.AddScoped<IUserMapper, UserMapper>();
             services.AddScoped<IEventMapper, EventMapper>();
+            services.AddScoped<IOrderMapper, OrderMapper>();
+            services.AddScoped<IWishlistMapper, WishlistMapper>();
             
             return services;
         }
@@ -46,6 +52,14 @@ namespace TheGrind5_EventManagement.Extensions
         {
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEventService, EventService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IWalletService, WalletService>();
+
+            services.AddScoped<IWishlistService, WishlistService>();
+
+            services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<IVoucherService, VoucherService>();
+
             
             return services;
         }
@@ -59,9 +73,11 @@ namespace TheGrind5_EventManagement.Extensions
                     policy.WithOrigins(
                             AppConstants.CORS_FRONTEND_URL,
                             AppConstants.CORS_FRONTEND_URL_ALT,
-                            AppConstants.CORS_FRONTEND_URL_HTTPS)
+                            AppConstants.CORS_FRONTEND_URL_HTTPS,
+                            AppConstants.CORS_FRONTEND_URL_HTTP)
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
             });
             

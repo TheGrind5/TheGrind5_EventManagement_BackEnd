@@ -13,8 +13,8 @@ namespace TheGrind5_EventManagement.Mappers
                 user.Email,
                 user.Phone,
                 user.Role,
+                user.WalletBalance,
                 user.Avatar
-                user.WalletBalance
             );
         }
 

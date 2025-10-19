@@ -5,6 +5,7 @@ using TheGrind5_EventManagement.Business;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Linq;
+using System.Text.Json;
 
 namespace TheGrind5_EventManagement.Controllers
 {
@@ -279,41 +280,229 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                // Debug: Log request data
+                Console.WriteLine($"=== UpdateEventStep2 Debug ===");
+                Console.WriteLine($"EventId: {eventId}");
+                Console.WriteLine($"StartTime: {request.StartTime} (Type: {request.StartTime.GetType()})");
+                Console.WriteLine($"EndTime: {request.EndTime} (Type: {request.EndTime.GetType()})");
+                Console.WriteLine($"TicketTypes count: {request.TicketTypes?.Count ?? 0}");
+                
+                // Validate StartTime and EndTime
+                if (request.StartTime == DateTime.MinValue)
+                {
+                    Console.WriteLine("Error: StartTime is DateTime.MinValue");
+                    return BadRequest(new { message = "Thời gian bắt đầu không hợp lệ" });
+                }
+                
+                if (request.EndTime == DateTime.MinValue)
+                {
+                    Console.WriteLine("Error: EndTime is DateTime.MinValue");
+                    return BadRequest(new { message = "Thời gian kết thúc không hợp lệ" });
+                }
+                
+                if (request.StartTime >= request.EndTime)
+                {
+                    Console.WriteLine($"Error: StartTime ({request.StartTime}) >= EndTime ({request.EndTime})");
+                    return BadRequest(new { message = "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc" });
+                }
+                
+                if (request.TicketTypes != null)
+                {
+                    for (int i = 0; i < request.TicketTypes.Count; i++)
+                    {
+                        var ticket = request.TicketTypes[i];
+                        Console.WriteLine($"Ticket {i}: TypeName={ticket.TypeName}, Price={ticket.Price}, Quantity={ticket.Quantity}");
+                    }
+                }
+                
                 var userId = GetUserIdFromToken();
                 if (userId == null)
+                {
+                    Console.WriteLine("Error: Token không hợp lệ");
                     return Unauthorized(new { message = "Token không hợp lệ" });
+                }
+
+                Console.WriteLine($"UserId from token: {userId.Value}");
 
                 // Kiểm tra quyền sở hữu event
                 var existingEvent = await _eventService.GetEventByIdAsync(eventId);
                 if (existingEvent == null)
+                {
+                    Console.WriteLine($"Error: Không tìm thấy event với ID {eventId}");
                     return NotFound(new { message = "Không tìm thấy sự kiện" });
+                }
+
+                Console.WriteLine($"Found event: {existingEvent.Title}, HostId: {existingEvent.HostId}");
 
                 if (existingEvent.HostId != userId.Value)
+                {
+                    Console.WriteLine($"Error: User {userId.Value} không có quyền chỉnh sửa event của Host {existingEvent.HostId}");
                     return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+                }
 
                 // Cập nhật thông tin thời gian
                 existingEvent.StartTime = request.StartTime;
                 existingEvent.EndTime = request.EndTime;
                 existingEvent.UpdatedAt = DateTime.UtcNow;
 
+                Console.WriteLine("Updating event time...");
                 await _eventService.UpdateEventAsync(eventId, existingEvent);
+                Console.WriteLine("Event time updated successfully");
 
                 // Tạo ticket types
+                Console.WriteLine($"Creating {request.TicketTypes?.Count ?? 0} ticket types...");
+                
+                // Xóa tất cả ticket types cũ trước khi tạo mới
+                Console.WriteLine("Clearing existing ticket types...");
+                if (existingEvent.TicketTypes != null && existingEvent.TicketTypes.Any())
+                {
+                    Console.WriteLine($"Found {existingEvent.TicketTypes.Count} existing ticket types to remove");
+                    existingEvent.TicketTypes.Clear();
+                    
+                    // Lưu thay đổi để xóa ticket types cũ
+                    Console.WriteLine("Saving changes to remove old ticket types...");
+                    await _eventService.UpdateEventAsync(eventId, existingEvent);
+                    Console.WriteLine("Old ticket types removed successfully");
+                }
+                else
+                {
+                    Console.WriteLine("No existing ticket types found");
+                }
+                
+                // Tạo ticket types mới
+                var newTicketTypes = new List<TicketType>();
+                
                 foreach (var ticketTypeRequest in request.TicketTypes)
                 {
+                    Console.WriteLine($"Processing ticket type: {ticketTypeRequest.TypeName}");
+                    
+                    // Validate required fields
+                    if (string.IsNullOrEmpty(ticketTypeRequest.TypeName))
+                    {
+                        Console.WriteLine($"Error: TypeName is null or empty");
+                        return BadRequest(new { message = "Tên loại vé không được để trống" });
+                    }
+                    
+                    // Validate TypeName content - không cho phép ký tự không phù hợp
+                    var cleanTypeName = ticketTypeRequest.TypeName.Trim();
+                    if (cleanTypeName.Length < 2)
+                    {
+                        Console.WriteLine($"Error: TypeName too short: {cleanTypeName}");
+                        return BadRequest(new { message = "Tên loại vé phải có ít nhất 2 ký tự" });
+                    }
+                    
+                    if (cleanTypeName.Length > 100)
+                    {
+                        Console.WriteLine($"Error: TypeName too long: {cleanTypeName}");
+                        return BadRequest(new { message = "Tên loại vé không được quá 100 ký tự" });
+                    }
+                    
+                    // Kiểm tra ký tự không phù hợp
+                    var invalidChars = new[] { '<', '>', '&', '"', '\'', '\\', '/', ';', '=', '(', ')', '[', ']', '{', '}' };
+                    if (invalidChars.Any(c => cleanTypeName.Contains(c)))
+                    {
+                        Console.WriteLine($"Error: TypeName contains invalid characters: {cleanTypeName}");
+                        return BadRequest(new { message = "Tên loại vé chứa ký tự không hợp lệ" });
+                    }
+                    
+                    // Kiểm tra nội dung không phù hợp
+                    var inappropriateWords = new[] { "cặc", "lỏ", "địt", "đụ", "đéo", "chó", "lồn", "buồi", "cứt" };
+                    var lowerTypeName = cleanTypeName.ToLower();
+                    if (inappropriateWords.Any(word => lowerTypeName.Contains(word)))
+                    {
+                        Console.WriteLine($"Error: TypeName contains inappropriate content: {cleanTypeName}");
+                        return BadRequest(new { message = "Tên loại vé chứa nội dung không phù hợp. Vui lòng sử dụng tên phù hợp." });
+                    }
+                    
+                    if (ticketTypeRequest.Price < 0)
+                    {
+                        Console.WriteLine($"Error: Price is negative: {ticketTypeRequest.Price}");
+                        return BadRequest(new { message = "Giá vé không được âm" });
+                    }
+                    
+                    if (ticketTypeRequest.Quantity < 0)
+                    {
+                        Console.WriteLine($"Error: Quantity is negative: {ticketTypeRequest.Quantity}");
+                        return BadRequest(new { message = "Số lượng vé không được âm" });
+                    }
+                    
+                    // Validate MinOrder and MaxOrder
+                    if (ticketTypeRequest.MinOrder < 1)
+                    {
+                        Console.WriteLine($"Error: MinOrder must be at least 1: {ticketTypeRequest.MinOrder}");
+                        return BadRequest(new { message = "Đơn hàng tối thiểu phải ít nhất là 1" });
+                    }
+                    
+                    if (ticketTypeRequest.MaxOrder < 1)
+                    {
+                        Console.WriteLine($"Error: MaxOrder must be at least 1: {ticketTypeRequest.MaxOrder}");
+                        return BadRequest(new { message = "Đơn hàng tối đa phải ít nhất là 1" });
+                    }
+                    
+                    if (ticketTypeRequest.MinOrder > ticketTypeRequest.MaxOrder)
+                    {
+                        Console.WriteLine($"Error: MinOrder ({ticketTypeRequest.MinOrder}) cannot be greater than MaxOrder ({ticketTypeRequest.MaxOrder})");
+                        return BadRequest(new { message = "Đơn hàng tối thiểu không thể lớn hơn đơn hàng tối đa" });
+                    }
+                    
+                    // Đảm bảo SaleStart và SaleEnd có giá trị hợp lệ
+                    var saleStart = ticketTypeRequest.SaleStart;
+                    var saleEnd = ticketTypeRequest.SaleEnd;
+                    
+                    // Nếu SaleStart hoặc SaleEnd không hợp lệ, sử dụng giá trị mặc định
+                    if (saleStart == DateTime.MinValue)
+                    {
+                        saleStart = DateTime.UtcNow;
+                    }
+                    
+                    if (saleEnd == DateTime.MinValue || saleEnd <= saleStart)
+                    {
+                        saleEnd = saleStart.AddDays(30); // 30 ngày sau SaleStart
+                    }
+                    
                     var ticketType = new TicketType
                     {
                         EventId = eventId,
-                        TypeName = ticketTypeRequest.TypeName,
+                        TypeName = ticketTypeRequest.TypeName.Trim(),
                         Price = ticketTypeRequest.Price,
                         Quantity = ticketTypeRequest.Quantity,
-                        MinOrder = ticketTypeRequest.MinOrder,
-                        MaxOrder = ticketTypeRequest.MaxOrder,
-                        SaleStart = ticketTypeRequest.SaleStart,
-                        SaleEnd = ticketTypeRequest.SaleEnd,
-                        Status = ticketTypeRequest.Status
+                        MinOrder = ticketTypeRequest.MinOrder > 0 ? ticketTypeRequest.MinOrder : 1,
+                        MaxOrder = ticketTypeRequest.MaxOrder > 0 ? ticketTypeRequest.MaxOrder : 10,
+                        SaleStart = saleStart,
+                        SaleEnd = saleEnd,
+                        Status = "Active"
                     };
-                    // TODO: Implement ticket type creation service
+                    
+                    Console.WriteLine($"TicketType details: TypeName='{ticketType.TypeName}', Price={ticketType.Price}, Quantity={ticketType.Quantity}, MinOrder={ticketType.MinOrder}, MaxOrder={ticketType.MaxOrder}, SaleStart={ticketType.SaleStart}, SaleEnd={ticketType.SaleEnd}, Status='{ticketType.Status}'");
+                    
+                    Console.WriteLine($"Creating ticket type: {ticketType.TypeName}, Price: {ticketType.Price}, Quantity: {ticketType.Quantity}, MinOrder: {ticketType.MinOrder}, MaxOrder: {ticketType.MaxOrder}");
+                    newTicketTypes.Add(ticketType);
+                }
+                
+                // Thêm ticket types mới vào event
+                Console.WriteLine($"Adding {newTicketTypes.Count} new ticket types to event...");
+                foreach (var ticketType in newTicketTypes)
+                {
+                    existingEvent.TicketTypes.Add(ticketType);
+                }
+                
+                // Update event with ticket types
+                Console.WriteLine("Updating event with new ticket types...");
+                try
+                {
+                    await _eventService.UpdateEventAsync(eventId, existingEvent);
+                    Console.WriteLine("Event updated successfully with ticket types");
+                }
+                catch (Exception dbEx)
+                {
+                    Console.WriteLine($"Database save error: {dbEx.Message}");
+                    Console.WriteLine($"Database save stack trace: {dbEx.StackTrace}");
+                    if (dbEx.InnerException != null)
+                    {
+                        Console.WriteLine($"Database inner exception: {dbEx.InnerException.Message}");
+                        Console.WriteLine($"Database inner stack trace: {dbEx.InnerException.StackTrace}");
+                    }
+                    throw new Exception($"Database save failed: {dbEx.Message}", dbEx);
                 }
 
                 return Ok(new EventCreationResponse(
@@ -324,7 +513,14 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 2", error = ex.Message });
+                Console.WriteLine($"=== UpdateEventStep2 Error ===");
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"InnerException: {ex.InnerException.Message}");
+                }
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 2", error = ex.Message, stackTrace = ex.StackTrace });
             }
         }
 
@@ -334,9 +530,15 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                Console.WriteLine($"=== UpdateEventStep3 Debug ===");
+                Console.WriteLine($"EventId: {eventId}");
+                Console.WriteLine($"Request: {JsonSerializer.Serialize(request)}");
+                
                 var userId = GetUserIdFromToken();
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
+
+                Console.WriteLine($"UserId: {userId}");
 
                 // Kiểm tra quyền sở hữu event
                 var existingEvent = await _eventService.GetEventByIdAsync(eventId);
@@ -346,9 +548,29 @@ namespace TheGrind5_EventManagement.Controllers
                 if (existingEvent.HostId != userId.Value)
                     return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
 
-                // Cập nhật cài đặt sự kiện (có thể lưu trong Description hoặc tạo bảng riêng)
+                Console.WriteLine($"Event found: {existingEvent.Title}");
+
+                // Xử lý dữ liệu từ request
+                Console.WriteLine($"EventSettings: {request.EventSettings}");
+                Console.WriteLine($"AllowRefund: {request.AllowRefund}");
+                Console.WriteLine($"RefundDaysBefore: {request.RefundDaysBefore}");
+                Console.WriteLine($"RequireApproval: {request.RequireApproval}");
+
+                // Cập nhật cài đặt sự kiện
                 existingEvent.UpdatedAt = DateTime.UtcNow;
+                
+                // Lưu thông tin cài đặt vào Description hoặc tạo field riêng
+                // Hiện tại lưu vào Description để đơn giản
+                var settingsInfo = $"Event Settings: {request.EventSettings}\n" +
+                                 $"Allow Refund: {request.AllowRefund}\n" +
+                                 $"Refund Days Before: {request.RefundDaysBefore}\n" +
+                                 $"Require Approval: {request.RequireApproval}";
+                
+                existingEvent.Description = existingEvent.Description + "\n\n" + settingsInfo;
+                
                 await _eventService.UpdateEventAsync(eventId, existingEvent);
+
+                Console.WriteLine("Step 3 update successful");
 
                 return Ok(new EventCreationResponse(
                     eventId,
@@ -368,6 +590,12 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                Console.WriteLine($"=== UpdateEventStep4 Debug ===");
+                Console.WriteLine($"EventId: {eventId}");
+                Console.WriteLine($"PaymentMethod: {request.PaymentMethod}");
+                Console.WriteLine($"BankAccount: {request.BankAccount}");
+                Console.WriteLine($"TaxInfo: {request.TaxInfo}");
+                
                 var userId = GetUserIdFromToken();
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
@@ -380,10 +608,22 @@ namespace TheGrind5_EventManagement.Controllers
                 if (existingEvent.HostId != userId.Value)
                     return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
 
+                Console.WriteLine($"Event found: {existingEvent.Title}");
+
                 // Cập nhật thông tin thanh toán và chuyển status thành Open
                 existingEvent.Status = "Open";
                 existingEvent.UpdatedAt = DateTime.UtcNow;
+                
+                // Lưu thông tin thanh toán vào Description hoặc tạo field riêng
+                var paymentInfo = $"Payment Method: {request.PaymentMethod}\n" +
+                                $"Bank Account: {request.BankAccount}\n" +
+                                $"Tax Info: {request.TaxInfo}";
+                
+                existingEvent.Description = existingEvent.Description + "\n\n" + paymentInfo;
+                
                 await _eventService.UpdateEventAsync(eventId, existingEvent);
+
+                Console.WriteLine("Step 4 update successful - Event activated");
 
                 return Ok(new EventCreationResponse(
                     eventId,

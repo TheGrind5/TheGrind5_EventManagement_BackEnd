@@ -59,12 +59,12 @@ if (app.Environment.IsProduction())
 
 app.UseCors(AppConstants.CORS_POLICY_NAME);
 
-// Add UTF-8 encoding support
-app.Use(async (context, next) =>
-{
-    context.Response.Headers["Content-Type"] = "application/json; charset=utf-8";
-    await next();
-});
+// Add UTF-8 encoding support - COMMENTED OUT AS IT CAUSES 406 ERRORS
+// app.Use(async (context, next) =>
+// {
+//     context.Response.Headers["Content-Type"] = "application/json; charset=utf-8";
+//     await next();
+// });
 
 // Serve static files (for uploaded images)
 app.UseStaticFiles();

@@ -1,0 +1,55 @@
+@startuml ViewEvent_Sequence_Diagram
+!theme plain
+title 1.0 View Event
+
+participant "User" as User
+participant "Browser/Frontend" as Browser
+participant "EventController" as Controller
+participant "EventService" as Service
+participant "EventRepository" as Repository
+participant "Database" as Database
+participant "EventMapper" as Mapper
+
+note over User, Mapper: View Event Flow - Successful Path
+
+User -> Browser: "View events list"
+Browser -> Controller: 1. GET /api/event
+
+Controller -> Controller: 2. [Try-Catch Block]
+    Controller -> Service: 4. GetAllEventsAsync()
+    
+    Service -> Repository: 5. GetAllEventsAsync()
+    Repository -> Database: 6. SELECT e.*, u.*, tt.* FROM Events e LEFT JOIN Users u ON e.HostId = u.UserId LEFT JOIN TicketTypes tt ON e.EventId = tt.EventId WHERE e.Status = 'Open' ORDER BY e.StartTime
+    Database --> Repository: 7. Event data with Host and TicketTypes info
+    Repository --> Service: 8. List~Event~
+    
+    Service -> Mapper: 9. MapToEventDto(Event)
+    Mapper --> Service: 10. EventDto
+    Mapper --> Service: 11. EventDto
+    Mapper --> Service: 12. EventDto
+    
+    Service --> Controller: 13. List~EventDto~
+    
+    Controller --> Browser: 14. 200 OK
+    Browser --> User: "Display events list"
+end
+
+note over User, Mapper: Error Handling Flows
+
+alt [Database error - Alternative Flow]
+    note over Repository, Database: Database operation fails
+    Repository --> Service: 15. Exception
+    Service --> Controller: 16. Exception
+    Controller --> Browser: 17. 400 Bad Request\n{ message: "Có lỗi xảy ra khi lấy danh sách sự kiện", error: ex.Message }
+    Browser --> User: "Show 'Error loading events'"
+end
+
+alt [No events found - Alternative Flow]
+    note over Repository, Database: No events in database
+    Repository --> Service: 18. Empty list
+    Service --> Controller: 19. Empty list
+    Controller --> Browser: 20. 200 OK (empty array)
+    Browser --> User: "Show 'No events available'"
+end
+
+@enduml

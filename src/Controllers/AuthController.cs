@@ -117,14 +117,14 @@ namespace TheGrind5_EventManagement.Controllers
                 if (!string.IsNullOrWhiteSpace(request.phone))
                     user.Phone = request.phone;
 
-                if (!string.IsNullOrWhiteSpace(request.Avatar))
-                    user.Avatar = request.Avatar;
+                if (!string.IsNullOrWhiteSpace(request.avatar))
+                    user.Avatar = request.avatar;
 
-                if (request.DateOfBirth.HasValue)
-                    user.DateOfBirth = request.DateOfBirth;
+                if (request.dateOfBirth.HasValue)
+                    user.DateOfBirth = request.dateOfBirth;
 
-                if (!string.IsNullOrWhiteSpace(request.Gender))
-                    user.Gender = request.Gender;
+                if (!string.IsNullOrWhiteSpace(request.gender))
+                    user.Gender = request.gender;
 
                 user.UpdatedAt = DateTime.UtcNow;
 
@@ -382,7 +382,7 @@ namespace TheGrind5_EventManagement.Controllers
                 email = user.Email,
                 phone = user.Phone,
                 role = user.Role,
-                avatar = user.Avatar
+                avatar = user.Avatar,
                 walletBalance = user.WalletBalance
             };
         }
@@ -398,7 +398,7 @@ namespace TheGrind5_EventManagement.Controllers
                     email = result.User.Email,
                     phone = result.User.Phone,
                     role = result.User.Role,
-                    avatar = result.User.Avatar
+                    avatar = result.User.Avatar,
                     walletBalance = result.User.WalletBalance
                 },
                 accessToken = result.AccessToken,

@@ -10,7 +10,7 @@ namespace TheGrind5_EventManagement.DTOs
             string phone,
             string role,
             DateTime createdAt,
-            DateTime? updatedAt
+            DateTime? updatedAt,
             string? avatar,
             DateTime? dateOfBirth,
             string? gender
@@ -18,7 +18,7 @@ namespace TheGrind5_EventManagement.DTOs
 
         public record UpdateProfileRequest(
             string? fullName = null,
-            string? phone = null
+            string? phone = null,
             string? avatar = null,
             DateTime? dateOfBirth = null,
             string? gender = null

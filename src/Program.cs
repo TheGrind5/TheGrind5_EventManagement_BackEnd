@@ -58,6 +58,10 @@ if (app.Environment.IsProduction())
 }
 
 app.UseCors(AppConstants.CORS_POLICY_NAME);
+
+// Serve static files for avatars
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

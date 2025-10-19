@@ -86,6 +86,26 @@ namespace TheGrind5_EventManagement.Repositories
             var user = await _context.Users.FindAsync(userId);
             return user?.WalletBalance ?? 0;
         }
+
+        public async Task<bool> UpdateAvatarAsync(int userId, string avatarUrl)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return false;
+
+                user.AvatarUrl = avatarUrl;
+                user.UpdatedAt = DateTime.UtcNow;
+                
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
 

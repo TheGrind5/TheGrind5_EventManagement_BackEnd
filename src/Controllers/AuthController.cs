@@ -5,6 +5,7 @@ using TheGrind5_EventManagement.Business;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.Repositories;
+using System.IO;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -264,7 +265,8 @@ public class AuthController : ControllerBase
             Email = user.Email,
             Phone = user.Phone,
             Role = user.Role,
-            WalletBalance = user.WalletBalance
+            WalletBalance = user.WalletBalance,
+            AvatarUrl = user.AvatarUrl
         };
     }
 
@@ -279,7 +281,8 @@ public class AuthController : ControllerBase
                 Email = result.User.Email,
                 Phone = result.User.Phone,
                 Role = result.User.Role,
-                WalletBalance = result.User.WalletBalance
+                WalletBalance = result.User.WalletBalance,
+                AvatarUrl = result.User.AvatarUrl
             },
             AccessToken = result.AccessToken,
             ExpiresAt = result.ExpiresAt
@@ -310,7 +313,64 @@ public class AuthController : ControllerBase
             user.Phone,
             user.Role,
             user.CreatedAt,
-            user.UpdatedAt
+            user.UpdatedAt,
+            user.AvatarUrl
         );
+    }
+
+    [HttpPost("upload-avatar")]
+    [Authorize]
+    public async Task<IActionResult> UploadAvatar(IFormFile avatar)
+    {
+        try
+        {
+            if (avatar == null || avatar.Length == 0)
+                return BadRequest(new { message = "Vui lòng chọn ảnh để upload" });
+
+            // Kiểm tra loại file
+            if (!avatar.ContentType.StartsWith("image/"))
+                return BadRequest(new { message = "Chỉ được upload file ảnh" });
+
+            // Kiểm tra kích thước (max 5MB)
+            if (avatar.Length > 5 * 1024 * 1024)
+                return BadRequest(new { message = "Kích thước ảnh không được vượt quá 5MB" });
+
+            // Lấy UserId từ token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                return Unauthorized(new { message = "Token không hợp lệ" });
+
+            // Tạo tên file unique
+            var fileExtension = Path.GetExtension(avatar.FileName);
+            var fileName = $"avatar_{userId}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
+            
+            // Tạo thư mục uploads nếu chưa có
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+            if (!Directory.Exists(uploadsPath))
+                Directory.CreateDirectory(uploadsPath);
+
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            // Lưu file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await avatar.CopyToAsync(stream);
+            }
+
+            // Cập nhật avatar URL trong database
+            var avatarUrl = $"/uploads/avatars/{fileName}";
+            var fullAvatarUrl = $"http://localhost:5000{avatarUrl}";
+            await _userRepository.UpdateAvatarAsync(userId, avatarUrl);
+
+            return Ok(new { 
+                message = "Upload ảnh avatar thành công",
+                avatarUrl = fullAvatarUrl
+            });
+
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi upload ảnh: " + ex.Message });
+        }
     }
 }

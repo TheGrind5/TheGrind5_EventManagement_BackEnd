@@ -30,7 +30,13 @@ namespace TheGrind5_EventManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventId"));
 
+                    b.Property<string>("BackgroundImage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Category")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChildrenTerms")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -39,13 +45,52 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("District")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("EventDetails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventIntroduction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventMode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("HostId")
                         .HasColumnType("int");
 
                     b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrganizerInfo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OrganizerLogo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OrganizerName")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Province")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpecialExperience")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpecialGuests")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartTime")
@@ -54,12 +99,30 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("StreetAddress")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("TermsAndConditions")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("VATTerms")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VenueName")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Ward")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("EventId");
 

@@ -13,6 +13,7 @@ public partial class Event
     public int HostId { get; set; }
 
     [Required]
+    [MaxLength(100)]
     public string Title { get; set; }
 
     public string Description { get; set; }
@@ -25,10 +26,60 @@ public partial class Event
 
     public string Location { get; set; }
 
+    // Địa chỉ chi tiết (bổ sung cho Ticket Box style)
+    [MaxLength(80)]
+    public string VenueName { get; set; }
+    
+    [MaxLength(80)]
+    public string StreetAddress { get; set; }
+    
+    public string Province { get; set; }
+    
+    public string District { get; set; }
+    
+    public string Ward { get; set; }
+
+    // Hình ảnh sự kiện
+    public string EventImage { get; set; }
+    
+    public string BackgroundImage { get; set; }
+
+    // Loại sự kiện
+    public string EventType { get; set; }
+
+    // Loại địa điểm (Online/Offline)
+    [RegularExpression("^(Online|Offline)$", ErrorMessage = "EventMode must be Online or Offline")]
+    public string EventMode { get; set; } = "Offline";
+
     public string Category { get; set; }
 
     [RegularExpression("^(Draft|Open|Closed|Cancelled)$", ErrorMessage = "Status must be Draft, Open, Closed, or Cancelled")]
     public string Status { get; set; }
+
+    // Thông tin bổ sung cho Ticket Box style
+    public string EventIntroduction { get; set; }
+    
+    public string EventDetails { get; set; }
+    
+    public string SpecialGuests { get; set; }
+    
+    public string SpecialExperience { get; set; }
+    
+    public string TermsAndConditions { get; set; }
+    
+    public string ChildrenTerms { get; set; }
+    
+    public string VATTerms { get; set; }
+
+    // Thông tin ban tổ chức
+    [MaxLength(500)]
+    public string OrganizerLogo { get; set; }
+    
+    [MaxLength(80)]
+    public string OrganizerName { get; set; }
+    
+    [MaxLength(500)]
+    public string OrganizerInfo { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

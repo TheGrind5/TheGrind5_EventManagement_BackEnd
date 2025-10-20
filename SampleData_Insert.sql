@@ -15,6 +15,9 @@ ALTER TABLE Event ALTER COLUMN Title NVARCHAR(100) COLLATE Vietnamese_CI_AI;
 ALTER TABLE Event ALTER COLUMN Description NVARCHAR(MAX) COLLATE Vietnamese_CI_AI;
 ALTER TABLE Event ALTER COLUMN Location NVARCHAR(255) COLLATE Vietnamese_CI_AI;
 
+-- Note: Nullable fields are already set in TheGrind5_Query.sql
+-- No need for ALTER TABLE statements here
+
 -- ========================================
 -- CLEAR EXISTING DATA (in correct order due to foreign keys)
 -- ========================================

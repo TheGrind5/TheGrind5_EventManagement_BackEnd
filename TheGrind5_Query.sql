@@ -30,20 +30,20 @@ CREATE TABLE Event(
     EventId INT IDENTITY(1,1) PRIMARY KEY,
     HostId INT NOT NULL,
     Title NVARCHAR(100) NOT NULL,
-    Description NVARCHAR(MAX),
+    Description NVARCHAR(MAX) NULL,
     StartTime DATETIME2(0) NOT NULL,
     EndTime DATETIME2(0) NOT NULL,
-    Location NVARCHAR(255),
-    EventType NVARCHAR(255),
-    EventMode VARCHAR(10) NOT NULL DEFAULT 'Offline' CHECK (EventMode IN ('Online','Offline')),
-    Category NVARCHAR(255),
-    Status VARCHAR(16) NOT NULL DEFAULT 'Draft' CHECK (Status IN ('Draft','Open','Closed','Cancelled')),
+    Location NVARCHAR(255) NULL,
+    EventType NVARCHAR(255) NULL,
+    EventMode VARCHAR(10) NULL DEFAULT 'Offline' CHECK (EventMode IN ('Online','Offline')),
+    Category NVARCHAR(255) NULL,
+    Status VARCHAR(16) NULL DEFAULT 'Draft' CHECK (Status IN ('Draft','Open','Closed','Cancelled')),
     -- Gộp các thông tin bổ sung thành JSON để tiết kiệm không gian
-    EventDetails NVARCHAR(MAX), -- JSON chứa: venue, images, introduction, special guests, etc.
-    TermsAndConditions NVARCHAR(MAX), -- JSON chứa: terms, children terms, VAT terms
-    OrganizerInfo NVARCHAR(MAX), -- JSON chứa: logo, name, info
+    EventDetails NVARCHAR(MAX) NULL, -- JSON chứa: venue, images, introduction, special guests, etc.
+    TermsAndConditions NVARCHAR(MAX) NULL, -- JSON chứa: terms, children terms, VAT terms
+    OrganizerInfo NVARCHAR(MAX) NULL, -- JSON chứa: logo, name, info
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2(0),
+    UpdatedAt DATETIME2(0) NULL,
     CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId) ON DELETE CASCADE
 );
 

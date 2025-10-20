@@ -15,7 +15,7 @@ public partial class Event
     [MaxLength(100)]
     public string Title { get; set; }
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     [Required]
     public DateTime StartTime { get; set; }
@@ -23,24 +23,24 @@ public partial class Event
     [Required]
     public DateTime EndTime { get; set; }
 
-    public string Location { get; set; }
+    public string? Location { get; set; }
 
-    public string EventType { get; set; }
+    public string? EventType { get; set; }
 
     [RegularExpression("^(Online|Offline)$", ErrorMessage = "EventMode must be Online or Offline")]
-    public string EventMode { get; set; } = "Offline";
+    public string? EventMode { get; set; } = "Offline";
 
-    public string Category { get; set; }
+    public string? Category { get; set; }
 
     [RegularExpression("^(Draft|Open|Closed|Cancelled)$", ErrorMessage = "Status must be Draft, Open, Closed, or Cancelled")]
-    public string Status { get; set; }
+    public string? Status { get; set; }
 
     // JSON fields for additional information
-    public string EventDetails { get; set; } // JSON: venue, images, introduction, special guests, etc.
+    public string? EventDetails { get; set; } // JSON: venue, images, introduction, special guests, etc.
     
-    public string TermsAndConditions { get; set; } // JSON: terms, children terms, VAT terms
+    public string? TermsAndConditions { get; set; } // JSON: terms, children terms, VAT terms
     
-    public string OrganizerInfo { get; set; } // JSON: logo, name, info
+    public string? OrganizerInfo { get; set; } // JSON: logo, name, info
 
     public DateTime CreatedAt { get; set; }
 
@@ -56,7 +56,14 @@ public partial class Event
         if (string.IsNullOrEmpty(EventDetails))
             return new EventDetailsData();
         
-        return JsonSerializer.Deserialize<EventDetailsData>(EventDetails) ?? new EventDetailsData();
+        try
+        {
+            return JsonSerializer.Deserialize<EventDetailsData>(EventDetails) ?? new EventDetailsData();
+        }
+        catch
+        {
+            return new EventDetailsData();
+        }
     }
 
     public void SetEventDetails(EventDetailsData data)
@@ -69,7 +76,14 @@ public partial class Event
         if (string.IsNullOrEmpty(TermsAndConditions))
             return new TermsAndConditionsData();
         
-        return JsonSerializer.Deserialize<TermsAndConditionsData>(TermsAndConditions) ?? new TermsAndConditionsData();
+        try
+        {
+            return JsonSerializer.Deserialize<TermsAndConditionsData>(TermsAndConditions) ?? new TermsAndConditionsData();
+        }
+        catch
+        {
+            return new TermsAndConditionsData();
+        }
     }
 
     public void SetTermsAndConditions(TermsAndConditionsData data)
@@ -82,7 +96,14 @@ public partial class Event
         if (string.IsNullOrEmpty(OrganizerInfo))
             return new OrganizerInfoData();
         
-        return JsonSerializer.Deserialize<OrganizerInfoData>(OrganizerInfo) ?? new OrganizerInfoData();
+        try
+        {
+            return JsonSerializer.Deserialize<OrganizerInfoData>(OrganizerInfo) ?? new OrganizerInfoData();
+        }
+        catch
+        {
+            return new OrganizerInfoData();
+        }
     }
 
     public void SetOrganizerInfo(OrganizerInfoData data)
@@ -94,29 +115,29 @@ public partial class Event
 // Helper classes for JSON serialization
 public class EventDetailsData
 {
-    public string VenueName { get; set; }
-    public string StreetAddress { get; set; }
-    public string Province { get; set; }
-    public string District { get; set; }
-    public string Ward { get; set; }
-    public string EventImage { get; set; }
-    public string BackgroundImage { get; set; }
-    public string EventIntroduction { get; set; }
-    public string EventDetails { get; set; }
-    public string SpecialGuests { get; set; }
-    public string SpecialExperience { get; set; }
+    public string? VenueName { get; set; }
+    public string? StreetAddress { get; set; }
+    public string? Province { get; set; }
+    public string? District { get; set; }
+    public string? Ward { get; set; }
+    public string? EventImage { get; set; }
+    public string? BackgroundImage { get; set; }
+    public string? EventIntroduction { get; set; }
+    public string? EventDetails { get; set; }
+    public string? SpecialGuests { get; set; }
+    public string? SpecialExperience { get; set; }
 }
 
 public class TermsAndConditionsData
 {
-    public string TermsAndConditions { get; set; }
-    public string ChildrenTerms { get; set; }
-    public string VATTerms { get; set; }
+    public string? TermsAndConditions { get; set; }
+    public string? ChildrenTerms { get; set; }
+    public string? VATTerms { get; set; }
 }
 
 public class OrganizerInfoData
 {
-    public string OrganizerLogo { get; set; }
-    public string OrganizerName { get; set; }
-    public string OrganizerInfo { get; set; }
+    public string? OrganizerLogo { get; set; }
+    public string? OrganizerName { get; set; }
+    public string? OrganizerInfo { get; set; }
 }

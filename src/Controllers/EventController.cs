@@ -245,30 +245,50 @@ namespace TheGrind5_EventManagement.Controllers
                     Title = request.Title,
                     Description = request.Description,
                     EventMode = request.EventMode,
-                    VenueName = request.VenueName,
-                    Province = request.Province,
-                    District = request.District,
-                    Ward = request.Ward,
-                    StreetAddress = request.StreetAddress,
                     EventType = request.EventType,
                     Category = request.Category,
-                    EventImage = request.EventImage,
-                    BackgroundImage = request.BackgroundImage,
-                    EventIntroduction = request.EventIntroduction,
-                    EventDetails = request.EventDetails,
-                    SpecialGuests = request.SpecialGuests,
-                    SpecialExperience = request.SpecialExperience,
-                    TermsAndConditions = request.TermsAndConditions,
-                    ChildrenTerms = request.ChildrenTerms,
-                    VATTerms = request.VATTerms,
-                    OrganizerLogo = request.OrganizerLogo,
-                    OrganizerName = request.OrganizerName,
-                    OrganizerInfo = request.OrganizerInfo,
                     Status = "Draft",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var createdEvent = await _eventService.CreateEventAsync(eventData);
+                
+                // Set JSON data using helper methods
+                var eventDetails = new EventDetailsData
+                {
+                    VenueName = request.VenueName,
+                    Province = request.Province,
+                    District = request.District,
+                    Ward = request.Ward,
+                    StreetAddress = request.StreetAddress,
+                    EventImage = request.EventImage,
+                    BackgroundImage = request.BackgroundImage,
+                    EventIntroduction = request.EventIntroduction,
+                    EventDetails = request.EventDetails,
+                    SpecialGuests = request.SpecialGuests,
+                    SpecialExperience = request.SpecialExperience
+                };
+                createdEvent.SetEventDetails(eventDetails);
+                
+                var termsAndConditions = new TermsAndConditionsData
+                {
+                    TermsAndConditions = request.TermsAndConditions,
+                    ChildrenTerms = request.ChildrenTerms,
+                    VATTerms = request.VATTerms
+                };
+                createdEvent.SetTermsAndConditions(termsAndConditions);
+                
+                var organizerInfo = new OrganizerInfoData
+                {
+                    OrganizerLogo = request.OrganizerLogo,
+                    OrganizerName = request.OrganizerName,
+                    OrganizerInfo = request.OrganizerInfo
+                };
+                createdEvent.SetOrganizerInfo(organizerInfo);
+                
+                // Update the event with JSON data
+                await _eventService.UpdateEventAsync(createdEvent.EventId, createdEvent);
+                
                 return Ok(new EventCreationResponse(
                     createdEvent.EventId,
                     "Bước 1: Thông tin sự kiện đã được lưu thành công",

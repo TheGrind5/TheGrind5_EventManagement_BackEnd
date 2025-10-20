@@ -55,6 +55,7 @@ namespace TheGrind5_EventManagement.DTOs
         public int OrderItemId { get; init; }
         public int TicketTypeId { get; init; }
         public string TicketTypeName { get; init; } = string.Empty;
+        public string EventTitle { get; init; } = string.Empty;
         public int Quantity { get; init; }
         public decimal UnitPrice { get; init; }
         public decimal TotalPrice { get; init; }

@@ -41,7 +41,7 @@ public partial class EventDBContext : DbContext
         b.Entity<User>(entity =>
         {
             entity.Property(e => e.UserId).HasColumnName("UserID");
-            entity.Ignore(e => e.Username); // Database doesn't have Username column
+            entity.Property(e => e.Username).HasColumnName("Username");
         });
         
         ConfigureUserRelationships(b);

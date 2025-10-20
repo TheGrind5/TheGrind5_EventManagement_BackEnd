@@ -20,7 +20,8 @@ namespace TheGrind5_EventManagement.Extensions
                 
                 options.UseSqlServer(conn, sqlOptions =>
                 {
-                    sqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+                    // Disable retry strategy to avoid conflict with manual transactions
+                    // sqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
                 });
             });
             

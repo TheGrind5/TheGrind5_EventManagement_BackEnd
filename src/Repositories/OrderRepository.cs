@@ -17,11 +17,22 @@ namespace TheGrind5_EventManagement.Repositories
         {
             try
             {
-                order.CreatedAt = DateTime.UtcNow;
-                order.Status = "Pending";
+                // Đảm bảo CreatedAt được set
+                if (order.CreatedAt == default)
+                    order.CreatedAt = DateTime.UtcNow;
+                
+                // Đảm bảo Status được set
+                if (string.IsNullOrEmpty(order.Status))
+                    order.Status = "Pending";
                 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
+                
+                // Set OrderId cho OrderItems sau khi order được tạo
+                foreach (var orderItem in order.OrderItems)
+                {
+                    orderItem.OrderId = order.OrderId;
+                }
                 
                 // Load related data
                 await _context.Entry(order)

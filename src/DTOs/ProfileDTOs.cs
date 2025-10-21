@@ -3,25 +3,30 @@ namespace TheGrind5_EventManagement.DTOs
     public class ProfileDTOs
     {
         public record ProfileDetailDto(
-            int UserId,
-            string Username,
-            string FullName,
-            string Email,
-            string Phone,
-            string Role,
-            DateTime CreatedAt,
-            DateTime? UpdatedAt,
-            string? AvatarUrl = null
+            int userId,
+            string username,
+            string fullName,
+            string email,
+            string phone,
+            string role,
+            DateTime createdAt,
+            DateTime? updatedAt,
+            string? avatar,
+            DateTime? dateOfBirth,
+            string? gender
         );
 
         public record UpdateProfileRequest(
-            string? FullName = null,
-            string? Phone = null
+            string? fullName = null,
+            string? phone = null,
+            string? avatar = null,
+            DateTime? dateOfBirth = null,
+            string? gender = null
         );
 
         public record UpdateProfileResponse(
-            string Message,
-            ProfileDetailDto User
+            string message,
+            ProfileDetailDto user
         );
     }
 }

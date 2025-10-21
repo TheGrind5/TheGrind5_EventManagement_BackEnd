@@ -62,13 +62,13 @@ namespace TheGrind5_EventManagement.Controllers
                     request.Amount, 
                     request.Description);
 
-                var response = new WalletOperationResponse
+                var response = new
                 {
-                    Message = "Nạp tiền vào ví thành công",
-                    TransactionId = transaction.TransactionId,
-                    Amount = transaction.Amount,
-                    NewBalance = transaction.BalanceAfter,
-                    Status = transaction.Status
+                    message = "Nạp tiền vào ví thành công",
+                    transactionId = transaction.TransactionId,
+                    amount = transaction.Amount,
+                    newBalance = transaction.BalanceAfter,
+                    status = transaction.Status
                 };
 
                 return Ok(response);
@@ -100,13 +100,13 @@ namespace TheGrind5_EventManagement.Controllers
                     request.Amount, 
                     request.Description);
 
-                var response = new WalletOperationResponse
+                var response = new
                 {
-                    Message = "Rút tiền từ ví thành công",
-                    TransactionId = transaction.TransactionId,
-                    Amount = transaction.Amount,
-                    NewBalance = transaction.BalanceAfter,
-                    Status = transaction.Status
+                    message = "Rút tiền từ ví thành công",
+                    transactionId = transaction.TransactionId,
+                    amount = transaction.Amount,
+                    newBalance = transaction.BalanceAfter,
+                    status = transaction.Status
                 };
 
                 return Ok(response);
@@ -139,28 +139,27 @@ namespace TheGrind5_EventManagement.Controllers
 
                 var transactions = await _walletService.GetUserTransactionsAsync(userId.Value, page, pageSize);
                 
-                var transactionResponses = transactions.Select(t => new WalletTransactionResponse
+                var transactionResponses = transactions.Select(t => new
                 {
-                    TransactionId = t.TransactionId,
-                    Amount = t.Amount,
-                    TransactionType = t.TransactionType,
-                    Status = t.Status,
-                    Description = t.Description,
-                    ReferenceId = t.ReferenceId,
-                    CreatedAt = t.CreatedAt,
-                    CompletedAt = t.CompletedAt,
-                    BalanceBefore = t.BalanceBefore,
-                    BalanceAfter = t.BalanceAfter
+                    transactionId = t.TransactionId,
+                    amount = t.Amount,
+                    transactionType = t.TransactionType,
+                    status = t.Status,
+                    description = t.Description,
+                    referenceId = t.ReferenceId,
+                    createdAt = t.CreatedAt,
+                    completedAt = t.CompletedAt,
+                    balanceBefore = t.BalanceBefore,
+                    balanceAfter = t.BalanceAfter
                 }).ToList();
 
-                // Note: In a real implementation, you'd need to get total count from service
-                var response = new WalletTransactionListResponse
+                var response = new
                 {
-                    Transactions = transactionResponses,
-                    TotalCount = transactionResponses.Count, // This should be actual total count
-                    Page = page,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)transactionResponses.Count / pageSize)
+                    transactions = transactionResponses,
+                    totalCount = transactionResponses.Count,
+                    page = page,
+                    pageSize = pageSize,
+                    totalPages = (int)Math.Ceiling((double)transactionResponses.Count / pageSize)
                 };
 
                 return Ok(response);
@@ -188,18 +187,18 @@ namespace TheGrind5_EventManagement.Controllers
                 if (transaction.UserId != userId.Value)
                     return Forbid("Bạn chỉ có thể xem giao dịch của mình");
 
-                var response = new WalletTransactionResponse
+                var response = new
                 {
-                    TransactionId = transaction.TransactionId,
-                    Amount = transaction.Amount,
-                    TransactionType = transaction.TransactionType,
-                    Status = transaction.Status,
-                    Description = transaction.Description,
-                    ReferenceId = transaction.ReferenceId,
-                    CreatedAt = transaction.CreatedAt,
-                    CompletedAt = transaction.CompletedAt,
-                    BalanceBefore = transaction.BalanceBefore,
-                    BalanceAfter = transaction.BalanceAfter
+                    transactionId = transaction.TransactionId,
+                    amount = transaction.Amount,
+                    transactionType = transaction.TransactionType,
+                    status = transaction.Status,
+                    description = transaction.Description,
+                    referenceId = transaction.ReferenceId,
+                    createdAt = transaction.CreatedAt,
+                    completedAt = transaction.CompletedAt,
+                    balanceBefore = transaction.BalanceBefore,
+                    balanceAfter = transaction.BalanceAfter
                 };
 
                 return Ok(response);

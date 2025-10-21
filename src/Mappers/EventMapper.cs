@@ -32,11 +32,13 @@ namespace TheGrind5_EventManagement.Mappers
                 StartTime = eventData.StartTime,
                 EndTime = eventData.EndTime,
                 Location = eventData.Location,
+                EventMode = eventData.EventMode,
+                EventType = eventData.EventType,
                 Category = eventData.Category,
                 Status = eventData.Status,
                 CreatedAt = eventData.CreatedAt,
+                HostId = eventData.HostId,
                 HostName = eventData.Host?.FullName,
-                HostEmail = eventData.Host?.Email,
                 TicketTypes = CreateTicketTypeDtos(eventData.TicketTypes)
             };
         }

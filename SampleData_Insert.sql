@@ -5,6 +5,19 @@
 
 use EventDB
 
+-- Fix database collation for Vietnamese characters
+ALTER DATABASE EventDB COLLATE Vietnamese_CI_AI;
+
+-- Fix table collations for Vietnamese text
+ALTER TABLE [User] ALTER COLUMN FullName NVARCHAR(255) COLLATE Vietnamese_CI_AI;
+ALTER TABLE [User] ALTER COLUMN Email NVARCHAR(255) COLLATE Vietnamese_CI_AI;
+ALTER TABLE Event ALTER COLUMN Title NVARCHAR(100) COLLATE Vietnamese_CI_AI;
+ALTER TABLE Event ALTER COLUMN Description NVARCHAR(MAX) COLLATE Vietnamese_CI_AI;
+ALTER TABLE Event ALTER COLUMN Location NVARCHAR(255) COLLATE Vietnamese_CI_AI;
+
+-- Note: Nullable fields are already set in TheGrind5_Query.sql
+-- No need for ALTER TABLE statements here
+
 -- ========================================
 -- CLEAR EXISTING DATA (in correct order due to foreign keys)
 -- ========================================
@@ -57,8 +70,9 @@ SELECT COUNT(*) as TicketTypeCount FROM TicketType;
 -- ========================================
 
 -- Host 1
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt, Avatar, DateOfBirth, Gender)
 VALUES (
+    'host1',
     N'Nguyễn Văn Host',
     'host1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -66,12 +80,16 @@ VALUES (
     'Host',
     0.00,
     GETUTCDATE(),
-    GETUTCDATE()
+    GETUTCDATE(),
+    NULL, -- Avatar
+    '1985-03-15', -- DateOfBirth
+    N'Nam' -- Gender
 );
 
 -- Host 2
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt, Avatar, DateOfBirth, Gender)
 VALUES (
+    'host2',
     N'Trần Thị Host',
     'host2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -79,12 +97,16 @@ VALUES (
     'Host',
     0.00,
     GETUTCDATE(),
-    GETUTCDATE()
+    GETUTCDATE(),
+    NULL, -- Avatar
+    '1988-07-22', -- DateOfBirth
+    N'Nữ' -- Gender
 );
 
 -- Customer 1
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt, Avatar, DateOfBirth, Gender)
 VALUES (
+    'customer1',
     N'Lê Văn Customer',
     'customer1@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -92,12 +114,16 @@ VALUES (
     'Customer',
     500000.00,
     GETUTCDATE(),
-    GETUTCDATE()
+    GETUTCDATE(),
+    NULL, -- Avatar
+    '1992-11-08', -- DateOfBirth
+    N'Nam' -- Gender
 );
 
 -- Customer 2 (Test user with different balance)
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt, Avatar, DateOfBirth, Gender)
 VALUES (
+    'customer2',
     N'Phạm Thị Test',
     'customer2@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -105,12 +131,16 @@ VALUES (
     'Customer',
     1250000.50,
     GETUTCDATE(),
-    GETUTCDATE()
+    GETUTCDATE(),
+    NULL, -- Avatar
+    '1995-04-12', -- DateOfBirth
+    N'Nữ' -- Gender
 );
 
 -- Test User với wallet balance cao (để test chức năng wallet)
-INSERT INTO [User] (FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt)
+INSERT INTO [User] (Username, FullName, Email, PasswordHash, Phone, Role, WalletBalance, CreatedAt, UpdatedAt, Avatar, DateOfBirth, Gender)
 VALUES (
+    'testwallet',
     N'Test Wallet User',
     'testwallet@example.com',
     '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u',
@@ -118,7 +148,10 @@ VALUES (
     'Customer',
     999999.99,
     GETUTCDATE(),
-    GETUTCDATE()
+    GETUTCDATE(),
+    NULL, -- Avatar
+    '1990-09-25', -- DateOfBirth
+    N'Nam' -- Gender
 );
 
 -- ========================================
@@ -126,7 +159,7 @@ VALUES (
 -- ========================================
 
 -- Events của Host 1 (UserId = 1)
-INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, EventType, EventMode, Category, Status, EventDetails, TermsAndConditions, OrganizerInfo, CreatedAt, UpdatedAt)
 VALUES (
     1, -- HostId của host1
     N'Workshop Lập Trình Web',
@@ -134,13 +167,18 @@ VALUES (
     DATEADD(day, 7, GETUTCDATE()),
     DATEADD(day, 7, DATEADD(hour, 4, GETUTCDATE())),
     N'Hà Nội, Việt Nam',
+    N'Workshop',
+    'Offline',
     'Technology',
     'Open',
+    N'{"venue": "Trung tâm Hội nghị Quốc gia", "images": ["workshop1.jpg", "workshop2.jpg"], "introduction": "Khóa học lập trình web toàn diện", "specialGuests": ["Nguyễn Văn A - Senior Developer"]}',
+    N'{"terms": "Khong hoan tien sau khi dang ky", "childrenTerms": "Trẻ em dưới 16 tuổi cần người giám hộ", "vatTerms": "Đã bao gồm VAT 10%"}',
+    N'{"logo": "techworkshop_logo.png", "name": "TechWorkshop Vietnam", "info": "Tổ chức các khóa học công nghệ hàng đầu"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, EventType, EventMode, Category, Status, EventDetails, TermsAndConditions, OrganizerInfo, CreatedAt, UpdatedAt)
 VALUES (
     1, -- HostId của host1
     N'Hội Thảo AI & Machine Learning',
@@ -148,13 +186,18 @@ VALUES (
     DATEADD(day, 14, GETUTCDATE()),
     DATEADD(day, 14, DATEADD(hour, 6, GETUTCDATE())),
     N'TP.HCM, Việt Nam',
+    N'Conference',
+    'Offline',
     'Technology',
     'Open',
+    N'{"venue": "Trung tâm Hội nghị TP.HCM", "images": ["ai1.jpg", "ai2.jpg"], "introduction": "Hội thảo AI hàng đầu Việt Nam", "specialGuests": ["GS. Trần Văn B - AI Expert"]}',
+    N'{"terms": "Co the hoan tien truoc 7 ngay", "childrenTerms": "Khong phu hop cho tre em", "vatTerms": "Đã bao gồm VAT 10%"}',
+    N'{"logo": "aiconference_logo.png", "name": "AI Vietnam Conference", "info": "Tổ chức hội thảo AI chuyên nghiệp"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, EventType, EventMode, Category, Status, EventDetails, TermsAndConditions, OrganizerInfo, CreatedAt, UpdatedAt)
 VALUES (
     1, -- HostId của host1
     N'Sự Kiện Networking Startup',
@@ -162,14 +205,19 @@ VALUES (
     DATEADD(day, 21, GETUTCDATE()),
     DATEADD(day, 21, DATEADD(hour, 3, GETUTCDATE())),
     N'Đà Nẵng, Việt Nam',
+    N'Networking',
+    'Offline',
     'Business',
     'Open',
+    N'{"venue": "Khách sạn 5 sao Đà Nẵng", "images": ["networking1.jpg", "networking2.jpg"], "introduction": "Sự kiện kết nối startup lớn nhất miền Trung", "specialGuests": ["CEO Startup A", "Nhà đầu tư B"]}',
+    N'{"terms": "Mien phi tham du", "childrenTerms": "Khong phu hop cho tre em", "vatTerms": "Khong ap dung VAT"}',
+    N'{"logo": "startupnetwork_logo.png", "name": "Startup Network Vietnam", "info": "Tổ chức sự kiện kết nối startup"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
 
 -- Events của Host 2 (UserId = 2)
-INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, EventType, EventMode, Category, Status, EventDetails, TermsAndConditions, OrganizerInfo, CreatedAt, UpdatedAt)
 VALUES (
     2, -- HostId của host2
     N'Concert Nhạc Acoustic',
@@ -177,13 +225,18 @@ VALUES (
     DATEADD(day, 10, GETUTCDATE()),
     DATEADD(day, 10, DATEADD(hour, 3, GETUTCDATE())),
     N'Hà Nội, Việt Nam',
+    N'Concert',
+    'Offline',
     'Entertainment',
     'Open',
+    N'{"venue": "Nhà hát Lớn Hà Nội", "images": ["concert1.jpg", "concert2.jpg"], "introduction": "Đêm nhạc acoustic đặc sắc", "specialGuests": ["Ca sĩ A", "Ca sĩ B"]}',
+    N'{"terms": "Khong hoan tien sau khi mua", "childrenTerms": "Trẻ em dưới 3 tuổi miễn phí", "vatTerms": "Đã bao gồm VAT 10%"}',
+    N'{"logo": "acousticconcert_logo.png", "name": "Acoustic Music Vietnam", "info": "Tổ chức các buổi hòa nhạc acoustic"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, EventType, EventMode, Category, Status, EventDetails, TermsAndConditions, OrganizerInfo, CreatedAt, UpdatedAt)
 VALUES (
     2, -- HostId của host2
     N'Triển Lãm Nghệ Thuật Đương Đại',
@@ -191,13 +244,18 @@ VALUES (
     DATEADD(day, 18, GETUTCDATE()),
     DATEADD(day, 20, GETUTCDATE()),
     N'TP.HCM, Việt Nam',
+    N'Exhibition',
+    'Offline',
     'Art',
     'Open',
+    N'{"venue": "Bảo tàng Mỹ thuật TP.HCM", "images": ["art1.jpg", "art2.jpg"], "introduction": "Triển lãm nghệ thuật đương đại lớn nhất năm", "specialGuests": ["Nghệ sĩ A", "Nghệ sĩ B"]}',
+    N'{"terms": "Co the hoan tien truoc 1 ngay", "childrenTerms": "Trẻ em dưới 12 tuổi miễn phí", "vatTerms": "Đã bao gồm VAT 10%"}',
+    N'{"logo": "artexhibition_logo.png", "name": "Contemporary Art Vietnam", "info": "Tổ chức triển lãm nghệ thuật đương đại"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
 
-INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, Category, Status, CreatedAt, UpdatedAt)
+INSERT INTO Event (HostId, Title, Description, StartTime, EndTime, Location, EventType, EventMode, Category, Status, EventDetails, TermsAndConditions, OrganizerInfo, CreatedAt, UpdatedAt)
 VALUES (
     2, -- HostId của host2
     N'Workshop Nấu Ăn Healthy',
@@ -205,8 +263,13 @@ VALUES (
     DATEADD(day, 25, GETUTCDATE()),
     DATEADD(day, 25, DATEADD(hour, 4, GETUTCDATE())),
     N'Hà Nội, Việt Nam',
+    N'Workshop',
+    'Offline',
     'Lifestyle',
     'Open',
+    N'{"venue": "Trung tâm ẩm thực Hà Nội", "images": ["cooking1.jpg", "cooking2.jpg"], "introduction": "Workshop nau an healthy cho moi gia dinh", "specialGuests": ["Đầu bếp A", "Chuyên gia dinh dưỡng B"]}',
+    N'{"terms": "Co the hoan tien truoc 3 ngay", "childrenTerms": "Trẻ em từ 8 tuổi trở lên", "vatTerms": "Đã bao gồm VAT 10%"}',
+    N'{"logo": "healthyfood_logo.png", "name": "Healthy Food Vietnam", "info": "Tổ chức workshop nau an healthy"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -354,43 +417,32 @@ VALUES (
     'Active'
 );
 
--- Verify Event 6 exists before inserting TicketTypes
-IF EXISTS (SELECT 1 FROM Event WHERE EventId = 6)
-BEGIN
-    PRINT 'Event 6 exists, inserting TicketTypes...';
-    
-    -- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
-    INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
-    VALUES (
-        6, -- EventId của Workshop Nấu Ăn Healthy
-        N'Vé Thường',
-        280000, -- 280k VND
-        40, -- 40 vé
-        1, -- Min order 1 vé
-        4, -- Max order 4 vé
-        DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
-        DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
-        'Active'
-    );
+-- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    6, -- EventId của Workshop Nấu Ăn Healthy
+    N'Vé Thường',
+    280000, -- 280k VND
+    40, -- 40 vé
+    1, -- Min order 1 vé
+    4, -- Max order 4 vé
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+    'Active'
+);
 
-    INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
-    VALUES (
-        6, -- EventId của Workshop Nấu Ăn Healthy
-        N'Vé Cặp Đôi',
-        500000, -- 500k VND (giá cho 2 người)
-        20, -- 20 cặp (40 người)
-        1, -- Min order 1 cặp
-        2, -- Max order 2 cặp
-        DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
-        DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
-        'Active'
-    );
-END
-ELSE
-BEGIN
-    PRINT 'ERROR: Event 6 does not exist! Cannot insert TicketTypes.';
-    SELECT EventId, Title FROM Event ORDER BY EventId;
-END
+INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
+VALUES (
+    6, -- EventId của Workshop Nấu Ăn Healthy
+    N'Vé Cặp Đôi',
+    500000, -- 500k VND (giá cho 2 người)
+    20, -- 20 cặp (40 người)
+    1, -- Min order 1 cặp
+    2, -- Max order 2 cặp
+    DATEADD(day, -30, GETUTCDATE()), -- Bán từ 30 ngày trước
+    DATEADD(day, 24, GETUTCDATE()), -- Bán đến 24 ngày trước event
+    'Active'
+);
 
 -- ========================================
 -- VERIFICATION QUERIES

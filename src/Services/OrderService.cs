@@ -8,6 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TheGrind5_EventManagement.Services
 {
+    // Helper class for raw SQL query result mapping
+    public class UsedQuantityResult
+    {
+        public int UsedQuantity { get; set; }
+    }
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
@@ -36,11 +41,22 @@ namespace TheGrind5_EventManagement.Services
                 if (request.Quantity <= 0)
                     throw new ArgumentException("Quantity must be greater than 0");
 
-                // Lấy thông tin ticket type để tính giá
-                var ticketType = await _context.TicketTypes
-                    .Include(tt => tt.Event)
-                    .FirstOrDefaultAsync(tt => tt.TicketTypeId == request.TicketTypeId);
+                // Check if ticket type exists before lock
+                var ticketTypeExists = await _context.TicketTypes
+                    .AnyAsync(tt => tt.TicketTypeId == request.TicketTypeId);
+                
+                if (!ticketTypeExists)
+                {
+                    throw new ArgumentException($"Ticket type {request.TicketTypeId} not found in database");
+                }
 
+                // 🔒 CRITICAL FIX: Lock ticket type row để tránh race condition
+                var ticketType = await _context.TicketTypes
+                    .FromSqlRaw("SELECT * FROM TicketType WITH (UPDLOCK, ROWLOCK) WHERE TicketTypeId = {0}", request.TicketTypeId)
+                    .Include(tt => tt.Event)
+                    .FirstOrDefaultAsync();
+
+                
                 if (ticketType == null)
                     throw new ArgumentException("Ticket type not found");
 
@@ -71,8 +87,8 @@ namespace TheGrind5_EventManagement.Services
                 if (ticketType.MaxOrder.HasValue && request.Quantity > ticketType.MaxOrder.Value)
                     throw new ArgumentException($"Maximum order quantity is {ticketType.MaxOrder.Value}");
 
-                // BUSINESS VALIDATION - Kiểm tra số lượng vé còn lại
-                var availableQuantity = await GetAvailableQuantityAsync(ticketType.TicketTypeId);
+                // 🔒 CRITICAL FIX: Kiểm tra inventory với lock để tránh race condition
+                var availableQuantity = await GetAvailableQuantityWithLockAsync(ticketType.TicketTypeId);
                 if (request.Quantity > availableQuantity)
                     throw new ArgumentException($"Not enough tickets available. Available: {availableQuantity}, Requested: {request.Quantity}");
 
@@ -86,10 +102,18 @@ namespace TheGrind5_EventManagement.Services
                 // Set giá cho order
                 order.Amount = totalAmount;
 
-                // Tạo order trong database
+                // 🔒 CRITICAL FIX: Tạo order trong transaction với lock
                 var createdOrder = await _orderRepository.CreateOrderAsync(order);
 
+                // 🔒 CRITICAL FIX: Final inventory check trước khi commit
+                // Lưu ý: Không cần kiểm tra lại inventory vì order đã được tạo và inventory đã được reserve
+                // Việc kiểm tra inventory đã được thực hiện trước khi tạo order
+
                 // Load ticket type info cho response
+                await _context.Entry(createdOrder)
+                    .Collection(o => o.OrderItems)
+                    .LoadAsync();
+                    
                 if (createdOrder.OrderItems.Any()) // Kiểm tra nếu có order items
                 {
                     var orderItem = createdOrder.OrderItems.First(); // Lấy order item đầu tiên
@@ -220,9 +244,43 @@ namespace TheGrind5_EventManagement.Services
         }
 
         /// <summary>
-        /// Tính số lượng vé còn lại cho một ticket type
+        /// Tính số lượng vé còn lại cho một ticket type với LOCK để tránh race condition
         /// Bao gồm cả vé đã bán (Paid) và vé đang được reserve (Pending)
         /// </summary>
+        private async Task<int> GetAvailableQuantityWithLockAsync(int ticketTypeId)
+        {
+            try
+            {
+                // 🔒 CRITICAL FIX: Sử dụng raw SQL với UPDLOCK để lock row
+                var ticketType = await _context.TicketTypes
+                    .FromSqlRaw("SELECT * FROM TicketType WITH (UPDLOCK, ROWLOCK) WHERE TicketTypeId = {0}", ticketTypeId)
+                    .FirstOrDefaultAsync();
+                
+                if (ticketType == null)
+                    return 0;
+
+                // 🔒 CRITICAL FIX: Đếm số vé đã sử dụng với lock - sử dụng raw SQL để đảm bảo consistency
+                var usedQuantityResult = await _context.Database
+                    .SqlQueryRaw<UsedQuantityResult>("SELECT ISNULL(SUM(oi.Quantity), 0) AS UsedQuantity FROM OrderItem oi INNER JOIN [Order] o ON oi.OrderId = o.OrderId WHERE oi.TicketTypeId = {0} AND o.Status IN ('Paid', 'Pending')", ticketTypeId)
+                    .FirstOrDefaultAsync();
+                
+                var usedQuantity = usedQuantityResult?.UsedQuantity ?? 0;
+
+                // Tính số vé còn lại
+                var availableQuantity = ticketType.Quantity - usedQuantity;
+                return Math.Max(0, availableQuantity);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error calculating available quantity with lock: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Tính số lượng vé còn lại cho một ticket type (DEPRECATED - chỉ dùng cho read-only operations)
+        /// Bao gồm cả vé đã bán (Paid) và vé đang được reserve (Pending)
+        /// </summary>
+        [Obsolete("Use GetAvailableQuantityWithLockAsync for order creation to prevent race conditions")]
         private async Task<int> GetAvailableQuantityAsync(int ticketTypeId)
         {
             try
@@ -295,6 +353,22 @@ namespace TheGrind5_EventManagement.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error cleaning up expired orders: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Validate user exists in database
+        /// </summary>
+        public async Task<bool> ValidateUserExistsAsync(int userId)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                return user != null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error validating user: {ex.Message}", ex);
             }
         }
 

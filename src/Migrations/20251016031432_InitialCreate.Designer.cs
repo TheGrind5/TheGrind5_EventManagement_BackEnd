@@ -12,7 +12,11 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
+<<<<<<<< HEAD:src/Migrations/20251016031432_InitialCreate.Designer.cs
     [Migration("20251016031432_InitialCreate")]
+========
+    [Migration("20251016083948_InitialCreate")]
+>>>>>>>> 6b7d9416e824d02079f3a12b0d85eecaab08df0f:src/Migrations/20251016083948_InitialCreate.Designer.cs
     partial class InitialCreate
     {
         /// <inheritdoc />

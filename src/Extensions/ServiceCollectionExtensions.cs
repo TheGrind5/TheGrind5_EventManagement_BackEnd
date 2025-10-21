@@ -18,8 +18,11 @@ namespace TheGrind5_EventManagement.Extensions
                 if (string.IsNullOrEmpty(conn))
                     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 
-                // Use SQL Server database
-                options.UseSqlServer(conn);
+                options.UseSqlServer(conn, sqlOptions =>
+                {
+                    // Disable retry strategy to avoid conflict with manual transactions
+                    // sqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+                });
             });
             
             return services;

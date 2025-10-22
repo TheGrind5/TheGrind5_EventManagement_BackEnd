@@ -16,3 +16,8 @@ Thư mục này chứa các file avatar được upload từ người dùng.
 - Frontend sẽ convert thành absolute URL: `http://localhost:5000/uploads/avatars/{filename}`
 
 
+
+
+
+
+

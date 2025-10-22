@@ -15,5 +15,7 @@ namespace TheGrind5_EventManagement.Business
         Task<Ticket> RefundTicketAsync(int ticketId);
         Task<bool> IsTicketValidAsync(int ticketId);
         Task<string> GenerateTicketSerialNumberAsync(int eventId, int ticketTypeId);
+        Task<TicketType> GetTicketTypeByIdAsync(int ticketTypeId);
+        Task<int> GetSoldTicketsCountAsync(int ticketTypeId);
     }
 }

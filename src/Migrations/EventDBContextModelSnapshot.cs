@@ -134,6 +134,40 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("OrderItem", (string)null);
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.OtpCode", b =>
+                {
+                    b.Property<int>("OtpId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OtpId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("OtpId");
+
+                    b.ToTable("OtpCode", (string)null);
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Payment", b =>
                 {
                     b.Property<int>("PaymentId")
@@ -292,6 +326,42 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Voucher", b =>
+                {
+                    b.Property<int>("VoucherId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoucherId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VoucherCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("VoucherId");
+
+                    b.ToTable("Voucher", (string)null);
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.WalletTransaction", b =>
                 {
                     b.Property<int>("TransactionId")
@@ -342,7 +412,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("WalletTransaction", (string)null);
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.WishlistItem", b =>
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -350,7 +420,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Quantity")
@@ -358,6 +428,9 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -369,7 +442,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.HasIndex("UserId", "TicketTypeId")
                         .IsUnique();
 
-                    b.ToTable("WishlistItem", (string)null);
+                    b.ToTable("Wishlist", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
@@ -464,7 +537,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.WishlistItem", b =>
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.Wishlist", b =>
                 {
                     b.HasOne("TheGrind5_EventManagement.Models.TicketType", "TicketType")
                         .WithMany()
@@ -473,7 +546,7 @@ namespace TheGrind5_EventManagement.Migrations
                         .IsRequired();
 
                     b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany("WishlistItems")
+                        .WithMany("Wishlists")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -515,7 +588,7 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Navigation("WalletTransactions");
 
-                    b.Navigation("WishlistItems");
+                    b.Navigation("Wishlists");
                 });
 #pragma warning restore 612, 618
         }

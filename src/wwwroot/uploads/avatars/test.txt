@@ -1,0 +1,3 @@
+Test file to verify directory permissions
+Created at: 2024-12-01
+

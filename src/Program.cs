@@ -12,6 +12,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -23,6 +24,9 @@ builder.Services.AddRepositories();
 builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
 builder.Services.AddCorsPolicy();
+
+// Add background services
+builder.Services.AddHostedService<TheGrind5_EventManagement.Services.OrderCleanupService>();
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -53,7 +57,19 @@ if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
+// Enable static files to serve uploaded files (phải đặt trước CORS)
+app.UseStaticFiles();
+
+// Enable static files for uploads directory specifically
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseCors(AppConstants.CORS_POLICY_NAME);
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

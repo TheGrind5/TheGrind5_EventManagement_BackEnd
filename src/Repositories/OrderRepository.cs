@@ -17,11 +17,22 @@ namespace TheGrind5_EventManagement.Repositories
         {
             try
             {
-                order.CreatedAt = DateTime.UtcNow;
-                order.Status = "Pending";
+                // Đảm bảo CreatedAt được set
+                if (order.CreatedAt == default)
+                    order.CreatedAt = DateTime.UtcNow;
+                
+                // Đảm bảo Status được set
+                if (string.IsNullOrEmpty(order.Status))
+                    order.Status = "Pending";
                 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
+                
+                // Set OrderId cho OrderItems sau khi order được tạo
+                foreach (var orderItem in order.OrderItems)
+                {
+                    orderItem.OrderId = order.OrderId;
+                }
                 
                 // Load related data
                 await _context.Entry(order)
@@ -31,6 +42,14 @@ namespace TheGrind5_EventManagement.Repositories
                 await _context.Entry(order)
                     .Collection(o => o.OrderItems)
                     .LoadAsync();
+                    
+                // Load TicketType for each OrderItem
+                foreach (var orderItem in order.OrderItems)
+                {
+                    await _context.Entry(orderItem)
+                        .Reference(oi => oi.TicketType)
+                        .LoadAsync();
+                }
 
                 return order;
             }
@@ -48,7 +67,7 @@ namespace TheGrind5_EventManagement.Repositories
                     .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.TicketType)
-                    .Include(o => o.Payments)
+                            .ThenInclude(tt => tt.Event)
                     .FirstOrDefaultAsync(o => o.OrderId == orderId);
             }
             catch (Exception ex)
@@ -65,7 +84,6 @@ namespace TheGrind5_EventManagement.Repositories
                     .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.TicketType)
-                    .Include(o => o.Payments)
                     .Where(o => o.CustomerId == userId)
                     .OrderByDescending(o => o.CreatedAt)
                     .ToListAsync();

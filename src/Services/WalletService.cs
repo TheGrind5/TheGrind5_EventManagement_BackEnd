@@ -97,7 +97,8 @@ namespace TheGrind5_EventManagement.Services
                     BalanceAfter = balanceAfter
                 };
 
-                await CreateTransactionAsync(walletTransaction);
+                _context.WalletTransactions.Add(walletTransaction);
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return walletTransaction;
@@ -147,7 +148,8 @@ namespace TheGrind5_EventManagement.Services
                     BalanceAfter = balanceAfter
                 };
 
-                await CreateTransactionAsync(walletTransaction);
+                _context.WalletTransactions.Add(walletTransaction);
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return walletTransaction;
@@ -197,7 +199,8 @@ namespace TheGrind5_EventManagement.Services
                     BalanceAfter = balanceAfter
                 };
 
-                await CreateTransactionAsync(walletTransaction);
+                _context.WalletTransactions.Add(walletTransaction);
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return walletTransaction;
@@ -244,7 +247,8 @@ namespace TheGrind5_EventManagement.Services
                     BalanceAfter = balanceAfter
                 };
 
-                await CreateTransactionAsync(walletTransaction);
+                _context.WalletTransactions.Add(walletTransaction);
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return walletTransaction;

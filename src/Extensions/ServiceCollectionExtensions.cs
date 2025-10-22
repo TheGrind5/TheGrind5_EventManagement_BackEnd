@@ -18,7 +18,11 @@ namespace TheGrind5_EventManagement.Extensions
                 if (string.IsNullOrEmpty(conn))
                     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 
-                options.UseSqlServer(conn);
+                options.UseSqlServer(conn, sqlOptions =>
+                {
+                    // Disable retry strategy to avoid conflict with manual transactions
+                    // sqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+                });
             });
             
             return services;
@@ -29,7 +33,6 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddScoped<IWishlistItemRepository, WishlistItemRepository>();
             
             return services;
         }
@@ -38,6 +41,9 @@ namespace TheGrind5_EventManagement.Extensions
         {
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IFileManagementService, FileManagementService>();
+            // services.AddScoped<IOtpService, OtpService>();
             services.AddScoped<IUserMapper, UserMapper>();
             services.AddScoped<IEventMapper, EventMapper>();
             services.AddScoped<IOrderMapper, OrderMapper>();
@@ -56,6 +62,7 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IWishlistService, WishlistService>();
 
             services.AddScoped<ITicketService, TicketService>();
+            services.AddScoped<IVoucherService, VoucherService>();
 
             
             return services;

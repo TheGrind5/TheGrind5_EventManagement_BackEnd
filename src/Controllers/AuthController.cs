@@ -14,25 +14,43 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<AuthController> _logger; 
+       
 
-        public AuthController(IAuthService authService, IUserRepository userRepository)
+        public AuthController(IAuthService authService, IUserRepository userRepository, ILogger<AuthController> logger)
         {
             _authService = authService;
             _userRepository = userRepository;
+            _logger = logger;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthDTOs.LoginRequest request)
         {
-            if (!IsValidLoginRequest(request))
-                return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
+            try
+            {
+                if (!IsValidLoginRequest(request))
+                {
+                    _logger.LogWarning("Invalid login request for email: {Email}", request.Email);
+                    return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
+                }
 
-            var result = await _authService.LoginAsync(request.Email!, request.Password!);
-            
-            if (result == null)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+                var result = await _authService.LoginAsync(request.Email!, request.Password!);
+                
+                if (result == null)
+                {
+                    _logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
+                    return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+                }
 
-            return Ok(CreateLoginResponse(result));
+                _logger.LogInformation("Successful login for user: {Email}", request.Email);
+                return Ok(CreateLoginResponse(result));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for email: {Email}", request.Email);
+                return BadRequest(new { message = "Có lỗi xảy ra khi đăng nhập", error = ex.Message });
+            }
         }
 
         [HttpPost("register")]
@@ -40,6 +58,20 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                // Validate input
+                if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@"))
+                    return BadRequest(new { message = "Email không hợp lệ" });
+
+                if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+                    return BadRequest(new { message = "Mật khẩu phải có ít nhất 8 ký tự" });
+
+                if (string.IsNullOrWhiteSpace(request.Username))
+                    return BadRequest(new { message = "Username không được để trống" });
+
+                if (string.IsNullOrWhiteSpace(request.FullName))
+                    return BadRequest(new { message = "Họ tên không được để trống" });
+
+                // Check email exists
                 if (await _userRepository.IsEmailExistsAsync(request.Email))
                     return BadRequest(new { message = "Email này đã được sử dụng" });
 
@@ -48,10 +80,11 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error registering user with email: {Email}", request.Email);
                 return BadRequest(new { message = "Có lỗi xảy ra khi đăng ký", error = ex.Message });
             }
         }
-
+        
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
@@ -111,25 +144,152 @@ namespace TheGrind5_EventManagement.Controllers
                     return NotFound(new { message = "Không tìm thấy user" });
 
                 // Cập nhật thông tin nếu có
-                if (!string.IsNullOrWhiteSpace(request.FullName))
-                    user.FullName = request.FullName;
+                if (!string.IsNullOrWhiteSpace(request.fullName))
+                    user.FullName = request.fullName;
                 
-                if (!string.IsNullOrWhiteSpace(request.Phone))
-                    user.Phone = request.Phone;
+                if (!string.IsNullOrWhiteSpace(request.phone))
+                    user.Phone = request.phone;
+
+                if (!string.IsNullOrWhiteSpace(request.avatar))
+                    user.Avatar = request.avatar;
+
+                if (request.dateOfBirth.HasValue)
+                    user.DateOfBirth = request.dateOfBirth;
+
+                if (!string.IsNullOrWhiteSpace(request.gender))
+                    user.Gender = request.gender;
 
                 user.UpdatedAt = DateTime.UtcNow;
 
                 await _userRepository.UpdateUserAsync(user);
 
-                return Ok(new ProfileDTOs.UpdateProfileResponse(
-                    "Cập nhật profile thành công",
-                    CreateProfileDetailDto(user)
-                ));
+                return Ok(new { 
+                    message = "Cập nhật profile thành công",
+                    user = new {
+                        userId = user.UserId,
+                        fullName = user.FullName,
+                        email = user.Email,
+                        phone = user.Phone,
+                        role = user.Role,
+                        avatar = user.Avatar,
+                        walletBalance = user.WalletBalance,
+                        dateOfBirth = user.DateOfBirth,
+                        gender = user.Gender
+                    }
+                });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật profile", error = ex.Message });
             }
+        }
+
+        [HttpPost("upload-avatar")]
+        [Authorize]
+        public async Task<IActionResult> UploadAvatar(IFormFile avatar)
+        {
+            try
+            {
+                if (avatar == null || avatar.Length == 0)
+                    return BadRequest(new { message = "Không có file được upload" });
+
+                // Kiểm tra loại file
+                if (!avatar.ContentType.StartsWith("image/"))
+                    return BadRequest(new { message = "Chỉ được upload file ảnh" });
+
+                // Kiểm tra kích thước file (max 5MB)
+                if (avatar.Length > 5 * 1024 * 1024)
+                    return BadRequest(new { message = "Kích thước file không được vượt quá 5MB" });
+
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Tạo thư mục uploads nếu chưa tồn tại
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                // Xóa file avatar cũ (nếu có) - XÓA TRƯỚC
+                var oldFiles = Directory.GetFiles(uploadsFolder, $"user_{userId}.*");
+                foreach (var oldFile in oldFiles)
+                {
+                    try
+                    {
+                        System.IO.File.Delete(oldFile);
+                        Console.WriteLine($"Đã xóa file cũ: {oldFile}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Không thể xóa file cũ {oldFile}: {ex.Message}");
+                    }
+                }
+
+                // Tạo tên file cố định
+                var fileExtension = Path.GetExtension(avatar.FileName);
+                var fileName = $"user_{userId}{fileExtension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Lưu file mới - LƯU SAU
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await avatar.CopyToAsync(stream);
+                }
+
+                // Cập nhật DB
+                var avatarUrl = $"/uploads/avatars/{fileName}";
+                var user = await _userRepository.GetUserByIdAsync(userId.Value);
+                if (user != null)
+                {
+                    user.Avatar = avatarUrl;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _userRepository.UpdateUserAsync(user);
+                }
+
+                return Ok(new { 
+                    message = "Upload avatar thành công", 
+                    avatarUrl = avatarUrl,
+                    fileName = fileName
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi upload avatar", error = ex.Message });
+            }
+        }
+
+        [HttpGet("avatar/{fileName}")]
+        public IActionResult GetAvatar(string fileName)
+        {
+            try
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars", fileName);
+                
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound(new { message = "Avatar not found" });
+
+                var fileBytes = System.IO.File.ReadAllBytes(filePath);
+                var contentType = GetContentType(fileName);
+                
+                return File(fileBytes, contentType);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error serving avatar", error = ex.Message });
+            }
+        }
+
+        private string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
         }
 
         [HttpGet("user/{userId}")]
@@ -194,6 +354,7 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+
         [HttpPost("seed-admin")]
         public async Task<IActionResult> SeedAdmin()
         {
@@ -219,7 +380,8 @@ namespace TheGrind5_EventManagement.Controllers
                     PasswordHash = HashPassword("admin123"),
                     Phone = "0123456789",
                     Role = "Admin",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    WalletBalance = 1000000
                 };
 
                 await _userRepository.CreateUserAsync(adminUser);
@@ -259,12 +421,13 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                UserId = user.UserId,
-                FullName = user.FullName,
-                Email = user.Email,
-                Phone = user.Phone,
-                Role = user.Role,
-                WalletBalance = user.WalletBalance
+                userId = user.UserId,
+                fullName = user.FullName,
+                email = user.Email,
+                phone = user.Phone,
+                role = user.Role,
+                avatar = user.Avatar,
+                walletBalance = user.WalletBalance
             };
         }
 
@@ -272,17 +435,18 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                User = new
+                user = new
                 {
-                    UserId = result.User.UserId,
-                    FullName = result.User.FullName,
-                    Email = result.User.Email,
-                    Phone = result.User.Phone,
-                    Role = result.User.Role,
-                    WalletBalance = result.User.WalletBalance
+                    userId = result.User.UserId,
+                    fullName = result.User.FullName,
+                    email = result.User.Email,
+                    phone = result.User.Phone,
+                    role = result.User.Role,
+                    avatar = result.User.Avatar,
+                    walletBalance = result.User.WalletBalance
                 },
-                AccessToken = result.AccessToken,
-                ExpiresAt = result.ExpiresAt
+                accessToken = result.AccessToken,
+                expiresAt = result.ExpiresAt
             };
         }
 
@@ -290,13 +454,13 @@ namespace TheGrind5_EventManagement.Controllers
         {
             return new
             {
-                Message = "Đăng ký thành công",
-                UserId = result.UserId,
-                FullName = result.FullName,
-                Email = result.Email,
-                Phone = result.Phone,
-                Role = result.Role,
-                WalletBalance = result.WalletBalance
+                message = "Đăng ký thành công",
+                userId = result.UserId,
+                fullName = result.FullName,
+                email = result.Email,
+                phone = result.Phone,
+                role = result.Role,
+                walletBalance = result.WalletBalance
             };
         }
 
@@ -310,7 +474,10 @@ namespace TheGrind5_EventManagement.Controllers
                 user.Phone,
                 user.Role,
                 user.CreatedAt,
-                user.UpdatedAt
+                user.UpdatedAt,
+                user.Avatar,
+                user.DateOfBirth,
+                user.Gender
             );
         }
     }

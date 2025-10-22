@@ -5,23 +5,24 @@ namespace TheGrind5_EventManagement.Mappers;
 
 public class WishlistMapper : IWishlistMapper
 {
-    public WishlistItemDto MapToDto(WishlistItem wishlistItem)
+    public WishlistItemDto MapToDto(Wishlist wishlist)
     {
         return new WishlistItemDto
         {
-            Id = wishlistItem.Id,
-            TicketTypeId = wishlistItem.TicketTypeId,
-            Title = wishlistItem.TicketType?.TypeName ?? string.Empty,
-            EventName = wishlistItem.TicketType?.Event?.Title ?? string.Empty,
-            Price = wishlistItem.TicketType?.Price ?? 0,
+            Id = wishlist.Id,
+            TicketTypeId = wishlist.TicketTypeId,
+            EventId = wishlist.TicketType?.EventId ?? 0,
+            Title = wishlist.TicketType?.TypeName ?? string.Empty,
+            EventName = wishlist.TicketType?.Event?.Title ?? string.Empty,
+            Price = wishlist.TicketType?.Price ?? 0,
             ThumbnailUrl = null, // Event model doesn't have ImageUrl property
-            Quantity = wishlistItem.Quantity,
-            MaxQuantity = wishlistItem.TicketType?.Quantity ?? 0,
-            CreatedAt = wishlistItem.CreatedAt
+            Quantity = wishlist.Quantity,
+            MaxQuantity = wishlist.TicketType?.Quantity ?? 0,
+            CreatedAt = wishlist.AddedAt
         };
     }
 
-    public WishlistResponse MapToWishlistResponse(List<WishlistItem> wishlistItems)
+    public WishlistResponse MapToWishlistResponse(List<Wishlist> wishlistItems)
     {
         var items = wishlistItems.Select(MapToDto).ToList();
         

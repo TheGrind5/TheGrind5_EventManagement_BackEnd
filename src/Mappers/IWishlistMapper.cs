@@ -5,6 +5,6 @@ namespace TheGrind5_EventManagement.Mappers;
 
 public interface IWishlistMapper
 {
-    WishlistItemDto MapToDto(WishlistItem wishlistItem);
-    WishlistResponse MapToWishlistResponse(List<WishlistItem> wishlistItems);
+    WishlistItemDto MapToDto(Wishlist wishlist);
+    WishlistResponse MapToWishlistResponse(List<Wishlist> wishlistItems);
 }

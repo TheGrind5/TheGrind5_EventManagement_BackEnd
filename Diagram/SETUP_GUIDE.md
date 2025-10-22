@@ -27,16 +27,16 @@ Mở file `src/appsettings.json` và thay đổi connection string:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=TEN_MAY_CUA_BAN\\SQLEXPRESS;Database=EventDB;User Id=sa;Password=MAT_KHAU_CUA_BAN;TrustServerCertificate=true;"
+    "DefaultConnection": "Server=LAPTOP-NKR40L4O\\SQLEXPRESS;Database=EventDB;User Id=sa;Password=123456;TrustServerCertificate=true;"
   }
 }
 ```
 
-**Các thông tin cần thay đổi:**
-- `TEN_MAY_CUA_BAN`: Tên máy tính của bạn
-- `SQLEXPRESS`: Tên instance SQL Server (có thể là `MSSQLSERVER` nếu dùng default instance)
-- `MAT_KHAU_CUA_BAN`: Mật khẩu SQL Server của bạn
-- `EventDB`: Tên database (có thể giữ nguyên hoặc đổi tên)
+**Các thông tin đã được cấu hình:**
+- `LAPTOP-NKR40L4O`: Tên máy tính của bạn
+- `SQLEXPRESS`: Instance SQL Server Express
+- `123456`: Mật khẩu SQL Server
+- `EventDB`: Tên database
 
 ### 3. Tạo Database
 Chạy lệnh sau trong thư mục `src`:
@@ -81,7 +81,7 @@ Trong file `src/Properties/launchSettings.json`, có thể thay đổi port:
 
 ### 1. Cài Đặt Dependencies
 ```bash
-cd TheGrind5_EventManagement_FrontEnd
+cd ../TheGrind5_EventManagement_FrontEnd
 npm install
 ```
 
@@ -110,13 +110,13 @@ dotnet run
 
 **Terminal 2 - Frontend:**
 ```bash
-cd TheGrind5_EventManagement_FrontEnd
+cd ../TheGrind5_EventManagement_FrontEnd
 npm start
 ```
 
 ### Cách 3: Sử dụng npm script
 ```bash
-cd TheGrind5_EventManagement_FrontEnd
+cd ../TheGrind5_EventManagement_FrontEnd
 npm run dev
 ```
 

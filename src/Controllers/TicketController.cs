@@ -94,14 +94,55 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                Console.WriteLine($"🔍 DEBUG: GetTicketTypesByEvent called with eventId: {eventId}");
+                
                 var ticketTypes = await _ticketService.GetTicketTypesByEventIdAsync(eventId);
-                var ticketTypeDtos = ticketTypes.Select(MapToTicketTypeDto).ToList();
+                Console.WriteLine($"🔍 DEBUG: Found {ticketTypes.Count()} ticket types for event {eventId}");
+                
+                var ticketTypeDtos = new List<TicketTypeDTO>();
+                foreach (var ticketType in ticketTypes)
+                {
+                    Console.WriteLine($"🔍 DEBUG: Processing ticket type: ID={ticketType.TicketTypeId}, Name={ticketType.TypeName}, Status={ticketType.Status}");
+                    ticketTypeDtos.Add(await MapToTicketTypeDtoAsync(ticketType));
+                }
 
+                Console.WriteLine($"🔍 DEBUG: Returning {ticketTypeDtos.Count} ticket type DTOs");
                 return Ok(ticketTypeDtos);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"🔍 DEBUG: Error in GetTicketTypesByEvent: {ex.Message}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách loại vé của sự kiện", error = ex.Message });
+            }
+        }
+
+        [HttpGet("type/{ticketTypeId}/availability")]
+        public async Task<IActionResult> GetTicketTypeAvailability(int ticketTypeId)
+        {
+            try
+            {
+                var ticketType = await _ticketService.GetTicketTypeByIdAsync(ticketTypeId);
+                if (ticketType == null)
+                    return NotFound(new { message = "Không tìm thấy loại vé" });
+
+                var availableQuantity = await CalculateAvailableQuantity(ticketTypeId);
+                
+                return Ok(new {
+                    ticketTypeId = ticketTypeId,
+                    totalQuantity = ticketType.Quantity,
+                    availableQuantity = availableQuantity,
+                    soldQuantity = ticketType.Quantity - availableQuantity,
+                    isAvailable = availableQuantity > 0,
+                    minOrder = ticketType.MinOrder,
+                    maxOrder = ticketType.MaxOrder,
+                    saleStart = ticketType.SaleStart,
+                    saleEnd = ticketType.SaleEnd,
+                    isOnSale = DateTime.Now >= ticketType.SaleStart && DateTime.Now <= ticketType.SaleEnd
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi kiểm tra số lượng vé", error = ex.Message });
             }
         }
 
@@ -228,7 +269,7 @@ namespace TheGrind5_EventManagement.Controllers
             };
         }
 
-        private TicketTypeDTO MapToTicketTypeDto(Models.TicketType ticketType)
+        private async Task<TicketTypeDTO> MapToTicketTypeDtoAsync(Models.TicketType ticketType)
         {
             return new TicketTypeDTO
             {
@@ -242,8 +283,28 @@ namespace TheGrind5_EventManagement.Controllers
                 SaleStart = ticketType.SaleStart,
                 SaleEnd = ticketType.SaleEnd,
                 Status = ticketType.Status,
-                AvailableQuantity = ticketType.Quantity // TODO: Calculate actual available quantity
+                AvailableQuantity = await CalculateAvailableQuantity(ticketType.TicketTypeId)
             };
+        }
+
+        private async Task<int> CalculateAvailableQuantity(int ticketTypeId)
+        {
+            try
+            {
+                // Get total quantity for this ticket type
+                var ticketType = await _ticketService.GetTicketTypeByIdAsync(ticketTypeId);
+                if (ticketType == null) return 0;
+
+                // Get count of sold tickets for this ticket type
+                var soldTickets = await _ticketService.GetSoldTicketsCountAsync(ticketTypeId);
+                
+                // Calculate available quantity
+                return Math.Max(0, ticketType.Quantity - soldTickets);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         private int? GetUserIdFromToken()

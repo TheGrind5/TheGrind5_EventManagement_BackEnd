@@ -20,6 +20,16 @@ namespace TheGrind5_EventManagement.Business
         // Cập nhật order status
         Task<bool> UpdateOrderStatusAsync(int orderId, string status);
         
+        // Order cleanup methods
+        Task<List<Order>> GetExpiredOrdersAsync();
+        Task<int> CleanupExpiredOrdersAsync();
+        
+        // Inventory methods
+        Task<object> GetTicketTypeInventoryAsync(int ticketTypeId);
+        
+        // User validation methods
+        Task<bool> ValidateUserExistsAsync(int userId);
+        
         // Mapping methods
         OrderDTO MapToOrderDto(Order order);
         Order MapFromCreateOrderRequest(CreateOrderRequestDTO request, int customerId);

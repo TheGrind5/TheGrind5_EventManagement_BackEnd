@@ -3,6 +3,7 @@ using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Mappers;
 using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.Business;
 
 namespace TheGrind5_EventManagement.Services;
 
@@ -10,13 +11,16 @@ public class WishlistService : IWishlistService
 {
     private readonly IWishlistMapper _wishlistMapper;
     private readonly EventDBContext _context;
+    private readonly IOrderService _orderService;
 
     public WishlistService(
         IWishlistMapper wishlistMapper,
-        EventDBContext context)
+        EventDBContext context,
+        IOrderService orderService)
     {
         _wishlistMapper = wishlistMapper;
         _context = context;
+        _orderService = orderService;
     }
 
     public async Task<WishlistResponse> GetWishlistAsync(int userId)
@@ -156,14 +160,72 @@ public class WishlistService : IWishlistService
         if (!wishlistItems.Any())
             throw new ArgumentException("No valid items found for checkout");
 
-        // For now, return a mock order draft ID
-        // In a real implementation, this would create an actual order draft
-        var orderDraftId = Guid.NewGuid().ToString();
+        // Tạo orders thật từ wishlist items
+        var createdOrders = await CreateOrdersFromWishlistAsync(userId, request);
+        
+        if (!createdOrders.Any())
+            throw new InvalidOperationException("No orders were created from wishlist items");
+
+        // Trả về order đầu tiên (hoặc có thể trả về tất cả)
+        var firstOrder = createdOrders.First();
         
         return new WishlistCheckoutResponse
         {
-            OrderDraftId = orderDraftId,
-            Next = $"/checkout/{orderDraftId}"
+            OrderDraftId = firstOrder.OrderId.ToString(),
+            Next = $"/payment/{firstOrder.OrderId}"
         };
+    }
+
+    /// <summary>
+    /// Tạo orders thật từ wishlist items
+    /// </summary>
+    public async Task<List<CreateOrderResponseDTO>> CreateOrdersFromWishlistAsync(int userId, WishlistCheckoutRequest request)
+    {
+        if (!request.Ids.Any())
+            throw new ArgumentException("No items selected for checkout");
+
+        // Get all wishlist items for user first
+        var userWishlistItems = await _context.Wishlists
+            .Include(w => w.TicketType)
+                .ThenInclude(tt => tt.Event)
+            .Where(w => w.UserId == userId)
+            .ToListAsync();
+
+        // Filter by requested IDs in memory
+        var wishlistItems = userWishlistItems
+            .Where(w => request.Ids.Contains(w.Id))
+            .ToList();
+
+        if (!wishlistItems.Any())
+            throw new ArgumentException("No valid items found for checkout");
+
+        var createdOrders = new List<CreateOrderResponseDTO>();
+
+        // Tạo order cho từng wishlist item
+        foreach (var wishlistItem in wishlistItems)
+        {
+            try
+            {
+                // Tạo CreateOrderRequestDTO từ wishlist item
+                var orderRequest = new CreateOrderRequestDTO
+                {
+                    EventId = wishlistItem.TicketType.EventId,
+                    TicketTypeId = wishlistItem.TicketTypeId,
+                    Quantity = wishlistItem.Quantity,
+                    SeatNo = null
+                };
+
+                // Gọi OrderService để tạo order thật
+                var orderResponse = await _orderService.CreateOrderAsync(orderRequest, userId);
+                createdOrders.Add(orderResponse);
+            }
+            catch (Exception ex)
+            {
+                // Log error nhưng tiếp tục với items khác
+                Console.WriteLine($"Error creating order for wishlist item {wishlistItem.Id}: {ex.Message}");
+            }
+        }
+
+        return createdOrders;
     }
 }

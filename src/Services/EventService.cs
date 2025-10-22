@@ -10,11 +10,13 @@ public class EventService : IEventService
 {
     private readonly IEventRepository _eventRepository;
     private readonly IEventMapper _eventMapper;
+    private readonly IFileManagementService _fileManagementService;
 
-    public EventService(IEventRepository eventRepository, IEventMapper eventMapper)
+    public EventService(IEventRepository eventRepository, IEventMapper eventMapper, IFileManagementService fileManagementService)
     {
         _eventRepository = eventRepository;
         _eventMapper = eventMapper;
+        _fileManagementService = fileManagementService;
     }
 
     public async Task<List<Event>> GetAllEventsAsync()
@@ -39,7 +41,30 @@ public class EventService : IEventService
 
     public async Task<bool> DeleteEventAsync(int eventId)
     {
-        return await _eventRepository.DeleteEventAsync(eventId);
+        // Lấy thông tin sự kiện trước khi xóa để lấy ảnh
+        var eventToDelete = await _eventRepository.GetEventByIdAsync(eventId);
+        if (eventToDelete == null)
+            return false;
+
+        // Lấy danh sách ảnh cần xóa
+        var imagesToDelete = new List<string>();
+        var eventDetails = eventToDelete.GetEventDetails();
+        
+        if (!string.IsNullOrEmpty(eventDetails.EventImage))
+            imagesToDelete.Add(eventDetails.EventImage);
+        if (!string.IsNullOrEmpty(eventDetails.BackgroundImage))
+            imagesToDelete.Add(eventDetails.BackgroundImage);
+
+        // Xóa sự kiện từ database
+        var result = await _eventRepository.DeleteEventAsync(eventId);
+        
+        if (result && imagesToDelete.Any())
+        {
+            // Xóa ảnh liên quan
+            await _fileManagementService.DeleteEventImagesAsync(imagesToDelete);
+        }
+
+        return result;
     }
 
     public async Task<List<Event>> GetEventsByHostAsync(int hostId)

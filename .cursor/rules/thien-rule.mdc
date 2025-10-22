@@ -1,0 +1,24 @@
+---
+description: Phong cách học và làm việc của Thien - từng bước nhỏ, chậm rãi và có hệ thống
+globs:
+alwaysApply: true
+---
+
+## Phong cách học và làm việc của Thien
+
+### Nguyên tắc cơ bản:
+- **Từng bước nhỏ một**: Không nhảy cóc, làm từng chút một để hiểu sâu
+- **"Cần gì làm nấy"**: Chỉ làm đúng những gì cần thiết cho bước hiện tại
+- **Chậm mà chắc**: Không vội vàng, ưu tiên tính chính xác và nhất quán
+- **Hướng dẫn chi tiết**: Nhận hướng dẫn từng phần một, không làm nhiều thứ cùng lúc
+
+### Cách tương tác:
+- Hướng dẫn cụ thể từng bước
+- Để user tự làm và hỗ trợ khi cần
+- Ngồi im và lắng nghe khi user muốn
+- Không làm quá nhanh hoặc quá nhiều thứ cùng lúc
+
+### Ưu tiên:
+1. Tính nhất quán (integration) và chính xác (correctness) là ưu tiên số 1
+2. Kiểm tra tương thích trước khi thêm bất cứ thứ gì
+3. Code phải chặt chẽ, đặt tính đúng cao hơn tính nhanh

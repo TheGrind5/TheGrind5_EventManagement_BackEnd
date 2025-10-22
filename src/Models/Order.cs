@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -11,8 +12,10 @@ public partial class Order
 
     public int CustomerId { get; set; }
 
+    [Range(0, double.MaxValue, ErrorMessage = "Amount must be non-negative")]
     public decimal Amount { get; set; }
 
+    [RegularExpression("^(Pending|Paid|Failed|Cancelled|Refunded)$", ErrorMessage = "Status must be Pending, Paid, Failed, Cancelled, or Refunded")]
     public string Status { get; set; }
 
     public string PaymentMethod { get; set; }

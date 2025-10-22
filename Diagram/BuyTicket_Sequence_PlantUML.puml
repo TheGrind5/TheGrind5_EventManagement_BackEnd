@@ -1,0 +1,146 @@
+@startuml BuyTicket_Sequence
+title 24.0 Buy Ticket - Luồng Mua Vé Sự Kiện
+
+participant "User" as User
+participant "Browser/Frontend" as Frontend
+participant "OrderController" as OrderController
+participant "OrderService" as OrderService
+participant "WalletService" as WalletService
+participant "TicketService" as TicketService
+participant "OrderRepository" as OrderRepository
+participant "UserRepository" as UserRepository
+participant "Database" as Database
+participant "OrderMapper" as OrderMapper
+
+== Buy Ticket Flow ==
+User -> Frontend: "Chọn event và ticket type"
+Frontend -> OrderController: "POST /api/order\n{EventId, TicketTypeId, Quantity, SeatNo}"
+
+OrderController -> OrderController: "[ValidateRequest]"
+
+alt request invalid
+    OrderController -> Frontend: "400 Bad Request\n{message: 'Dữ liệu order không hợp lệ'}"
+    Frontend -> User: "Hiển thị lỗi"
+else request valid
+    OrderController -> OrderController: "GetUserIdFromToken()"
+    OrderController -> OrderService: "ValidateUserExistsAsync(userId)"
+    OrderService -> UserRepository: "GetUserByIdAsync(userId)"
+    UserRepository -> Database: "SELECT * FROM Users WHERE UserId = @userId"
+    Database -> UserRepository: "User data"
+    UserRepository -> OrderService: "User entity"
+    OrderService -> OrderController: "boolean result"
+
+    alt user not found
+        OrderController -> Frontend: "401 Unauthorized\n{message: 'Người dùng không tồn tại'}"
+        Frontend -> User: "Hiển thị 'User not found'"
+    else user exists
+        OrderController -> OrderService: "CreateOrderAsync(request, userId)"
+        
+        OrderService -> OrderService: "Validate quantity > 0"
+        OrderService -> OrderService: "Get TicketType and Event details"
+        OrderService -> OrderService: "Validate Event status = 'Open'"
+        OrderService -> OrderService: "Validate TicketType status = 'Active'"
+        OrderService -> OrderService: "Validate sale period (SaleStart/SaleEnd)"
+        OrderService -> OrderService: "Validate MinOrder/MaxOrder constraints"
+        OrderService -> OrderService: "Check available quantity"
+
+        alt validation failed
+            OrderService -> OrderController: "ArgumentException"
+            OrderController -> Frontend: "400 Bad Request\n{message: 'Validation error'}"
+            Frontend -> User: "Hiển thị lỗi validation"
+        else validation passed
+            OrderService -> OrderMapper: "MapFromCreateOrderRequest(request, customerId)"
+            OrderMapper -> OrderService: "Order entity with OrderItem"
+            
+            OrderService -> OrderRepository: "CreateOrderAsync(order)"
+            OrderRepository -> Database: "INSERT INTO Orders\n(CustomerId, Amount, Status, CreatedAt)\nVALUES (@customerId, @amount, 'Pending', @createdAt)"
+            Database -> OrderRepository: "Order data with OrderId"
+            OrderRepository -> Database: "INSERT INTO OrderItems\n(OrderId, TicketTypeId, Quantity, SeatNo, Status)\nVALUES (@orderId, @ticketTypeId, @quantity, @seatNo, 'Reserved')"
+            Database -> OrderRepository: "OrderItem data"
+            OrderRepository -> OrderService: "Order entity with related data"
+            
+            OrderService -> OrderMapper: "MapToCreateOrderResponse(order)"
+            OrderMapper -> OrderService: "CreateOrderResponseDTO"
+            OrderService -> OrderController: "CreateOrderResponseDTO"
+            OrderController -> Frontend: "200 OK\n{message: 'Tạo order thành công', order: CreateOrderResponseDTO}"
+            Frontend -> User: "Hiển thị 'Order created successfully'"
+            
+            == Payment Process ==
+            User -> Frontend: "Click 'Pay Now'"
+            Frontend -> OrderController: "POST /api/order/{orderId}/payment\n{PaymentMethod: 'wallet', TransactionId}"
+
+            OrderController -> OrderController: "GetUserIdFromToken()"
+            OrderController -> OrderService: "GetOrderByIdAsync(orderId)"
+            OrderService -> OrderRepository: "GetOrderByIdAsync(orderId)"
+            OrderRepository -> Database: "SELECT * FROM Orders o\nLEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId\nLEFT JOIN TicketTypes tt ON oi.TicketTypeId = tt.TicketTypeId\nWHERE o.OrderId = @orderId"
+            Database -> OrderRepository: "Order data with related entities"
+            OrderRepository -> OrderService: "Order entity"
+            OrderService -> OrderController: "OrderDTO"
+
+            alt order not found
+                OrderController -> Frontend: "404 Not Found\n{message: 'Không tìm thấy order'}"
+                Frontend -> User: "Hiển thị 'Order not found'"
+            else order found
+                OrderController -> OrderController: "Check order ownership"
+                
+                alt not owner
+                    OrderController -> Frontend: "403 Forbidden\n{message: 'Bạn chỉ có thể thanh toán order của mình'}"
+                    Frontend -> User: "Hiển thị 'Access denied'"
+                else is owner
+                    OrderController -> OrderController: "Check order status = 'Pending'"
+                    
+                    alt status not pending
+                        OrderController -> Frontend: "400 Bad Request\n{message: 'Chỉ có thể thanh toán order đang Pending'}"
+                        Frontend -> User: "Hiển thị 'Cannot pay this order'"
+                    else status is pending
+                        OrderController -> WalletService: "HasSufficientBalanceAsync(userId, orderAmount)"
+                        WalletService -> Database: "SELECT WalletBalance FROM Users WHERE UserId = @userId"
+                        Database -> WalletService: "WalletBalance"
+                        WalletService -> OrderController: "boolean result"
+                        
+                        alt insufficient balance
+                            OrderController -> Frontend: "400 Bad Request\n{message: 'Số dư ví không đủ', currentBalance, requiredAmount, shortfall}"
+                            Frontend -> User: "Hiển thị 'Insufficient balance'"
+                        else sufficient balance
+                            OrderController -> WalletService: "ProcessPaymentAsync(userId, amount, orderId, description)"
+                            
+                            WalletService -> WalletService: "Validate amount > 0"
+                            WalletService -> WalletService: "Get current balance"
+                            WalletService -> Database: "UPDATE Users SET WalletBalance = @newBalance WHERE UserId = @userId"
+                            Database -> WalletService: "Update result"
+                            WalletService -> Database: "INSERT INTO WalletTransactions\n(UserId, TransactionType, Amount, Status, Description, ReferenceId, BalanceBefore, BalanceAfter, CreatedAt)\nVALUES (@userId, 'Payment', @amount, 'Completed', @description, @referenceId, @balanceBefore, @balanceAfter, @createdAt)"
+                            Database -> WalletService: "WalletTransaction data"
+                            WalletService -> OrderController: "WalletTransaction entity"
+                            
+                            OrderController -> OrderService: "UpdateOrderStatusAsync(orderId, 'Paid')"
+                            OrderService -> OrderRepository: "UpdateOrderStatusAsync(orderId, 'Paid')"
+                            OrderRepository -> Database: "UPDATE Orders SET Status = 'Paid', UpdatedAt = @updatedAt WHERE OrderId = @orderId"
+                            Database -> OrderRepository: "Update result"
+                            OrderRepository -> OrderService: "boolean result"
+                            
+                            OrderService -> OrderService: "CreateTicketsForOrderAsync(orderId)"
+                            OrderService -> TicketService: "CreateTicketsForOrderItemAsync(orderItemId, quantity, ticketTypeId)"
+                            
+                            loop for each ticket to create
+                                TicketService -> TicketService: "GenerateTicketSerialNumberAsync(eventId, ticketTypeId)"
+                                TicketService -> Database: "SELECT COUNT(*) FROM Tickets WHERE SerialNumber = @serialNumber"
+                                Database -> TicketService: "Count result"
+                                TicketService -> TicketService: "Ensure serial number uniqueness"
+                            end
+                            
+                            TicketService -> Database: "INSERT INTO Tickets\n(TicketTypeId, OrderItemId, SerialNumber, Status, IssuedAt)\nVALUES (@ticketTypeId, @orderItemId, @serialNumber, 'Assigned', @issuedAt)"
+                            Database -> TicketService: "Ticket data"
+                            TicketService -> OrderService: "List<Ticket>"
+                            
+                            OrderService -> OrderController: "boolean result"
+                            OrderController -> Frontend: "200 OK\n{message: 'Thanh toán thành công', paymentMethod, amount, walletTransactionId, newWalletBalance}"
+                            Frontend -> User: "Hiển thị 'Payment successful' và redirect đến tickets"
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+@enduml

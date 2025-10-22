@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -13,10 +14,12 @@ public partial class OrderItem
 
     public int TicketTypeId { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0")]
     public int Quantity { get; set; }
 
     public string SeatNo { get; set; }
 
+    [RegularExpression("^(Reserved|Confirmed|Cancelled)$", ErrorMessage = "Status must be Reserved, Confirmed, or Cancelled")]
     public string Status { get; set; }
 
     public virtual Order Order { get; set; }

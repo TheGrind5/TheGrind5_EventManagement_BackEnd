@@ -42,6 +42,7 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IFileManagementService, FileManagementService>();
             // services.AddScoped<IOtpService, OtpService>();
             services.AddScoped<IUserMapper, UserMapper>();
             services.AddScoped<IEventMapper, EventMapper>();

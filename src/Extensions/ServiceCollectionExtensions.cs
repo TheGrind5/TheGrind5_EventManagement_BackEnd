@@ -68,6 +68,37 @@ namespace TheGrind5_EventManagement.Extensions
             return services;
         }
 
+        /// <summary>
+        /// Register Generic Services để giảm code duplication
+        /// Thay thế manual service registration
+        /// TODO: Implement Generic Services when needed
+        /// </summary>
+        public static IServiceCollection AddGenericServices(this IServiceCollection services)
+        {
+            // TODO: Implement Generic Services
+            // Commented out until Generic Services are implemented
+            
+            // Register Generic Services cho Event
+            // services.AddScoped<IGenericService<Event, EventDTO, CreateEventRequest, UpdateEventRequest>, 
+            //     GenericService<Event, EventDTO, CreateEventRequest, UpdateEventRequest>>();
+            // services.AddScoped<IGenericMapper<Event, EventDTO, CreateEventRequest, UpdateEventRequest>, 
+            //     GenericMapper<Event, EventDTO, CreateEventRequest, UpdateEventRequest>>();
+
+            // Register Generic Services cho Order
+            // services.AddScoped<IGenericService<Order, OrderDTO, CreateOrderRequestDTO, UpdateOrderRequestDTO>, 
+            //     GenericService<Order, OrderDTO, CreateOrderRequestDTO, UpdateOrderRequestDTO>>();
+            // services.AddScoped<IGenericMapper<Order, OrderDTO, CreateOrderRequestDTO, UpdateOrderRequestDTO>, 
+            //     GenericMapper<Order, OrderDTO, CreateOrderRequestDTO, UpdateOrderRequestDTO>>();
+
+            // Register Generic Services cho Ticket
+            // services.AddScoped<IGenericService<Ticket, TicketDTO, CreateTicketRequestDTO, UpdateTicketRequestDTO>, 
+            //     GenericService<Ticket, TicketDTO, CreateTicketRequestDTO, UpdateTicketRequestDTO>>();
+            // services.AddScoped<IGenericMapper<Ticket, TicketDTO, CreateTicketRequestDTO, UpdateTicketRequestDTO>, 
+            //     GenericMapper<Ticket, TicketDTO, CreateTicketRequestDTO, UpdateTicketRequestDTO>>();
+
+            return services;
+        }
+
         public static IServiceCollection AddCorsPolicy(this IServiceCollection services)
         {
             services.AddCors(options =>

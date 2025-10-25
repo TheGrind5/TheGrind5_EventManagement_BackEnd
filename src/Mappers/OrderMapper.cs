@@ -13,7 +13,7 @@ namespace TheGrind5_EventManagement.Mappers
                 {
                     OrderId = order.OrderId,
                     CustomerId = order.CustomerId,
-                    CustomerName = order.Customer?.Username ?? string.Empty,
+                    CustomerName = order.Customer?.FullName ?? string.Empty,
                     CustomerEmail = order.Customer?.Email ?? string.Empty,
                     Amount = order.Amount,
                     Status = order.Status,
@@ -35,7 +35,7 @@ namespace TheGrind5_EventManagement.Mappers
             {
                 OrderId = order.OrderId,
                 CustomerId = order.CustomerId,
-                CustomerName = order.Customer?.Username ?? string.Empty,
+                CustomerName = order.Customer?.FullName ?? string.Empty,
                 CustomerEmail = order.Customer?.Email ?? string.Empty,
                 Amount = order.Amount,
                 Status = order.Status,
@@ -64,8 +64,8 @@ namespace TheGrind5_EventManagement.Mappers
             {
                 TicketTypeId = request.TicketTypeId,
                 Quantity = request.Quantity,
-                SeatNo = request.SeatNo,
-                Status = "Reserved" // OrderId sẽ được EF tự động set
+                SeatNo = request.SeatNo ?? string.Empty, // Đảm bảo không null
+                Status = "Reserved"
             };
 
             order.OrderItems.Add(orderItem);
@@ -86,6 +86,7 @@ namespace TheGrind5_EventManagement.Mappers
                     OrderItemId = orderItem.OrderItemId,
                     TicketTypeId = orderItem.TicketTypeId,
                     TicketTypeName = orderItem.TicketType?.TypeName ?? string.Empty,
+                    EventTitle = orderItem.TicketType?.Event?.Title ?? string.Empty,
                     Quantity = orderItem.Quantity,
                     UnitPrice = unitPrice,
                     TotalPrice = totalPrice,

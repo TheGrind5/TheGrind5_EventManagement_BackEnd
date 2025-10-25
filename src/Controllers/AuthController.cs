@@ -14,25 +14,43 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<AuthController> _logger; 
+       
 
-        public AuthController(IAuthService authService, IUserRepository userRepository)
+        public AuthController(IAuthService authService, IUserRepository userRepository, ILogger<AuthController> logger)
         {
             _authService = authService;
             _userRepository = userRepository;
+            _logger = logger;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthDTOs.LoginRequest request)
         {
-            if (!IsValidLoginRequest(request))
-                return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
+            try
+            {
+                if (!IsValidLoginRequest(request))
+                {
+                    _logger.LogWarning("Invalid login request for email: {Email}", request.Email);
+                    return BadRequest(new { message = "Email và mật khẩu không hợp lệ" });
+                }
 
-            var result = await _authService.LoginAsync(request.Email!, request.Password!);
-            
-            if (result == null)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+                var result = await _authService.LoginAsync(request.Email!, request.Password!);
+                
+                if (result == null)
+                {
+                    _logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
+                    return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+                }
 
-            return Ok(CreateLoginResponse(result));
+                _logger.LogInformation("Successful login for user: {Email}", request.Email);
+                return Ok(CreateLoginResponse(result));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for email: {Email}", request.Email);
+                return BadRequest(new { message = "Có lỗi xảy ra khi đăng nhập", error = ex.Message });
+            }
         }
 
         [HttpPost("register")]
@@ -40,6 +58,20 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                // Validate input
+                if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@"))
+                    return BadRequest(new { message = "Email không hợp lệ" });
+
+                if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+                    return BadRequest(new { message = "Mật khẩu phải có ít nhất 8 ký tự" });
+
+                if (string.IsNullOrWhiteSpace(request.Username))
+                    return BadRequest(new { message = "Username không được để trống" });
+
+                if (string.IsNullOrWhiteSpace(request.FullName))
+                    return BadRequest(new { message = "Họ tên không được để trống" });
+
+                // Check email exists
                 if (await _userRepository.IsEmailExistsAsync(request.Email))
                     return BadRequest(new { message = "Email này đã được sử dụng" });
 
@@ -48,10 +80,11 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error registering user with email: {Email}", request.Email);
                 return BadRequest(new { message = "Có lỗi xảy ra khi đăng ký", error = ex.Message });
             }
         }
-
+        
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
@@ -130,10 +163,20 @@ namespace TheGrind5_EventManagement.Controllers
 
                 await _userRepository.UpdateUserAsync(user);
 
-                return Ok(new ProfileDTOs.UpdateProfileResponse(
-                    "Cập nhật profile thành công",
-                    CreateProfileDetailDto(user)
-                ));
+                return Ok(new { 
+                    message = "Cập nhật profile thành công",
+                    user = new {
+                        userId = user.UserId,
+                        fullName = user.FullName,
+                        email = user.Email,
+                        phone = user.Phone,
+                        role = user.Role,
+                        avatar = user.Avatar,
+                        walletBalance = user.WalletBalance,
+                        dateOfBirth = user.DateOfBirth,
+                        gender = user.Gender
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -310,6 +353,7 @@ namespace TheGrind5_EventManagement.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra khi lấy số dư ví", error = ex.Message });
             }
         }
+
 
         [HttpPost("seed-admin")]
         public async Task<IActionResult> SeedAdmin()

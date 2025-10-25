@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Business;
+using TheGrind5_EventManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace TheGrind5_EventManagement.Controllers
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
+        private readonly IFileManagementService _fileManagementService;
 
-        public EventController(IEventService eventService)
+        public EventController(IEventService eventService, IFileManagementService fileManagementService)
         {
             _eventService = eventService;
+            _fileManagementService = fileManagementService;
         }
 
         [HttpGet]
@@ -245,30 +248,50 @@ namespace TheGrind5_EventManagement.Controllers
                     Title = request.Title,
                     Description = request.Description,
                     EventMode = request.EventMode,
-                    VenueName = request.VenueName,
-                    Province = request.Province,
-                    District = request.District,
-                    Ward = request.Ward,
-                    StreetAddress = request.StreetAddress,
                     EventType = request.EventType,
                     Category = request.Category,
-                    EventImage = request.EventImage,
-                    BackgroundImage = request.BackgroundImage,
-                    EventIntroduction = request.EventIntroduction,
-                    EventDetails = request.EventDetails,
-                    SpecialGuests = request.SpecialGuests,
-                    SpecialExperience = request.SpecialExperience,
-                    TermsAndConditions = request.TermsAndConditions,
-                    ChildrenTerms = request.ChildrenTerms,
-                    VATTerms = request.VATTerms,
-                    OrganizerLogo = request.OrganizerLogo,
-                    OrganizerName = request.OrganizerName,
-                    OrganizerInfo = request.OrganizerInfo,
                     Status = "Draft",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var createdEvent = await _eventService.CreateEventAsync(eventData);
+                
+                // Set JSON data using helper methods
+                var eventDetails = new EventDetailsData
+                {
+                    VenueName = request.VenueName,
+                    Province = request.Province,
+                    District = request.District,
+                    Ward = request.Ward,
+                    StreetAddress = request.StreetAddress,
+                    EventImage = request.EventImage,
+                    BackgroundImage = request.BackgroundImage,
+                    EventIntroduction = request.EventIntroduction,
+                    EventDetails = request.EventDetails,
+                    SpecialGuests = request.SpecialGuests,
+                    SpecialExperience = request.SpecialExperience
+                };
+                createdEvent.SetEventDetails(eventDetails);
+                
+                var termsAndConditions = new TermsAndConditionsData
+                {
+                    TermsAndConditions = request.TermsAndConditions,
+                    ChildrenTerms = request.ChildrenTerms,
+                    VATTerms = request.VATTerms
+                };
+                createdEvent.SetTermsAndConditions(termsAndConditions);
+                
+                var organizerInfo = new OrganizerInfoData
+                {
+                    OrganizerLogo = request.OrganizerLogo,
+                    OrganizerName = request.OrganizerName,
+                    OrganizerInfo = request.OrganizerInfo
+                };
+                createdEvent.SetOrganizerInfo(organizerInfo);
+                
+                // Update the event with JSON data
+                await _eventService.UpdateEventAsync(createdEvent.EventId, createdEvent);
+                
                 return Ok(new EventCreationResponse(
                     createdEvent.EventId,
                     "Bước 1: Thông tin sự kiện đã được lưu thành công",
@@ -690,47 +713,41 @@ namespace TheGrind5_EventManagement.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest(new { message = "Không có file được chọn" });
 
-                // Kiểm tra loại file
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(fileExtension))
-                    return BadRequest(new { message = "Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)" });
-
-                // Kiểm tra kích thước file (max 5MB)
-                if (file.Length > 5 * 1024 * 1024)
-                    return BadRequest(new { message = "File quá lớn, tối đa 5MB" });
-
-                // Tạo tên file unique
-                var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "events");
+                var imageUrl = await _fileManagementService.SaveEventImageAsync(file);
                 
-                // Debug: Log đường dẫn
-                Console.WriteLine($"Upload folder: {uploadsFolder}");
-                Console.WriteLine($"File name: {fileName}");
-                
-                // Tạo thư mục nếu chưa có
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                // Lưu file
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                // Trả về URL ảnh
-                var imageUrl = $"/uploads/events/{fileName}";
                 return Ok(new { 
                     success = true, 
                     imageUrl = imageUrl,
                     message = "Upload ảnh thành công" 
                 });
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Có lỗi xảy ra khi upload ảnh", error = ex.Message });
+            }
+        }
+
+        [HttpPost("cleanup-unused-images")]
+        [Authorize]
+        public async Task<IActionResult> CleanupUnusedImages()
+        {
+            try
+            {
+                var deletedCount = await _fileManagementService.CleanupUnusedImagesAsync();
+                
+                return Ok(new { 
+                    success = true, 
+                    deletedCount = deletedCount,
+                    message = $"Đã xóa {deletedCount} ảnh không sử dụng" 
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi dọn dẹp ảnh", error = ex.Message });
             }
         }
 

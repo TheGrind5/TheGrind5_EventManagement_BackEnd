@@ -7,6 +7,7 @@ namespace TheGrind5_EventManagement.Mappers
     {
         public object MapToEventDto(Event eventData)
         {
+            var eventDetails = eventData.GetEventDetails();
             return new
             {
                 EventId = eventData.EventId,
@@ -18,12 +19,17 @@ namespace TheGrind5_EventManagement.Mappers
                 Category = eventData.Category,
                 Status = eventData.Status,
                 HostName = eventData.Host?.FullName,
+                HostEmail = eventData.Host?.Email,
+                EventDetails = eventDetails,
+                EventImage = eventDetails.EventImage,
+                BackgroundImage = eventDetails.BackgroundImage,
                 TicketTypes = CreateTicketTypeDtos(eventData.TicketTypes)
             };
         }
 
         public object MapToEventDetailDto(Event eventData)
         {
+            var eventDetails = eventData.GetEventDetails();
             return new
             {
                 EventId = eventData.EventId,
@@ -32,30 +38,17 @@ namespace TheGrind5_EventManagement.Mappers
                 StartTime = eventData.StartTime,
                 EndTime = eventData.EndTime,
                 Location = eventData.Location,
-                VenueName = eventData.VenueName,
-                Province = eventData.Province,
-                District = eventData.District,
-                Ward = eventData.Ward,
-                StreetAddress = eventData.StreetAddress,
                 EventMode = eventData.EventMode,
                 EventType = eventData.EventType,
                 Category = eventData.Category,
-                EventImage = eventData.EventImage,
-                BackgroundImage = eventData.BackgroundImage,
-                EventIntroduction = eventData.EventIntroduction,
-                EventDetails = eventData.EventDetails,
-                SpecialGuests = eventData.SpecialGuests,
-                SpecialExperience = eventData.SpecialExperience,
-                TermsAndConditions = eventData.TermsAndConditions,
-                ChildrenTerms = eventData.ChildrenTerms,
-                VATTerms = eventData.VATTerms,
-                OrganizerLogo = eventData.OrganizerLogo,
-                OrganizerName = eventData.OrganizerName,
-                OrganizerInfo = eventData.OrganizerInfo,
                 Status = eventData.Status,
                 CreatedAt = eventData.CreatedAt,
                 HostId = eventData.HostId,
                 HostName = eventData.Host?.FullName,
+                HostEmail = eventData.Host?.Email,
+                EventDetails = eventDetails,
+                EventImage = eventDetails.EventImage,
+                BackgroundImage = eventDetails.BackgroundImage,
                 TicketTypes = CreateTicketTypeDtos(eventData.TicketTypes)
             };
         }

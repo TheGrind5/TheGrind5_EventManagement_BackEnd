@@ -94,17 +94,24 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                Console.WriteLine($"🔍 DEBUG: GetTicketTypesByEvent called with eventId: {eventId}");
+                
                 var ticketTypes = await _ticketService.GetTicketTypesByEventIdAsync(eventId);
+                Console.WriteLine($"🔍 DEBUG: Found {ticketTypes.Count()} ticket types for event {eventId}");
+                
                 var ticketTypeDtos = new List<TicketTypeDTO>();
                 foreach (var ticketType in ticketTypes)
                 {
+                    Console.WriteLine($"🔍 DEBUG: Processing ticket type: ID={ticketType.TicketTypeId}, Name={ticketType.TypeName}, Status={ticketType.Status}");
                     ticketTypeDtos.Add(await MapToTicketTypeDtoAsync(ticketType));
                 }
 
+                Console.WriteLine($"🔍 DEBUG: Returning {ticketTypeDtos.Count} ticket type DTOs");
                 return Ok(ticketTypeDtos);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"🔍 DEBUG: Error in GetTicketTypesByEvent: {ex.Message}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách loại vé của sự kiện", error = ex.Message });
             }
         }

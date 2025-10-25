@@ -12,11 +12,13 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IWalletService _walletService;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService, IWalletService walletService)
+        public OrderController(IOrderService orderService, IWalletService walletService, ILogger<OrderController> logger)
         {
             _orderService = orderService;
             _walletService = walletService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -25,21 +27,36 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                _logger.LogInformation("CreateOrder request received: {Request}", request);
+                
                 var userId = GetUserIdFromToken();
-                Console.WriteLine($"Extracted userId from token: {userId}");
+                _logger.LogInformation("Extracted userId from token: {UserId}", userId);
                 
                 if (userId == null)
+                {
+                    _logger.LogWarning("No userId found in token");
                     return Unauthorized(new { message = "Token không hợp lệ" });
+                }
 
                 // Validate user exists in database
                 var userExists = await _orderService.ValidateUserExistsAsync(userId.Value);
                 if (!userExists)
+                {
+                    _logger.LogWarning("User {UserId} does not exist in database", userId.Value);
                     return Unauthorized(new { message = "Người dùng không tồn tại trong hệ thống" });
+                }
 
                 if (!IsValidCreateOrderRequest(request))
+                {
+                    _logger.LogWarning("Invalid create order request: {Request}", request);
                     return BadRequest(new { message = "Dữ liệu order không hợp lệ" });
+                }
 
+                _logger.LogInformation("Creating order for user {UserId} with request {Request}", userId.Value, request);
+                
                 var result = await _orderService.CreateOrderAsync(request, userId.Value);
+                
+                _logger.LogInformation("Order created successfully: {OrderId}", result.OrderId);
                 
                 return Ok(new { 
                     message = "Tạo order thành công", 
@@ -48,12 +65,13 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning(ex, "Argument exception in CreateOrder: {Message}", ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                // Log the full exception for debugging
-                Console.WriteLine($"Error creating order: {ex}");
+                _logger.LogError(ex, "Error creating order for user {UserId} with event {EventId}", 
+                    GetUserIdFromToken(), request?.EventId);
                 return BadRequest(new { message = "Có lỗi xảy ra khi tạo order", error = ex.Message });
             }
         }
@@ -269,10 +287,45 @@ namespace TheGrind5_EventManagement.Controllers
 
         private bool IsValidCreateOrderRequest(CreateOrderRequestDTO request)
         {
-            return request != null &&
-                   request.EventId > 0 &&
-                   request.TicketTypeId > 0 &&
-                   request.Quantity > 0;
+            if (request == null)
+            {
+                _logger.LogWarning("CreateOrderRequest is null");
+                return false;
+            }
+
+            if (request.EventId <= 0)
+            {
+                _logger.LogWarning("Invalid EventId: {EventId}", request.EventId);
+                return false;
+            }
+
+            if (request.TicketTypeId <= 0)
+            {
+                _logger.LogWarning("Invalid TicketTypeId: {TicketTypeId}", request.TicketTypeId);
+                return false;
+            }
+
+            if (request.Quantity <= 0)
+            {
+                _logger.LogWarning("Invalid Quantity: {Quantity}", request.Quantity);
+                return false;
+            }
+
+            // 🔧 FIX: Thêm validation cho business rules
+            if (request.Quantity > 100) // Reasonable limit
+            {
+                _logger.LogWarning("Quantity too high: {Quantity}", request.Quantity);
+                return false;
+            }
+
+            // Validate SeatNo if provided
+            if (!string.IsNullOrEmpty(request.SeatNo) && request.SeatNo.Length > 50)
+            {
+                _logger.LogWarning("SeatNo too long: {SeatNo}", request.SeatNo);
+                return false;
+            }
+
+            return true;
         }
 
         [HttpPost("cleanup-expired")]

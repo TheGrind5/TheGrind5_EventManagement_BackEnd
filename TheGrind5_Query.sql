@@ -4,7 +4,7 @@ BEGIN
     DROP DATABASE EventDB;
 END;
 GO
-CREATE DATABASE EventDB COLLATE SQL_Latin1_General_CP1_CI_AI;
+CREATE DATABASE EventDB COLLATE Vietnamese_CI_AI;
 GO
 USE EventDB;
 GO
@@ -29,15 +29,21 @@ CREATE TABLE [User](
 CREATE TABLE Event(
     EventId INT IDENTITY(1,1) PRIMARY KEY,
     HostId INT NOT NULL,
-    Title NVARCHAR(255) NOT NULL,
-    Description NVARCHAR(MAX),
+    Title NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
     StartTime DATETIME2(0) NOT NULL,
     EndTime DATETIME2(0) NOT NULL,
-    Location NVARCHAR(255),
-    Category NVARCHAR(100),
-    Status VARCHAR(16) NOT NULL DEFAULT 'Draft' CHECK (Status IN ('Draft','Open','Closed','Cancelled')),
+    Location NVARCHAR(255) NULL,
+    EventType NVARCHAR(255) NULL,
+    EventMode VARCHAR(10) NULL DEFAULT 'Offline' CHECK (EventMode IN ('Online','Offline')),
+    Category NVARCHAR(255) NULL,
+    Status VARCHAR(16) NULL DEFAULT 'Draft' CHECK (Status IN ('Draft','Open','Closed','Cancelled')),
+    -- Gộp các thông tin bổ sung thành JSON để tiết kiệm không gian
+    EventDetails NVARCHAR(MAX) NULL, -- JSON chứa: venue, images, introduction, special guests, etc.
+    TermsAndConditions NVARCHAR(MAX) NULL, -- JSON chứa: terms, children terms, VAT terms
+    OrganizerInfo NVARCHAR(MAX) NULL, -- JSON chứa: logo, name, info
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2(0),
+    UpdatedAt DATETIME2(0) NULL,
     CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId) ON DELETE CASCADE
 );
 
@@ -74,7 +80,7 @@ CREATE TABLE OrderItem(
     SeatNo NVARCHAR(100),
     Status VARCHAR(16) DEFAULT 'Reserved' CHECK (Status IN ('Reserved','Confirmed','Cancelled')),
     CONSTRAINT FK_OrderItem_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId) ON DELETE CASCADE,
-    CONSTRAINT FK_OrderItem_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE CASCADE
+    CONSTRAINT FK_OrderItem_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE NO ACTION
 );
 
 CREATE TABLE Ticket(
@@ -86,7 +92,7 @@ CREATE TABLE Ticket(
     IssuedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UsedAt DATETIME2(0),
     RefundedAt DATETIME2(0),
-    CONSTRAINT FK_Ticket_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE CASCADE,
+    CONSTRAINT FK_Ticket_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE NO ACTION,
     CONSTRAINT FK_Ticket_OrderItem FOREIGN KEY (OrderItemId) REFERENCES OrderItem(OrderItemId) ON DELETE SET NULL
 );
 
@@ -109,15 +115,15 @@ CREATE TABLE Wishlist(
     AddedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0),
     CONSTRAINT FK_Wishlist_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE,
-    CONSTRAINT FK_Wishlist_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE CASCADE,
+    CONSTRAINT FK_Wishlist_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE NO ACTION,
     CONSTRAINT UQ_Wishlist_User_TicketType UNIQUE (UserId, TicketTypeId)
 );
 
 -- Voucher table for discount management
 CREATE TABLE Voucher(
     VoucherId INT IDENTITY(1,1) PRIMARY KEY,
-    VoucherCode NVARCHAR(100) NOT NULL UNIQUE,
-    DiscountPercentage INT NOT NULL CHECK (DiscountPercentage >= 0 AND DiscountPercentage <= 100),
+    VoucherCode NVARCHAR(50) NOT NULL UNIQUE,
+    DiscountPercentage DECIMAL(5,2) NOT NULL CHECK (DiscountPercentage >= 1 AND DiscountPercentage <= 100),
     ValidFrom DATETIME2(0) NOT NULL,
     ValidTo DATETIME2(0) NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
@@ -130,16 +136,7 @@ CREATE TABLE Voucher(
 -- Default value: 0 (new users start with 0 balance)
 -- Constraint: Balance cannot be negative (CHECK WalletBalance >= 0)
 
--- Indexes
-
-CREATE INDEX IX_Event_HostID ON Event(HostID);
-CREATE INDEX IX_TicketType_EventID ON TicketType(EventID);
-CREATE INDEX IX_Order_CustomerID ON [Order](CustomerID);
-CREATE INDEX IX_OrderItem_OrderID ON OrderItem(OrderID);
-CREATE INDEX IX_OrderItem_TicketTypeID ON OrderItem(TicketTypeID);
-CREATE INDEX IX_Ticket_TicketTypeID ON Ticket(TicketTypeID);
-CREATE INDEX IX_Ticket_OrderItemID ON Ticket(OrderItemID);
-CREATE INDEX IX_Payment_OrderID ON Payment(OrderID);
+-- Indexes (removed duplicate indexes - will be created later with correct naming)
 
 -- ============================================
 -- User Profile Fields Added:
@@ -164,7 +161,6 @@ CREATE INDEX IX_Wishlist_AddedAt ON Wishlist(AddedAt);
 CREATE INDEX IX_Voucher_VoucherCode ON Voucher(VoucherCode);
 CREATE INDEX IX_Voucher_ValidFrom ON Voucher(ValidFrom);
 CREATE INDEX IX_Voucher_ValidTo ON Voucher(ValidTo);
-CREATE INDEX IX_Voucher_IsActive ON Voucher(IsActive);
 
 -- WalletTransaction table for tracking wallet operations
 CREATE TABLE WalletTransaction(
@@ -198,4 +194,15 @@ CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
 CREATE INDEX IX_WalletTransaction_CreatedAt ON WalletTransaction(CreatedAt);
 CREATE INDEX IX_OtpCode_Email ON OtpCode(Email);
 CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
+
+-- Indexes for Event table (simplified)
+CREATE INDEX IX_Event_EventMode ON Event(EventMode);
+CREATE INDEX IX_Event_EventType ON Event(EventType);
+CREATE INDEX IX_Event_Category ON Event(Category);
+CREATE INDEX IX_Event_Status ON Event(Status);
+CREATE INDEX IX_Event_StartTime ON Event(StartTime);
+CREATE INDEX IX_Event_EndTime ON Event(EndTime);
+
+-- Additional indexes for Voucher table
+CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
 

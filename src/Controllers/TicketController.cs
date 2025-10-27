@@ -99,11 +99,25 @@ namespace TheGrind5_EventManagement.Controllers
                 var ticketTypes = await _ticketService.GetTicketTypesByEventIdAsync(eventId);
                 Console.WriteLine($"🔍 DEBUG: Found {ticketTypes.Count()} ticket types for event {eventId}");
                 
-                var ticketTypeDtos = new List<TicketTypeDTO>();
+                var ticketTypeDtos = new List<object>();
                 foreach (var ticketType in ticketTypes)
                 {
                     Console.WriteLine($"🔍 DEBUG: Processing ticket type: ID={ticketType.TicketTypeId}, Name={ticketType.TypeName}, Status={ticketType.Status}");
-                    ticketTypeDtos.Add(await MapToTicketTypeDtoAsync(ticketType));
+                    var availableQty = await CalculateAvailableQuantity(ticketType.TicketTypeId);
+                    ticketTypeDtos.Add(new
+                    {
+                        ticketTypeId = ticketType.TicketTypeId,
+                        eventId = ticketType.EventId,
+                        typeName = ticketType.TypeName,
+                        price = ticketType.Price,
+                        quantity = ticketType.Quantity,
+                        availableQuantity = availableQty,
+                        minOrder = ticketType.MinOrder,
+                        maxOrder = ticketType.MaxOrder,
+                        saleStart = ticketType.SaleStart,
+                        saleEnd = ticketType.SaleEnd,
+                        status = ticketType.Status
+                    });
                 }
 
                 Console.WriteLine($"🔍 DEBUG: Returning {ticketTypeDtos.Count} ticket type DTOs");
@@ -266,24 +280,6 @@ namespace TheGrind5_EventManagement.Controllers
                     Status = ticket.OrderItem.Order.Status,
                     CreatedAt = ticket.OrderItem.Order.CreatedAt
                 } : null
-            };
-        }
-
-        private async Task<TicketTypeDTO> MapToTicketTypeDtoAsync(Models.TicketType ticketType)
-        {
-            return new TicketTypeDTO
-            {
-                TicketTypeId = ticketType.TicketTypeId,
-                EventId = ticketType.EventId,
-                TypeName = ticketType.TypeName,
-                Price = ticketType.Price,
-                Quantity = ticketType.Quantity,
-                MinOrder = ticketType.MinOrder,
-                MaxOrder = ticketType.MaxOrder,
-                SaleStart = ticketType.SaleStart,
-                SaleEnd = ticketType.SaleEnd,
-                Status = ticketType.Status,
-                AvailableQuantity = await CalculateAvailableQuantity(ticketType.TicketTypeId)
             };
         }
 

@@ -42,6 +42,7 @@ CREATE TABLE Event(
     EventDetails NVARCHAR(MAX) NULL, -- JSON chứa: venue, images, introduction, special guests, etc.
     TermsAndConditions NVARCHAR(MAX) NULL, -- JSON chứa: terms, children terms, VAT terms
     OrganizerInfo NVARCHAR(MAX) NULL, -- JSON chứa: logo, name, info
+    VenueLayout NVARCHAR(MAX) NULL, -- JSON chứa: Virtual Stage 2D layout data (hasVirtualStage, canvasWidth, canvasHeight, areas)
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0) NULL,
     CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId) ON DELETE CASCADE
@@ -205,4 +206,3 @@ CREATE INDEX IX_Event_EndTime ON Event(EndTime);
 
 -- Additional indexes for Voucher table
 CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
-

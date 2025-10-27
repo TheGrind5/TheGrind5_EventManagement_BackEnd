@@ -560,7 +560,7 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                Console.WriteLine($"=== UpdateEventStep3 Debug ===");
+                Console.WriteLine($"=== UpdateEventStep3 (Virtual Stage) Debug ===");
                 Console.WriteLine($"EventId: {eventId}");
                 Console.WriteLine($"Request: {JsonSerializer.Serialize(request)}");
                 
@@ -580,36 +580,34 @@ namespace TheGrind5_EventManagement.Controllers
 
                 Console.WriteLine($"Event found: {existingEvent.Title}");
 
-                // Xử lý dữ liệu từ request
-                Console.WriteLine($"EventSettings: {request.EventSettings}");
-                Console.WriteLine($"AllowRefund: {request.AllowRefund}");
-                Console.WriteLine($"RefundDaysBefore: {request.RefundDaysBefore}");
-                Console.WriteLine($"RequireApproval: {request.RequireApproval}");
-
-                // Cập nhật cài đặt sự kiện
-                existingEvent.UpdatedAt = DateTime.UtcNow;
-                
-                // Lưu thông tin cài đặt vào Description hoặc tạo field riêng
-                // Hiện tại lưu vào Description để đơn giản
-                var settingsInfo = $"Event Settings: {request.EventSettings}\n" +
-                                 $"Allow Refund: {request.AllowRefund}\n" +
-                                 $"Refund Days Before: {request.RefundDaysBefore}\n" +
-                                 $"Require Approval: {request.RequireApproval}";
-                
-                existingEvent.Description = existingEvent.Description + "\n\n" + settingsInfo;
-                
-                await _eventService.UpdateEventAsync(eventId, existingEvent);
-
-                Console.WriteLine("Step 3 update successful");
+                // Lưu venue layout vào event
+                if (request.VenueLayout != null)
+                {
+                    Console.WriteLine($"Saving venue layout with HasVirtualStage: {request.VenueLayout.HasVirtualStage}");
+                    Console.WriteLine($"Number of areas: {request.VenueLayout.Areas?.Count ?? 0}");
+                    
+                    existingEvent.SetVenueLayout(request.VenueLayout);
+                    
+                    existingEvent.UpdatedAt = DateTime.UtcNow;
+                    await _eventService.UpdateEventAsync(eventId, existingEvent);
+                    
+                    Console.WriteLine("Venue layout saved successfully");
+                }
+                else
+                {
+                    Console.WriteLine("No venue layout provided - skipping");
+                }
 
                 return Ok(new EventCreationResponse(
                     eventId,
-                    "Bước 3: Cài đặt sự kiện đã được lưu thành công",
+                    "Bước 3: Sân khấu ảo đã được lưu thành công",
                     true
                 ));
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in UpdateEventStep3: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 3", error = ex.Message });
             }
         }

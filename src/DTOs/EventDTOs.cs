@@ -1,3 +1,6 @@
+using TheGrind5_EventManagement.Models;
+using System.Text.Json.Serialization;
+
 namespace TheGrind5_EventManagement.DTOs
 {
     public record CreateEventRequest(
@@ -23,6 +26,7 @@ namespace TheGrind5_EventManagement.DTOs
         string Title,
         string? Description,
         string? EventMode, // Online/Offline
+        string? Location,  // Thêm Location field
         string? VenueName,
         string? Province,
         string? District,
@@ -51,10 +55,7 @@ namespace TheGrind5_EventManagement.DTOs
     );
 
     public record CreateEventStep3Request(
-        string EventSettings,
-        bool AllowRefund,
-        int RefundDaysBefore,
-        bool RequireApproval
+        VenueLayoutData? VenueLayout
     );
 
     public record CreateEventStep4Request(
@@ -71,7 +72,7 @@ namespace TheGrind5_EventManagement.DTOs
         int MaxOrder,
         DateTime SaleStart,
         DateTime SaleEnd,
-        string Status
+        string? Status = null
     );
 
     public record EventCreationResponse(

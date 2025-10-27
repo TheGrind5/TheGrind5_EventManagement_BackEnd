@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TheGrind5_EventManagement.Models;
 
@@ -41,6 +42,8 @@ public partial class Event
     public string? TermsAndConditions { get; set; } // JSON: terms, children terms, VAT terms
     
     public string? OrganizerInfo { get; set; } // JSON: logo, name, info
+    
+    public string? VenueLayout { get; set; } // JSON: Virtual Stage 2D layout data (hasVirtualStage, canvasWidth, canvasHeight, areas)
 
     public DateTime CreatedAt { get; set; }
 
@@ -110,11 +113,37 @@ public partial class Event
     {
         OrganizerInfo = JsonSerializer.Serialize(data);
     }
+
+    public VenueLayoutData GetVenueLayout()
+    {
+        if (string.IsNullOrEmpty(VenueLayout))
+            return new VenueLayoutData();
+        
+        try
+        {
+            return JsonSerializer.Deserialize<VenueLayoutData>(VenueLayout) ?? new VenueLayoutData();
+        }
+        catch
+        {
+            return new VenueLayoutData();
+        }
+    }
+
+    public void SetVenueLayout(VenueLayoutData data)
+    {
+        VenueLayout = JsonSerializer.Serialize(data);
+    }
 }
 
 // Helper classes for JSON serialization
 public class EventDetailsData
 {
+    public string? venue { get; set; }
+    public string[]? images { get; set; }
+    public string? introduction { get; set; }
+    public string[]? specialGuests { get; set; }
+    
+    // Legacy properties for backward compatibility
     public string? VenueName { get; set; }
     public string? StreetAddress { get; set; }
     public string? Province { get; set; }
@@ -124,7 +153,10 @@ public class EventDetailsData
     public string? BackgroundImage { get; set; }
     public string? EventIntroduction { get; set; }
     public string? EventDetails { get; set; }
+    
+    [JsonPropertyName("specialGuestsList")]
     public string? SpecialGuests { get; set; }
+    
     public string? SpecialExperience { get; set; }
 }
 
@@ -140,4 +172,32 @@ public class OrganizerInfoData
     public string? OrganizerLogo { get; set; }
     public string? OrganizerName { get; set; }
     public string? OrganizerInfo { get; set; }
+}
+
+// Venue Layout Data for Virtual Stage 2D
+public class VenueLayoutData
+{
+    public bool HasVirtualStage { get; set; } = false;
+    public int CanvasWidth { get; set; } = 1000;
+    public int CanvasHeight { get; set; } = 800;
+    public List<StageArea> Areas { get; set; } = new List<StageArea>();
+}
+
+public class StageArea
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Shape { get; set; } = "rectangle"; // "rectangle", "polygon", "circle"
+    public List<PointData> Coordinates { get; set; } = new List<PointData>();
+    public string Color { get; set; } = "#667eea";
+    public int? TicketTypeId { get; set; }
+    public bool IsStanding { get; set; } = false;
+    public int? Capacity { get; set; }
+    public string? Label { get; set; }
+}
+
+public class PointData
+{
+    public double X { get; set; }
+    public double Y { get; set; }
 }

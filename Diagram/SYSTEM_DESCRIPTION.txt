@@ -1,0 +1,442 @@
+HỆ THỐNG QUẢN LÝ SỰ KIỆN THEGRIND5
+Event Management System
+
+MỤC ĐÍCH
+Hệ thống quản lý và bán vé sự kiện, cung cấp cho người dùng khả năng tạo, quản lý và tham gia các sự kiện với hệ thống thanh toán ví điện tử tích hợp.
+
+================================================================================
+
+THÀNH PHẦN CHÍNH CỦA HỆ THỐNG
+
+1. VAI TRÒ NGƯỜI DÙNG
+
+Customer (Khách hàng)
+- Người mua vé và tham gia sự kiện
+- Quản lý ví điện tử: nạp tiền, rút tiền, thanh toán
+- Xem danh sách sự kiện, chi tiết vé, lịch sử giao dịch
+- Sử dụng voucher giảm giá
+- Thêm/tách/xóa items khỏi wishlist
+
+Host (Người tổ chức)
+- Tạo và quản lý sự kiện
+- Định giá các loại vé (TicketType) theo thời gian
+- Quản lý số lượng vé, thời gian bán vé
+- Xem báo cáo doanh thu và số lượng khách tham dự
+- Sử dụng Virtual Stage 2D để thiết kế layout sân khấu
+
+Admin (Quản trị viên)
+- Quản lý toàn bộ hệ thống
+- Xem báo cáo tổng quan: doanh thu, số lượng sự kiện, giao dịch
+- Quản lý người dùng
+- Cấu hình hệ thống
+
+================================================================================
+
+CHỨC NĂNG CHO KHÁCH HÀNG (CUSTOMER)
+
+1. ĐĂNG KÝ & ĐĂNG NHẬP
+- Đăng ký: Tạo tài khoản với Email, Password, FullName, Phone
+- Đăng nhập: Xác thực bằng Email/Password, nhận JWT token
+- OTP: Xác thực email qua OTP code (tùy chọn)
+
+2. QUẢN LÝ VÍ ĐIỆN TỬ
+- Nạp tiền: Nạp tiền vào ví để mua vé (Deposit)
+- Rút tiền: Rút tiền từ ví về tài khoản ngân hàng (Withdraw)
+- Thanh toán: Sử dụng ví để thanh toán mua vé (Payment)
+- Hoàn tiền: Nhận tiền hoàn từ hủy/hoàn vé (Refund)
+- Xem lịch sử: Xem tất cả giao dịch ví với chi tiết:
+  - Loại giao dịch (Deposit, Withdraw, Payment, Refund, Transfer)
+  - Số tiền
+  - Trạng thái (Pending, Completed, Failed, Cancelled)
+  - Thời gian
+  - Số dư trước/sau
+
+3. MUA VÉ SỰ KIỆN
+Quy trình mua vé:
+1. Duyệt sự kiện: Xem danh sách sự kiện, lọc theo Category, EventMode (Online/Offline)
+2. Chọn loại vé: 
+   - Xem các loại vé (TicketType) của sự kiện
+   - Chọn số lượng vé (có giới hạn MinOrder/MaxOrder)
+   - Xem giá và thông tin chi tiết
+3. Áp dụng giảm giá: Nhập voucher code để giảm giá (%)
+4. Tạo đơn hàng (Order):
+   - Chọn phương thức thanh toán (Wallet, Credit Card, Bank Transfer)
+   - Hệ thống tính tổng tiền, trừ voucher
+   - Tạo Order với status "Pending"
+5. Thanh toán:
+   - Nếu dùng Wallet: Trừ tiền từ ví ngay lập tức
+   - Nếu dùng khác: Order status = "Pending", chờ xác nhận
+6. Nhận vé: 
+   - Tạo Ticket với SerialNumber duy nhất cho mỗi vé
+   - Status: "Available" → "Assigned" khi đã thanh toán
+   - Vé được lưu trong OrderItems
+
+4. QUẢN LÝ VÉ
+- Xem vé đã mua: Xem danh sách vé của mình với trạng thái (Available, Assigned, Used, Refunded)
+- Vé điện tử: Mỗi vé có SerialNumber, có thể hiển thị QR code
+- Sử dụng vé: Khi check-in sự kiện, vé status chuyển từ "Assigned" → "Used"
+- Hoàn/Đổi vé: 
+  - Hủy đơn hàng → Hệ thống hoàn tiền vào ví
+  - Vé status chuyển → "Refunded"
+  - Tiền hoàn = số tiền đã thanh toán
+
+5. WISHLIST
+- Thêm vào Wishlist: Lưu loại vé yêu thích để mua sau
+- Cập nhật số lượng: Thay đổi số lượng trong wishlist
+- Mua từ Wishlist: Chuyển từ wishlist sang giỏ hàng nhanh
+- Xóa khỏi Wishlist: Loại bỏ items không còn quan tâm
+
+6. VOUCHER
+- Nhập code: Nhập voucher code khi mua vé để giảm giá
+- Kiểm tra validity: Hệ thống kiểm tra:
+  - Voucher có active không?
+  - Còn trong thời gian ValidFrom → ValidTo?
+  - Đã đạt minimum order chưa?
+- Áp dụng giảm giá: Tính % giảm giá và cập nhật tổng tiền
+
+7. THÔNG TIN SỰ KIỆN
+- Chi tiết sự kiện: Xem thông tin đầy đủ:
+  - Tên, mô tả, loại sự kiện (EventType)
+  - Thời gian: StartTime, EndTime
+  - Địa điểm: Location (cho offline)
+  - Hình ảnh, introduction, special guests
+  - EventDetails (JSON): venue, images, specialGuests
+  - TermsAndConditions (JSON): điều khoản, VAT
+  - OrganizerInfo (JSON): thông tin người tổ chức
+- Virtual Stage 2D: Xem layout sân khấu ảo với các khu vực (StageArea):
+  - Hình dạng (rectangle, polygon, circle)
+  - Tọa độ, màu sắc
+  - Trạng thái (đứng/ngồi)
+  - Sức chứa (Capacity)
+  - Loại vé tương ứng
+
+================================================================================
+
+CHỨC NĂNG CHO HOST
+
+1. TẠO & QUẢN LÝ SỰ KIỆN
+- Tạo sự kiện: 
+  - Nhập thông tin cơ bản: Title, Description, Location, Category
+  - Chọn EventMode: Online hoặc Offline
+  - Đặt thời gian: StartTime, EndTime
+  - Thiết lập EventDetails (venue, images, introduction, specialGuests)
+  - Thiết lập TermsAndConditions
+  - Thiết lập OrganizerInfo
+  - Status ban đầu: "Draft"
+
+- Thiết kế Virtual Stage 2D (cho event có venue):
+  - Kích hoạt hasVirtualStage = true
+  - Thiết lập canvasWidth, canvasHeight
+  - Tạo các StageArea với:
+    - Id, Name, Shape
+    - Coordinates (points)
+    - Color
+    - TicketTypeId (liên kết với loại vé)
+    - IsStanding (true = đứng, false = ngồi)
+    - Capacity (sức chứa)
+
+2. QUẢN LÝ LOẠI VÉ (TICKET TYPE)
+- Tạo loại vé: 
+  - TypeName (ví dụ: "VIP", "Thường", "Early Bird")
+  - Price: Giá bán
+  - Quantity: Số lượng vé tổng cộng
+  - MinOrder: Số vé tối thiểu phải mua (ví dụ: 2)
+  - MaxOrder: Số vé tối đa mỗi đơn (ví dụ: 10)
+  - SaleStart: Thời gian bắt đầu bán
+  - SaleEnd: Thời gian kết thúc bán
+  - Status: "Active" hoặc "Inactive"
+
+- Điều chỉnh giá theo thời gian:
+  - Mỗi TicketType có SaleStart và SaleEnd riêng
+  - Ví dụ: Early Bird giá rẻ hơn → sau đó chuyển sang giá thường
+  - Có thể tạo nhiều TicketType cho cùng 1 event với giá khác nhau
+
+3. XEM BÁO CÁO
+- Thống kê sự kiện:
+  - Số lượng vé đã bán
+  - Số vé còn lại
+  - Doanh thu: Tổng số tiền từ các đơn hàng Paid
+  - Số lượng khách đã check-in (vé Used)
+- Lọc theo thời gian: Xem báo cáo theo ngày/tuần/tháng
+- Export dữ liệu: Xuất báo cáo ra file (CSV, Excel)
+
+4. QUẢN LÝ TRẠNG THÁI SỰ KIỆN
+- Draft: Sự kiện đang được tạo, chưa public
+- Open: Sự kiện đang mở bán vé
+- Closed: Đã hết vé hoặc hết thời gian bán
+- Cancelled: Hủy sự kiện → Hoàn tiền cho khách đã mua
+
+================================================================================
+
+CHỨC NĂNG CHO ADMIN
+
+1. QUẢN LÝ NGƯỜI DÙNG
+- Xem danh sách tất cả users (Customer, Host, Admin)
+- Thống kê số lượng users theo role
+- Xem chi tiết user: Profile, Orders, Wallet transactions
+- Vô hiệu hóa/Kích hoạt tài khoản
+
+2. QUẢN LÝ SỰ KIỆN
+- Xem tất cả sự kiện của tất cả hosts
+- Duyệt sự kiện (approve/reject)
+- Hủy sự kiện vi phạm chính sách
+- Xem báo cáo tổng quan sự kiện
+
+3. QUẢN LÝ GIAO DỊCH
+- Xem tất cả Wallet Transactions: Nạp, Rút, Thanh toán, Hoàn tiền
+- Tổng hợp doanh thu theo ngày/tuần/tháng
+- Theo dõi đơn hàng: Pending, Paid, Failed, Cancelled, Refunded
+- Xử lý giao dịch bất thường
+
+4. QUẢN LÝ VOUCHER
+- Tạo voucher mới với discount percentage
+- Thiết lập ValidFrom, ValidTo
+- Kích hoạt/Hủy voucher
+- Xem lịch sử sử dụng voucher
+
+5. BÁO CÁO TỔNG QUAN
+- Dashboard: Tổng quan hệ thống
+  - Số lượng users
+  - Số lượng events
+  - Doanh thu tổng
+  - Số giao dịch
+  - Số vé đã bán
+- Thống kê xu hướng: Biểu đồ theo thời gian
+- Top Events: Sự kiện bán chạy nhất
+- Top Hosts: Host tổ chức nhiều event nhất
+
+================================================================================
+
+HỆ THỐNG THANH TOÁN
+
+1. CÁC LOẠI GIAO DỊCH WALLET
+- Deposit: Khách nạp tiền vào ví
+- Withdraw: Khách rút tiền về tài khoản
+- Payment: Thanh toán mua vé
+- Refund: Hoàn tiền từ hủy/hủy event
+- Transfer_In: Nhận tiền từ nguồn khác
+- Transfer_Out: Chuyển tiền ra ngoài
+
+2. TRẠNG THÁI GIAO DỊCH
+- Pending: Đang chờ xử lý
+- Completed: Hoàn thành
+- Failed: Thất bại
+- Cancelled: Đã hủy
+
+3. LOGIC THANH TOÁN
+Tổng tiền = (Price × Quantity) - DiscountAmount
+
+Nếu thanh toán bằng Wallet:
+  Nếu WalletBalance >= Tổng tiền:
+    - Trừ tiền vào WalletBalance
+    - Tạo WalletTransaction (Payment, Completed)
+    - Order Status = "Paid"
+    - Tạo Ticket (Available → Assigned)
+  Ngược lại:
+    - Return "Số dư không đủ"
+    - Order Status = "Failed"
+
+Nếu thanh toán bằng phương thức khác:
+  - Order Status = "Pending"
+  - Chờ xác nhận thanh toán
+  - Sau khi xác nhận → Order Status = "Paid"
+
+================================================================================
+
+MÔ HÌNH DỮ LIỆU CHÍNH
+
+User (Người dùng)
+- UserId, Username, FullName, Email, PasswordHash
+- Role: Customer, Host, Admin
+- WalletBalance: Số dư ví
+- Phone, Avatar, DateOfBirth, Gender
+
+Event (Sự kiện)
+- EventId, HostId, Title, Description
+- StartTime, EndTime, Location, EventType
+- EventMode: Online/Offline
+- Status: Draft, Open, Closed, Cancelled
+- Category: Business, Entertainment, Education, Sports, etc.
+- EventDetails (JSON): venue, images, introduction, specialGuests
+- TermsAndConditions (JSON)
+- OrganizerInfo (JSON)
+- VenueLayout (JSON): Virtual Stage 2D layout data
+
+TicketType (Loại vé)
+- TicketTypeId, EventId, TypeName, Price
+- Quantity: Số lượng vé tổng
+- MinOrder, MaxOrder: Giới hạn mua
+- SaleStart, SaleEnd: Thời gian bán vé
+- Status: Active, Inactive
+
+Ticket (Vé)
+- TicketId, TicketTypeId, OrderItemId
+- SerialNumber: Mã số duy nhất
+- Status: Available, Assigned, Used, Refunded
+- IssuedAt, UsedAt, RefundedAt
+
+Order (Đơn hàng)
+- OrderId, CustomerId, Amount
+- Status: Pending, Paid, Failed, Cancelled, Refunded
+- PaymentMethod: Wallet, CreditCard, BankTransfer
+- CreatedAt, UpdatedAt
+
+OrderItem (Chi tiết đơn hàng)
+- OrderItemId, OrderId, TicketTypeId
+- Quantity, Price, TotalPrice
+
+WalletTransaction (Giao dịch ví)
+- TransactionId, UserId, Amount, TransactionType
+- Status: Pending, Completed, Failed, Cancelled
+- Description, ReferenceId (OrderId)
+- BalanceBefore, BalanceAfter
+- CreatedAt, CompletedAt
+
+Voucher (Mã giảm giá)
+- VoucherId, VoucherCode, DiscountPercentage
+- ValidFrom, ValidTo
+- IsActive
+
+Wishlist (Danh sách yêu thích)
+- Id, UserId, TicketTypeId
+- Quantity
+
+================================================================================
+
+LUỒNG HOẠT ĐỘNG CHÍNH
+
+LUỒNG 1: Khách mua vé
+1. Customer xem danh sách sự kiện
+2. Chọn sự kiện → Xem chi tiết
+3. Chọn loại vé (TicketType) và số lượng
+4. Thêm vào Order (chưa thanh toán)
+5. Nhập voucher code (nếu có) → Tính discount
+6. Chọn phương thức thanh toán
+7. Thanh toán:
+   - Wallet: Trừ tiền, tạo Ticket ngay
+   - Khác: Pending, chờ xác nhận
+8. Nhận vé (SerialNumber)
+9. Tham dự sự kiện → Check-in → Ticket status = Used
+
+LUỒNG 2: Host tạo sự kiện
+1. Host đăng nhập
+2. Tạo Event mới:
+   - Nhập thông tin cơ bản
+   - Thiết lập EventDetails, Terms, OrganizerInfo
+   - Thiết kế Virtual Stage 2D (nếu cần)
+3. Tạo TicketType:
+   - Đặt tên, giá, số lượng
+   - Thiết lập thời gian bán
+   - Link với StageArea (nếu có)
+4. Publish event → Status = "Open"
+5. Khách có thể mua vé
+6. Host xem báo cáo: Doanh thu, số vé bán được
+7. Sự kiện kết thúc → Status = "Closed"
+
+LUỒNG 3: Quản lý ví
+1. Customer nạp tiền:
+   - Nhập số tiền
+   - Chọn phương thức nạp
+   - Xác nhận → WalletTransaction (Deposit, Pending)
+   - System xử lý → Status = Completed, cập nhật WalletBalance
+
+2. Customer mua vé:
+   - Chọn ví làm phương thức thanh toán
+   - System kiểm tra WalletBalance >= Amount
+   - Trừ tiền → WalletTransaction (Payment, Completed)
+   - Tạo Ticket
+
+3. Customer rút tiền:
+   - Nhập số tiền cần rút
+   - Chọn ngân hàng
+   - Xác nhận → WalletTransaction (Withdraw, Pending)
+   - System xử lý → Chuyển tiền về tài khoản
+
+4. Customer xem lịch sử:
+   - Xem tất cả WalletTransactions
+   - Filter theo loại, thời gian
+   - Xem chi tiết: Amount, BalanceBefore, BalanceAfter
+
+LUỒNG 4: Hoàn tiền
+Trường hợp 1: Customer hủy đơn
+   - Tạo refund request
+   - System kiểm tra: Order đã Paid chưa? Vé đã Used chưa?
+   - Nếu chưa Used → Hủy order
+   - Hoàn tiền vào Wallet
+   - Tạo WalletTransaction (Refund, Completed)
+   - Ticket status = Refunded
+
+Trường hợp 2: Host hủy event
+   - Host đổi Event Status = "Cancelled"
+   - System tự động:
+     - Hủy tất cả order chưa thanh toán
+     - Hoàn tiền cho order đã Paid nhưng chưa check-in
+     - Thông báo cho tất cả customers
+     - Tạo WalletTransaction (Refund) cho mỗi customer
+
+================================================================================
+
+TÍNH NĂNG ĐẶC BIỆT
+
+1. VIRTUAL STAGE 2D
+- Cho phép host thiết kế layout sân khấu ảo
+- Drag-drop các khu vực (StageArea) trên canvas
+- Mỗi khu vực có:
+  - Hình dạng (hình chữ nhật, đa giác, hình tròn)
+  - Màu sắc tùy chỉnh
+  - Sức chứa (capacity)
+  - Loại vé tương ứng (link với TicketTypeId)
+  - Trạng thái đứng/ngồi (IsStanding)
+  - Tọa độ (coordinates) để render trên canvas
+- Khách hàng có thể xem preview layout trước khi mua vé
+
+2. WALLET TÍCH HỢP
+- Khách không cần nhập thẻ thanh toán mỗi lần mua vé
+- Nạp tiền một lần, sử dụng nhiều lần
+- Rút tiền về tài khoản ngân hàng
+- Lịch sử giao dịch chi tiết
+- Số dư và giao dịch real-time
+
+3. VOUCHER SYSTEM
+- Host/Admin tạo voucher với discount %
+- Khách nhập code để giảm giá
+- Tự động kiểm tra validity (thời gian, active status)
+- Tính toán discount tự động
+
+4. WISHLIST
+- Lưu vé yêu thích để mua sau
+- Cập nhật số lượng trong wishlist
+- Chuyển từ wishlist sang giỏ hàng nhanh
+- Xóa items không còn quan tâm
+
+================================================================================
+
+CÔNG NGHỆ SỬ DỤNG
+
+Backend
+- Framework: ASP.NET Core 8.0
+- Database: SQL Server
+- ORM: Entity Framework Core
+- Authentication: JWT Bearer Token
+- File Storage: Local/FTP
+- Architecture: Clean Architecture (Controllers → Services → Repositories)
+
+Frontend
+- Framework: React
+- Library: React Router, Axios
+- UI: Custom CSS, có thể integrate với Material-UI/Ant Design
+
+================================================================================
+
+LỢI ÍCH
+1. Tiện lợi cho khách: Mua vé online, không cần đến tận nơi
+2. Ví điện tử: Thanh toán nhanh, không cần thẻ mỗi lần
+3. Quản lý dễ dàng: Host quản lý event và doanh thu trên một nền tảng
+4. Virtual Stage 2D: Tăng trải nghiệm cho khách, dễ hình dung sự kiện
+5. Báo cáo chi tiết: Host và Admin có thể theo dõi performance
+
+================================================================================
+
+KẾT LUẬN
+Hệ thống TheGrind5 Event Management là một giải pháp toàn diện cho việc tổ chức và tham gia sự kiện, với tích hợp ví điện tử, voucher, và Virtual Stage 2D, tạo trải nghiệm tốt nhất cho cả khách hàng và người tổ chức.
+

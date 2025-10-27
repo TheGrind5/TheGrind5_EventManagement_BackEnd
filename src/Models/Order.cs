@@ -20,6 +20,11 @@ public partial class Order
 
     public string PaymentMethod { get; set; }
 
+    public string? VoucherCode { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "DiscountAmount must be non-negative")]
+    public decimal DiscountAmount { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }

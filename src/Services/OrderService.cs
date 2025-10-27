@@ -18,17 +18,20 @@ namespace TheGrind5_EventManagement.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderMapper _orderMapper;
         private readonly ITicketService _ticketService;
+        private readonly IVoucherService _voucherService;
         private readonly EventDBContext _context;
 
         public OrderService(
             IOrderRepository orderRepository,
             IOrderMapper orderMapper,
             ITicketService ticketService,
+            IVoucherService voucherService,
             EventDBContext context)
         {
             _orderRepository = orderRepository;
             _orderMapper = orderMapper;
             _ticketService = ticketService;
+            _voucherService = voucherService;
             _context = context;
         }
 
@@ -92,15 +95,39 @@ namespace TheGrind5_EventManagement.Services
                 if (request.Quantity > availableQuantity)
                     throw new ArgumentException($"Not enough tickets available. Available: {availableQuantity}, Requested: {request.Quantity}");
 
-                // Tính toán giá
+                // Tính toán giá (subtotal)
                 var unitPrice = ticketType.Price;
-                var totalAmount = unitPrice * request.Quantity;
+                var subTotalAmount = unitPrice * request.Quantity;
+
+                // Validate và tính discount nếu có voucher
+                var discountAmount = 0m;
+                if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+                {
+                    var voucherRequest = new VoucherValidationRequest
+                    {
+                        VoucherCode = request.VoucherCode,
+                        OriginalAmount = subTotalAmount
+                    };
+                    
+                    var voucherValidation = await _voucherService.ValidateVoucherAsync(voucherRequest);
+                    
+                    if (!voucherValidation.IsValid)
+                        throw new ArgumentException(voucherValidation.Message);
+                    
+                    discountAmount = voucherValidation.DiscountAmount;
+                }
+
+                // Tính tổng cuối cùng = subtotal - discount
+                var totalAmount = subTotalAmount - discountAmount;
+                if (totalAmount < 0) totalAmount = 0;
 
                 // Tạo order từ request
                 var order = _orderMapper.MapFromCreateOrderRequest(request, customerId);
                 
-                // Set giá cho order
+                // Set giá và voucher cho order
                 order.Amount = totalAmount;
+                order.DiscountAmount = discountAmount;
+                order.VoucherCode = request.VoucherCode;
 
                 // 🔒 CRITICAL FIX: Tạo order trong transaction với lock
                 var createdOrder = await _orderRepository.CreateOrderAsync(order);

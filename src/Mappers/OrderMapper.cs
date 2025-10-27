@@ -16,6 +16,8 @@ namespace TheGrind5_EventManagement.Mappers
                     CustomerName = order.Customer?.FullName ?? string.Empty,
                     CustomerEmail = order.Customer?.Email ?? string.Empty,
                     Amount = order.Amount,
+                    VoucherCode = order.VoucherCode,
+                    DiscountAmount = order.DiscountAmount,
                     Status = order.Status,
                     PaymentMethod = order.PaymentMethod ?? string.Empty,
                     CreatedAt = order.CreatedAt,
@@ -38,12 +40,14 @@ namespace TheGrind5_EventManagement.Mappers
                 CustomerName = order.Customer?.FullName ?? string.Empty,
                 CustomerEmail = order.Customer?.Email ?? string.Empty,
                 Amount = order.Amount,
+                VoucherCode = order.VoucherCode,
+                DiscountAmount = order.DiscountAmount,
                 Status = order.Status,
                 PaymentMethod = order.PaymentMethod ?? string.Empty,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
                 OrderItems = order.OrderItems?.Select(MapToOrderItemDto).ToList() ?? new List<OrderItemDTO>(),
-                Payments = new List<PaymentDTO>() // Tạm thời để trống vì chưa cần Payments
+                Payments = new List<PaymentDTO>()
             };
         }
 
@@ -107,6 +111,10 @@ namespace TheGrind5_EventManagement.Mappers
                 var firstOrderItem = order.OrderItems?.FirstOrDefault();
                 var ticketType = firstOrderItem?.TicketType;
 
+                var unitPrice = ticketType?.Price ?? 0;
+                var quantity = firstOrderItem?.Quantity ?? 0;
+                var subtotal = unitPrice * quantity;
+
                 return new CreateOrderResponseDTO
                 {
                     OrderId = order.OrderId,
@@ -114,8 +122,11 @@ namespace TheGrind5_EventManagement.Mappers
                     EventId = firstOrderItem?.TicketType?.EventId ?? 0,
                     EventTitle = ticketType?.Event?.Title ?? string.Empty,
                     TicketTypeName = ticketType?.TypeName ?? string.Empty,
-                    Quantity = firstOrderItem?.Quantity ?? 0,
-                    UnitPrice = ticketType?.Price ?? 0, // Sử dụng giá từ TicketType
+                    Quantity = quantity,
+                    UnitPrice = unitPrice,
+                    SubTotalAmount = subtotal,
+                    VoucherCode = order.VoucherCode,
+                    DiscountAmount = order.DiscountAmount,
                     TotalAmount = order.Amount,
                     Status = order.Status,
                     CreatedAt = order.CreatedAt,

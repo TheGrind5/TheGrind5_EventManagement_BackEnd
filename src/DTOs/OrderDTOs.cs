@@ -16,6 +16,8 @@ namespace TheGrind5_EventManagement.DTOs
         public int Quantity { get; init; }
 
         public string? SeatNo { get; init; }
+
+        public string? VoucherCode { get; init; }
     }
 
     // Response DTO sau khi tạo order thành công
@@ -28,6 +30,9 @@ namespace TheGrind5_EventManagement.DTOs
         public string TicketTypeName { get; init; } = string.Empty;
         public int Quantity { get; init; }
         public decimal UnitPrice { get; init; }
+        public decimal SubTotalAmount { get; init; }
+        public string? VoucherCode { get; init; }
+        public decimal DiscountAmount { get; init; }
         public decimal TotalAmount { get; init; }
         public string Status { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }
@@ -42,6 +47,8 @@ namespace TheGrind5_EventManagement.DTOs
         public string CustomerName { get; init; } = string.Empty;
         public string CustomerEmail { get; init; } = string.Empty;
         public decimal Amount { get; init; }
+        public string? VoucherCode { get; init; }
+        public decimal DiscountAmount { get; init; }
         public string Status { get; init; } = string.Empty;
         public string PaymentMethod { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }
@@ -71,6 +78,8 @@ namespace TheGrind5_EventManagement.DTOs
         public string CustomerName { get; init; } = string.Empty;
         public string CustomerEmail { get; init; } = string.Empty;
         public decimal Amount { get; init; }
+        public string? VoucherCode { get; init; }
+        public decimal DiscountAmount { get; init; }
         public string Status { get; init; } = string.Empty;
         public string PaymentMethod { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }

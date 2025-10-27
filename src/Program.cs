@@ -23,6 +23,7 @@ builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
 builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
+builder.Services.AddGenericServices(); // Thêm Generic Services
 builder.Services.AddCorsPolicy();
 
 // Add background services

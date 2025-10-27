@@ -1,0 +1,321 @@
+HỆ THỐNG QUẢN LÝ SỰ KIỆN THEGRIND5
+Customer-Focused System Description
+
+MỤC ĐÍCH
+Tài liệu mô tả tập trung vào nghiệp vụ cho Customer (Khách hàng) - người mua vé và tham gia sự kiện.
+
+================================================================================
+
+VAI TRÒ CUSTOMER (KHÁCH HÀNG)
+
+- Người mua vé và tham gia sự kiện
+- Quản lý ví điện tử: nạp tiền, rút tiền, thanh toán
+- Xem danh sách sự kiện, chi tiết vé, lịch sử giao dịch
+- Sử dụng voucher giảm giá
+- Thêm/tách/xóa items khỏi wishlist
+
+================================================================================
+
+CHỨC NĂNG CHO KHÁCH HÀNG (CUSTOMER)
+
+1. ĐĂNG KÝ & ĐĂNG NHẬP
+- Đăng ký: Tạo tài khoản với Email, Password, FullName, Phone
+- Đăng nhập: Xác thực bằng Email/Password, nhận JWT token
+- OTP: Xác thực email qua OTP code (tùy chọn)
+
+2. QUẢN LÝ VÍ ĐIỆN TỬ
+- Nạp tiền: Nạp tiền vào ví để mua vé (Deposit)
+- Rút tiền: Rút tiền từ ví về tài khoản ngân hàng (Withdraw)
+- Thanh toán: Sử dụng ví để thanh toán mua vé (Payment)
+- Hoàn tiền: Nhận tiền hoàn từ hủy/hoàn vé (Refund)
+- Xem lịch sử: Xem tất cả giao dịch ví với chi tiết:
+  - Loại giao dịch (Deposit, Withdraw, Payment, Refund, Transfer)
+  - Số tiền
+  - Trạng thái (Pending, Completed, Failed, Cancelled)
+  - Thời gian
+  - Số dư trước/sau
+
+3. MUA VÉ SỰ KIỆN
+Quy trình mua vé:
+1. Duyệt sự kiện: Xem danh sách sự kiện, lọc theo Category, EventMode (Online/Offline)
+2. Chọn loại vé: 
+   - Xem các loại vé (TicketType) của sự kiện
+   - Chọn số lượng vé (có giới hạn MinOrder/MaxOrder)
+   - Xem giá và thông tin chi tiết
+3. Áp dụng giảm giá: Nhập voucher code để giảm giá (%)
+   - Validate voucher: Kiểm tra active, thời gian, validity
+   - Tính discount amount theo %: DiscountAmount = SubTotal × DiscountPercentage
+4. Tạo đơn hàng (Order):
+   - Chọn phương thức thanh toán (Wallet, Credit Card, Bank Transfer)
+   - Hệ thống tính:
+     * SubTotalAmount = Price × Quantity
+     * DiscountAmount = SubTotalAmount × (DiscountPercentage / 100) [nếu có voucher]
+     * TotalAmount = SubTotalAmount - DiscountAmount
+   - Lưu VoucherCode và DiscountAmount vào Order
+   - Tạo Order với status "Pending"
+5. Thanh toán:
+   - Nếu dùng Wallet: Trừ tiền từ ví ngay lập tức
+   - Nếu dùng khác: Order status = "Pending", chờ xác nhận
+6. Nhận vé: 
+   - Tạo Ticket với SerialNumber duy nhất cho mỗi vé
+   - Status: "Available" → "Assigned" khi đã thanh toán
+   - Vé được lưu trong OrderItems
+
+4. QUẢN LÝ VÉ
+- Xem vé đã mua: Xem danh sách vé của mình với trạng thái (Available, Assigned, Used, Refunded)
+- Vé điện tử: Mỗi vé có SerialNumber, có thể hiển thị QR code
+- Sử dụng vé: Khi check-in sự kiện, vé status chuyển từ "Assigned" → "Used"
+- Hoàn/Đổi vé: 
+  - Hủy đơn hàng → Hệ thống hoàn tiền vào ví
+  - Vé status chuyển → "Refunded"
+  - Tiền hoàn = số tiền đã thanh toán
+
+5. WISHLIST
+- Thêm vào Wishlist: Lưu loại vé yêu thích để mua sau
+- Cập nhật số lượng: Thay đổi số lượng trong wishlist
+- Mua từ Wishlist: Chuyển từ wishlist sang giỏ hàng nhanh
+- Xóa khỏi Wishlist: Loại bỏ items không còn quan tâm
+
+6. VOUCHER
+- Nhập code: Nhập voucher code khi mua vé để giảm giá
+- Kiểm tra validity: Hệ thống kiểm tra:
+  - Voucher có active không?
+  - Còn trong thời gian ValidFrom → ValidTo?
+  - Đã đạt minimum order chưa?
+- Áp dụng giảm giá: Tính % giảm giá và cập nhật tổng tiền
+
+7. THÔNG TIN SỰ KIỆN
+- Chi tiết sự kiện: Xem thông tin đầy đủ:
+  - Tên, mô tả, loại sự kiện (EventType)
+  - Thời gian: StartTime, EndTime
+  - Địa điểm: Location (cho offline)
+  - Hình ảnh, introduction, special guests
+  - EventDetails (JSON): venue, images, specialGuests
+  - TermsAndConditions (JSON): điều khoản, VAT
+  - OrganizerInfo (JSON): thông tin người tổ chức
+- Virtual Stage 2D: Xem layout sân khấu ảo với các khu vực (StageArea):
+  - Hình dạng (rectangle, polygon, circle)
+  - Tọa độ, màu sắc
+  - Trạng thái (đứng/ngồi)
+  - Sức chứa (Capacity)
+  - Loại vé tương ứng
+
+================================================================================
+
+HỆ THỐNG THANH TOÁN CHO CUSTOMER
+
+1. CÁC LOẠI GIAO DỊCH WALLET
+- Deposit: Khách nạp tiền vào ví
+- Withdraw: Khách rút tiền về tài khoản
+- Payment: Thanh toán mua vé
+- Refund: Hoàn tiền từ hủy/hủy event
+- Transfer_In: Nhận tiền từ nguồn khác
+- Transfer_Out: Chuyển tiền ra ngoài
+
+2. TRẠNG THÁI GIAO DỊCH
+- Pending: Đang chờ xử lý
+- Completed: Hoàn thành
+- Failed: Thất bại
+- Cancelled: Đã hủy
+
+3. LOGIC THANH TOÁN
+SubTotal = Price × Quantity
+DiscountAmount = SubTotal × (DiscountPercentage / 100) [nếu có voucher]
+TotalAmount = SubTotal - DiscountAmount
+
+Nếu thanh toán bằng Wallet:
+  Nếu WalletBalance >= Tổng tiền:
+    - Trừ tiền vào WalletBalance
+    - Tạo WalletTransaction (Payment, Completed)
+    - Order Status = "Paid"
+    - Tạo Ticket (Available → Assigned)
+  Ngược lại:
+    - Return "Số dư không đủ"
+    - Order Status = "Failed"
+
+Nếu thanh toán bằng phương thức khác:
+  - Order Status = "Pending"
+  - Chờ xác nhận thanh toán
+  - Sau khi xác nhận → Order Status = "Paid"
+
+================================================================================
+
+MÔ HÌNH DỮ LIỆU CHO CUSTOMER
+
+User (Người dùng - Customer)
+- UserId, Username, FullName, Email, PasswordHash
+- Role: Customer
+- WalletBalance: Số dư ví
+- Phone, Avatar, DateOfBirth, Gender
+- CreatedAt, UpdatedAt
+
+Ticket (Vé)
+- TicketId, TicketTypeId, OrderItemId
+- SerialNumber: Mã số duy nhất
+- Status: Available, Assigned, Used, Refunded
+- IssuedAt, UsedAt, RefundedAt
+
+Order (Đơn hàng của Customer)
+- OrderId, CustomerId, Amount (tổng cuối cùng sau discount)
+- VoucherCode: Mã voucher đã áp dụng (nullable)
+- DiscountAmount: Số tiền giảm giá
+- Status: Pending, Paid, Failed, Cancelled, Refunded
+- PaymentMethod: Wallet, CreditCard, BankTransfer
+- CreatedAt, UpdatedAt
+
+OrderItem (Chi tiết đơn hàng)
+- OrderItemId, OrderId, TicketTypeId
+- Quantity, Price, TotalPrice
+
+WalletTransaction (Giao dịch ví của Customer)
+- TransactionId, UserId, Amount, TransactionType
+- Status: Pending, Completed, Failed, Cancelled
+- Description, ReferenceId (OrderId)
+- BalanceBefore, BalanceAfter
+- CreatedAt, CompletedAt
+
+Voucher (Mã giảm giá)
+- VoucherId, VoucherCode, DiscountPercentage
+- ValidFrom, ValidTo
+- IsActive
+
+Wishlist (Danh sách yêu thích)
+- Id, UserId, TicketTypeId
+- Quantity
+
+Event (Sự kiện - Customer xem)
+- EventId, HostId, Title, Description
+- StartTime, EndTime, Location, EventType
+- EventMode: Online/Offline
+- Status: Draft, Open, Closed, Cancelled
+- Category: Business, Entertainment, Education, Sports, etc.
+- EventDetails (JSON): venue, images, introduction, specialGuests
+- TermsAndConditions (JSON)
+- OrganizerInfo (JSON)
+- VenueLayout (JSON): Virtual Stage 2D layout data
+
+TicketType (Loại vé - Customer xem)
+- TicketTypeId, EventId, TypeName, Price
+- Quantity: Số lượng vé tổng
+- MinOrder, MaxOrder: Giới hạn mua
+- SaleStart, SaleEnd: Thời gian bán vé
+- Status: Active, Inactive
+
+================================================================================
+
+LUỒNG HOẠT ĐỘNG CHÍNH CHO CUSTOMER
+
+LUỒNG 1: Khách mua vé
+1. Customer xem danh sách sự kiện
+2. Chọn sự kiện → Xem chi tiết
+3. Chọn loại vé (TicketType) và số lượng
+4. Thêm vào Order (chưa thanh toán)
+5. Nhập voucher code (nếu có) → Tính discount
+6. Chọn phương thức thanh toán
+7. Thanh toán:
+   - Wallet: Trừ tiền, tạo Ticket ngay
+   - Khác: Pending, chờ xác nhận
+8. Nhận vé (SerialNumber)
+9. Tham dự sự kiện → Check-in → Ticket status = Used
+
+LUỒNG 2: Quản lý ví
+1. Customer nạp tiền:
+   - Nhập số tiền
+   - Chọn phương thức nạp
+   - Xác nhận → WalletTransaction (Deposit, Pending)
+   - System xử lý → Status = Completed, cập nhật WalletBalance
+
+2. Customer mua vé:
+   - Chọn ví làm phương thức thanh toán
+   - System kiểm tra WalletBalance >= Amount
+   - Trừ tiền → WalletTransaction (Payment, Completed)
+   - Tạo Ticket
+
+3. Customer rút tiền:
+   - Nhập số tiền cần rút
+   - Chọn ngân hàng
+   - Xác nhận → WalletTransaction (Withdraw, Pending)
+   - System xử lý → Chuyển tiền về tài khoản
+
+4. Customer xem lịch sử:
+   - Xem tất cả WalletTransactions
+   - Filter theo loại, thời gian
+   - Xem chi tiết: Amount, BalanceBefore, BalanceAfter
+
+LUỒNG 3: Hoàn tiền
+Trường hợp 1: Customer hủy đơn
+   - Tạo refund request
+   - System kiểm tra: Order đã Paid chưa? Vé đã Used chưa?
+   - Nếu chưa Used → Hủy order
+   - Hoàn tiền vào Wallet
+   - Tạo WalletTransaction (Refund, Completed)
+   - Ticket status = Refunded
+
+Trường hợp 2: Host hủy event
+   - Host đổi Event Status = "Cancelled"
+   - System tự động hoàn tiền cho Customer:
+     - Hoàn tiền cho order đã Paid nhưng chưa check-in
+     - Thông báo cho Customer
+     - Tạo WalletTransaction (Refund) cho Customer
+
+================================================================================
+
+TÍNH NĂNG ĐẶC BIỆT CHO CUSTOMER
+
+1. VIRTUAL STAGE 2D
+- Customer có thể xem preview layout sân khấu ảo trước khi mua vé
+- Xem các khu vực (StageArea):
+  - Hình dạng (hình chữ nhật, đa giác, hình tròn)
+  - Màu sắc tùy chỉnh
+  - Sức chứa (capacity)
+  - Loại vé tương ứng
+  - Trạng thái đứng/ngồi
+  - Tọa độ để hình dung vị trí
+
+2. WALLET TÍCH HỢP
+- Khách không cần nhập thẻ thanh toán mỗi lần mua vé
+- Nạp tiền một lần, sử dụng nhiều lần
+- Rút tiền về tài khoản ngân hàng
+- Lịch sử giao dịch chi tiết
+- Số dư và giao dịch real-time
+
+3. VOUCHER SYSTEM
+- Khách nhập code để giảm giá
+- Tự động kiểm tra validity (thời gian, active status)
+- Tính toán discount tự động
+
+4. WISHLIST
+- Lưu vé yêu thích để mua sau
+- Cập nhật số lượng trong wishlist
+- Chuyển từ wishlist sang giỏ hàng nhanh
+- Xóa items không còn quan tâm
+
+================================================================================
+
+CÔNG NGHỆ SỬ DỤNG (Customer Perspective)
+
+Backend API
+- Framework: ASP.NET Core 8.0
+- Authentication: JWT Bearer Token
+- API Endpoints cho Customer
+- Real-time updates
+
+Frontend
+- Framework: React
+- Library: React Router, Axios
+- UI: Custom CSS, có thể integrate với Material-UI/Ant Design
+
+================================================================================
+
+LỢI ÍCH CHO CUSTOMER
+1. Tiện lợi: Mua vé online, không cần đến tận nơi
+2. Ví điện tử: Thanh toán nhanh, không cần thẻ mỗi lần
+3. Xem trước: Virtual Stage 2D để hình dung sự kiện
+4. Lưu lại: Wishlist để lưu vé yêu thích
+5. Giảm giá: Voucher system dễ sử dụng
+
+================================================================================
+
+KẾT LUẬN
+Tài liệu này tập trung 100% vào nghiệp vụ và luồng hoạt động của Customer trong hệ thống TheGrind5 Event Management. Tất cả các chức năng, luồng, và mô hình dữ liệu được mô tả từ góc nhìn của khách hàng - người mua vé và tham gia sự kiện.
+

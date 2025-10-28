@@ -88,32 +88,79 @@ namespace TheGrind5_EventManagement.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateEvent(int id, [FromBody] UpdateEventRequest request)
+        public async Task<IActionResult> UpdateEvent(int id, [FromBody] CreateEventStep1Request request)
         {
             try
             {
-                var eventData = new Event
+                Console.WriteLine($"=== UpdateEvent Debug ===");
+                Console.WriteLine($"EventId: {id}");
+                Console.WriteLine($"Title: {request.Title}");
+                Console.WriteLine($"EventMode: {request.EventMode}");
+                
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Kiểm tra quyền sở hữu event
+                var existingEvent = await _eventService.GetEventByIdAsync(id);
+                if (existingEvent == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (existingEvent.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+
+                Console.WriteLine($"Found event: {existingEvent.Title}, HostId: {existingEvent.HostId}");
+
+                // Cập nhật thông tin cơ bản của event
+                existingEvent.Title = request.Title ?? existingEvent.Title;
+                existingEvent.Description = request.Description ?? existingEvent.Description;
+                existingEvent.Category = request.Category ?? existingEvent.Category;
+                existingEvent.EventMode = request.EventMode ?? existingEvent.EventMode;
+                existingEvent.Location = request.Location ?? existingEvent.Location;
+                existingEvent.UpdatedAt = DateTime.UtcNow;
+
+                // Cập nhật EventDetails
+                var eventDetails = new EventDetailsData
                 {
-                    EventId = id,
-                    Title = request.Title,
-                    Description = request.Description,
-                    StartTime = request.StartTime,
-                    EndTime = request.EndTime,
-                    Location = request.Location,
-                    Category = request.Category,
-                    Status = "Open"
+                    VenueName = request.VenueName,
+                    Province = request.Province,
+                    District = request.District,
+                    Ward = request.Ward,
+                    StreetAddress = request.StreetAddress,
+                    EventImage = request.EventImage,
+                    BackgroundImage = request.BackgroundImage
                 };
 
-                var updatedEvent = await _eventService.UpdateEventAsync(id, eventData);
+                existingEvent.SetEventDetails(eventDetails);
+                
+                // Cập nhật OrganizerInfo riêng
+                if (!string.IsNullOrEmpty(request.OrganizerName) || !string.IsNullOrEmpty(request.OrganizerInfo) || !string.IsNullOrEmpty(request.OrganizerLogo))
+                {
+                    var organizerInfo = new OrganizerInfoData
+                    {
+                        OrganizerName = request.OrganizerName,
+                        OrganizerInfo = request.OrganizerInfo,
+                        OrganizerLogo = request.OrganizerLogo
+                    };
+                    
+                    existingEvent.SetOrganizerInfo(organizerInfo);
+                }
+
+                // Cập nhật event vào database
+                var updatedEvent = await _eventService.UpdateEventAsync(id, existingEvent);
                 if (updatedEvent == null)
                 {
                     return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
 
+                Console.WriteLine("Event updated successfully");
+
                 return Ok(new { message = "Cập nhật sự kiện thành công" });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error updating event: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện", error = ex.Message });
             }
         }
@@ -124,6 +171,27 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Kiểm tra quyền sở hữu event
+                var eventData = await _eventService.GetEventByIdAsync(id);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (eventData.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền xóa sự kiện này");
+
+                // Kiểm tra xem event có vé đã được bán thành công chưa (Status = "Paid")
+                var hasTicketsSold = await _eventService.CheckHasPaidTicketsAsync(id);
+                if (hasTicketsSold)
+                {
+                    return BadRequest(new { 
+                        message = "Không thể xóa sự kiện đã có vé được mua thành công. Hãy liên hệ hỗ trợ nếu muốn hủy sự kiện." 
+                    });
+                }
+
                 var result = await _eventService.DeleteEventAsync(id);
                 if (!result)
                 {
@@ -149,7 +217,72 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện của host", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xchảy ra khi lấy danh sách sự kiện của host", error = ex.Message });
+            }
+        }
+
+        [HttpGet("my-events")]
+        [Authorize]
+        public async Task<IActionResult> GetMyEvents()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var events = await _eventService.GetEventsByHostAsync(userId.Value);
+                var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
+                return Ok(eventDtos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện của tôi", error = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}/edit-status")]
+        [Authorize]
+        public async Task<IActionResult> GetEventEditStatus(int id)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var eventData = await _eventService.GetEventByIdAsync(id);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                if (eventData.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền xem sự kiện này");
+
+                // Kiểm tra xem event có ticket đã được bán chưa
+                var hasTicketsSold = await _eventService.CheckHasTicketsSoldAsync(id);
+
+                // Kiểm tra xem còn cách thời gian bắt đầu bao nhiêu giờ
+                var hoursUntilStart = (eventData.StartTime - DateTime.UtcNow).TotalHours;
+                var canEditTimeLocation = hoursUntilStart >= 48;
+                var timeUntilEvent = hoursUntilStart > 0 ? Math.Round(hoursUntilStart, 2) : 0;
+
+                return Ok(new
+                {
+                    eventId = id,
+                    canEdit = !hasTicketsSold,
+                    canEditTimeLocation = canEditTimeLocation,
+                    hasTicketsSold = hasTicketsSold,
+                    hoursUntilStart = timeUntilEvent,
+                    message = hasTicketsSold 
+                        ? "Không thể chỉnh sửa sự kiện đã có vé được bán" 
+                        : !canEditTimeLocation
+                            ? $"Chỉ có thể chỉnh sửa thời gian và địa điểm trước 48 giờ. Còn {Math.Round(hoursUntilStart, 1)} giờ đến sự kiện."
+                            : "Có thể chỉnh sửa sự kiện"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi kiểm tra trạng thái chỉnh sửa", error = ex.Message });
             }
         }
 
@@ -384,19 +517,17 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 // Xóa tất cả ticket types cũ trước khi tạo mới
                 Console.WriteLine("Clearing existing ticket types...");
-                if (existingEvent.TicketTypes != null && existingEvent.TicketTypes.Any())
+                var deleteResult = await _eventService.DeleteTicketTypesForEventAsync(eventId);
+                if (deleteResult)
                 {
-                    Console.WriteLine($"Found {existingEvent.TicketTypes.Count} existing ticket types to remove");
-                    existingEvent.TicketTypes.Clear();
-                    
-                    // Lưu thay đổi để xóa ticket types cũ
-                    Console.WriteLine("Saving changes to remove old ticket types...");
-                    await _eventService.UpdateEventAsync(eventId, existingEvent);
                     Console.WriteLine("Old ticket types removed successfully");
+                    // Reload event to get fresh state without old ticket types
+                    existingEvent = await _eventService.GetEventByIdAsync(eventId);
                 }
                 else
                 {
-                    Console.WriteLine("No existing ticket types found");
+                    Console.WriteLine("Failed to remove old ticket types");
+                    return BadRequest(new { message = "Không thể xóa loại vé cũ" });
                 }
                 
                 // Tạo ticket types mới

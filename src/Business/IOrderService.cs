@@ -11,8 +11,11 @@ namespace TheGrind5_EventManagement.Business
         // Lấy order theo ID
         Task<OrderDTO?> GetOrderByIdAsync(int orderId);
         
-        // Lấy orders của user
+        // Lấy orders của user - original method (backward compatibility)
         Task<List<OrderDTO>> GetUserOrdersAsync(int userId);
+        
+        // Lấy orders của user - paginated
+        Task<PagedResponse<OrderDTO>> GetUserOrdersAsync(int userId, PagedRequest request);
         
         // Lấy order theo ID (trả về Model)
         Task<Order?> GetOrderModelByIdAsync(int orderId);

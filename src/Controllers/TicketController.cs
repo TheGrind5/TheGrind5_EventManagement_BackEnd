@@ -20,7 +20,7 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpGet("my-tickets")]
-        public async Task<IActionResult> GetMyTickets()
+        public async Task<IActionResult> GetMyTickets([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -28,16 +28,31 @@ namespace TheGrind5_EventManagement.Controllers
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
 
-                var tickets = await _ticketService.GetTicketsByUserIdAsync(userId.Value);
-                var ticketDtos = tickets.Select(MapToTicketDto).ToList();
-
-                var response = new TicketListResponseDTO
+                var pagedRequest = new PagedRequest
                 {
-                    Tickets = ticketDtos,
-                    TotalCount = ticketDtos.Count,
-                    AvailableCount = ticketDtos.Count(t => t.Status == "Assigned"),
-                    UsedCount = ticketDtos.Count(t => t.Status == "Used"),
-                    RefundedCount = ticketDtos.Count(t => t.Status == "Refunded")
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                var pagedTickets = await _ticketService.GetTicketsByUserIdAsync(userId.Value, pagedRequest);
+                var ticketDtos = pagedTickets.Data.Select(MapToTicketDto).ToList();
+
+                var response = new
+                {
+                    data = ticketDtos,
+                    totalCount = pagedTickets.TotalCount,
+                    page = pagedTickets.Page,
+                    pageSize = pagedTickets.PageSize,
+                    totalPages = pagedTickets.TotalPages,
+                    hasPreviousPage = pagedTickets.HasPreviousPage,
+                    hasNextPage = pagedTickets.HasNextPage,
+                    // Summary counts across all tickets (not just current page)
+                    summary = new
+                    {
+                        availableCount = ticketDtos.Count(t => t.Status == "Assigned"),
+                        usedCount = ticketDtos.Count(t => t.Status == "Used"),
+                        refundedCount = ticketDtos.Count(t => t.Status == "Refunded")
+                    }
                 };
 
                 return Ok(response);

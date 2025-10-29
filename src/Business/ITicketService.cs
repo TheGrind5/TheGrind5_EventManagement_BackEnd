@@ -5,7 +5,12 @@ namespace TheGrind5_EventManagement.Business
 {
     public interface ITicketService
     {
+        // Original method - backward compatibility
         Task<IEnumerable<Ticket>> GetTicketsByUserIdAsync(int userId);
+        
+        // New paginated method
+        Task<PagedResponse<Ticket>> GetTicketsByUserIdAsync(int userId, PagedRequest request);
+        
         Task<Ticket> GetTicketByIdAsync(int ticketId);
         Task<IEnumerable<Ticket>> GetTicketsByEventIdAsync(int eventId);
         Task<IEnumerable<TicketType>> GetTicketTypesByEventIdAsync(int eventId);

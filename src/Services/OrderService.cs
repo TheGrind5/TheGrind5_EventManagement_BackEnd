@@ -182,6 +182,7 @@ namespace TheGrind5_EventManagement.Services
             }
         }
 
+        // Original method - backward compatibility
         public async Task<List<OrderDTO>> GetUserOrdersAsync(int userId)
         {
             try
@@ -192,6 +193,36 @@ namespace TheGrind5_EventManagement.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error getting user orders: {ex.Message}", ex);
+            }
+        }
+
+        // New paginated method
+        public async Task<PagedResponse<OrderDTO>> GetUserOrdersAsync(int userId, PagedRequest request)
+        {
+            try
+            {
+                var query = _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.TicketType)
+                            .ThenInclude(tt => tt.Event)
+                    .Where(o => o.CustomerId == userId)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .AsQueryable();
+
+                var totalCount = await query.CountAsync();
+                
+                var orders = await query
+                    .Paginate(request)
+                    .ToListAsync();
+
+                var orderDtos = orders.Select(_orderMapper.MapToOrderDto).ToList();
+
+                return new PagedResponse<OrderDTO>(orderDtos, totalCount, request.Page, request.PageSize);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting paginated user orders: {ex.Message}", ex);
             }
         }
 

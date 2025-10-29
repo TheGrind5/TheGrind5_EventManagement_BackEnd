@@ -5,8 +5,12 @@ namespace TheGrind5_EventManagement.Business
 {
     public interface IEventService
     {
-        
+        // Original method - kept for backward compatibility
         Task<List<Event>> GetAllEventsAsync();
+        
+        // New paginated method
+        Task<PagedResponse<Event>> GetAllEventsAsync(PagedRequest request);
+        
         Task<Event?> GetEventByIdAsync(int eventId);
         Task<Event?> CreateEventAsync(Event eventData);
         Task<Event?> UpdateEventAsync(int eventId, Event eventData);

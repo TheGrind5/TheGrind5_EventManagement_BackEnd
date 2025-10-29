@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TheGrind5_EventManagement.Extensions;
 using TheGrind5_EventManagement.Constants;
+using TheGrind5_EventManagement.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,13 @@ builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
 builder.Services.AddGenericServices(); // Thêm Generic Services
 builder.Services.AddCorsPolicy();
+
+// Add Exception Handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// Add Memory Cache
+builder.Services.AddMemoryCache();
 
 // Add background services
 builder.Services.AddHostedService<TheGrind5_EventManagement.Services.OrderCleanupService>();
@@ -49,6 +57,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+// Use Exception Handler (must be early in pipeline)
+app.UseExceptionHandler();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 

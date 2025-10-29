@@ -24,18 +24,31 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEvents()
+        public async Task<IActionResult> GetAllEvents([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                Console.WriteLine("Getting all events...");
-                var events = await _eventService.GetAllEventsAsync();
-                Console.WriteLine($"Found {events.Count} events");
+                Console.WriteLine($"Getting events - Page: {page}, PageSize: {pageSize}");
                 
-                var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
-                Console.WriteLine($"Mapped {eventDtos.Count} event DTOs");
+                var pagedRequest = new PagedRequest
+                {
+                    Page = page,
+                    PageSize = pageSize
+                };
                 
-                return Ok(eventDtos);
+                var pagedEvents = await _eventService.GetAllEventsAsync(pagedRequest);
+                Console.WriteLine($"Found {pagedEvents.TotalCount} total events, returning {pagedEvents.Data.Count} for page {page}");
+                
+                var eventDtos = pagedEvents.Data.Select(e => _eventService.MapToEventDto(e)).ToList();
+                
+                var response = new PagedResponse<object>(
+                    eventDtos,
+                    pagedEvents.TotalCount,
+                    pagedEvents.Page,
+                    pagedEvents.PageSize
+                );
+                
+                return Ok(response);
             }
             catch (Exception ex)
             {

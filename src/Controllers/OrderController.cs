@@ -130,7 +130,7 @@ namespace TheGrind5_EventManagement.Controllers
 
         [HttpGet("my-orders")]
         [Authorize]
-        public async Task<IActionResult> GetMyOrders()
+        public async Task<IActionResult> GetMyOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -138,8 +138,14 @@ namespace TheGrind5_EventManagement.Controllers
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
 
-                var orders = await _orderService.GetUserOrdersAsync(userId.Value);
-                return Ok(new { orders });
+                var pagedRequest = new PagedRequest
+                {
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                var pagedOrders = await _orderService.GetUserOrdersAsync(userId.Value, pagedRequest);
+                return Ok(pagedOrders);
             }
             catch (Exception ex)
             {

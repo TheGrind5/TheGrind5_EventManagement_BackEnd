@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.Business;
+using TheGrind5_EventManagement.DTOs;
 
 namespace TheGrind5_EventManagement.Services
 {
@@ -14,6 +15,7 @@ namespace TheGrind5_EventManagement.Services
             _context = context;
         }
 
+        // Original method - backward compatibility
         public async Task<IEnumerable<Ticket>> GetTicketsByUserIdAsync(int userId)
         {
             return await _context.Tickets
@@ -24,6 +26,27 @@ namespace TheGrind5_EventManagement.Services
                 .Where(t => t.OrderItem.Order.CustomerId == userId)
                 .OrderByDescending(t => t.IssuedAt)
                 .ToListAsync();
+        }
+
+        // New paginated method
+        public async Task<PagedResponse<Ticket>> GetTicketsByUserIdAsync(int userId, PagedRequest request)
+        {
+            var query = _context.Tickets
+                .Include(t => t.TicketType)
+                    .ThenInclude(tt => tt.Event)
+                .Include(t => t.OrderItem)
+                    .ThenInclude(oi => oi.Order)
+                .Where(t => t.OrderItem.Order.CustomerId == userId)
+                .OrderByDescending(t => t.IssuedAt)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var tickets = await query
+                .Paginate(request)
+                .ToListAsync();
+
+            return new PagedResponse<Ticket>(tickets, totalCount, request.Page, request.PageSize);
         }
 
         public async Task<Ticket> GetTicketByIdAsync(int ticketId)

@@ -1,0 +1,127 @@
+---
+alwaysApply: true
+---
+# KISS Rule - Keep It Simple, Stupid
+
+## Nguyên tắc cơ bản:
+- **ƯU TIÊN CHẠY ĐƯỢC** - Code không chạy được = vô nghĩa. Luôn đảm bảo code có thể chạy trước khi tối ưu
+- **Đơn giản hóa mọi thứ** - Nếu code phức tạp, hãy chia nhỏ ra
+- **Một chức năng = một method** - Không làm quá nhiều việc trong một function
+- **Một lớp = một trách nhiệm** - Mỗi class chỉ làm đúng chức năng của nó, không "ôm" quá nhiều việc
+- **Tên biến rõ ràng** - `userName` thay vì `u` hoặc `usr`
+- **Ít dependency** - Chỉ import những gì thực sự cần
+- **Code dễ đọc** - Người khác phải hiểu được ngay lập tức
+
+## Quy tắc viết code:
+1. **CHẠY ĐƯỢC TRƯỚC TIÊN** - Code phải compile và chạy được trước khi làm gì khác
+2. **Không over-engineering** - Giải pháp đơn giản nhất thường là tốt nhất
+3. **Tránh nested quá sâu** - Tối đa 3 levels if/for
+4. **Comment khi cần thiết** - Nhưng code phải tự giải thích
+5. **Refactor thường xuyên** - Nếu thấy lặp lại, tạo function
+6. **Test đơn giản** - Một test = một case
+7. **Phân chia trách nhiệm rõ ràng** - Controller chỉ xử lý HTTP, Service chỉ xử lý business logic, Repository chỉ truy cập data
+
+## Quy tắc "Chạy được":
+- **Test ngay sau khi viết** - Không commit code chưa test
+- **Fix lỗi compile trước** - Không làm gì khác khi có lỗi
+- **Build thành công** - Đảm bảo project build được
+- **Chạy được cơ bản** - Ít nhất phải chạy được với data mẫu
+- **Không bỏ qua warning** - Fix warning trước khi tiếp tục
+
+## Ví dụ:
+
+### ❌ Vi phạm Single Responsibility:
+```csharp
+// Controller "ôm" quá nhiều việc
+public class UserController : ControllerBase {
+    public async Task<IActionResult> CreateUser(UserRequest request) {
+        // Validation logic
+        if (string.IsNullOrEmpty(request.Email)) {
+            return BadRequest("Email required");
+        }
+        
+        // Business logic
+        var hashedPassword = BCrypt.HashPassword(request.Password);
+        
+        // Database logic
+        var user = new User { Email = request.Email, PasswordHash = hashedPassword };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        
+        // Response formatting
+        return Ok(new { userId = user.Id, email = user.Email });
+    }
+}
+```
+
+### ✅ Tuân thủ Single Responsibility:
+```csharp
+// Controller chỉ xử lý HTTP
+public class UserController : ControllerBase {
+    private readonly IUserService _userService;
+    
+    public async Task<IActionResult> CreateUser(UserRequest request) {
+        var result = await _userService.CreateUserAsync(request);
+        return result.Success ? Ok(result.Data) : BadRequest(result.Message);
+    }
+}
+
+// Service chỉ xử lý business logic
+public class UserService : IUserService {
+    private readonly IUserRepository _userRepository;
+    
+    public async Task<ServiceResult<UserDto>> CreateUserAsync(UserRequest request) {
+        if (!IsValidUserRequest(request)) {
+            return ServiceResult<UserDto>.Failure("Invalid user data");
+        }
+        
+        var user = await _userRepository.CreateAsync(request);
+        return ServiceResult<UserDto>.Success(MapToDto(user));
+    }
+}
+
+// Repository chỉ truy cập data
+public class UserRepository : IUserRepository {
+    public async Task<User> CreateAsync(UserRequest request) {
+        var user = new User { Email = request.Email, PasswordHash = HashPassword(request.Password) };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
+    }
+}
+```
+
+### ❌ Phức tạp:
+```csharp
+public async Task<IActionResult> ProcessUserData(UserData data) {
+    if (data != null && data.IsValid && data.UserId > 0) {
+        var result = await _service.Process(data);
+        if (result.Success) {
+            return Ok(result);
+        }
+    }
+    return BadRequest();
+}
+```
+
+### ✅ Đơn giản:
+```csharp
+public async Task<IActionResult> ProcessUserData(UserData data) {
+    if (!IsValidUser(data)) {
+        return BadRequest("Invalid user data");
+    }
+    
+    var result = await _service.Process(data);
+    return result.Success ? Ok(result) : BadRequest("Processing failed");
+}
+
+private bool IsValidUser(UserData data) {
+    return data?.IsValid == true && data.UserId > 0;
+}
+```
+
+## Nhớ: 
+- **Code không chạy được = VÔ NGHĨA** - Ưu tiên chạy được trước mọi thứ khác
+- **Code phức tạp = Bug phức tạp** - Code đơn giản = Dễ sửa, dễ hiểu
+- **Mỗi lớp một việc** - Controller chỉ xử lý HTTP, Service chỉ xử lý business logic, Repository chỉ truy cập data
+- **Chạy được + Đơn giản + Phân chia rõ ràng = Hoàn hảo** - Đây là mục tiêu cuối cùng

@@ -371,8 +371,14 @@ src/appsettings.json
 src/appsettings.*.json
 !src/appsettings.Example.json
 
-# User uploaded files
+# User uploaded files (đã chuyển sang assets/images/ để commit vào git)
+# Giữ wwwroot/uploads/ để ignore các file upload tạm thời
 src/wwwroot/uploads/
+
+# Track sample images in assets/images/ (commit vào git)
+!assets/
+!assets/images/
+!assets/images/**
 
 # Build logs
 *_log.txt

@@ -33,7 +33,7 @@ namespace TheGrind5_EventManagement.Scripts
                 }
 
                 // Lấy tất cả file ảnh trong thư mục
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "events");
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "assets", "images", "events");
                 if (!Directory.Exists(uploadsFolder))
                     return 0;
 
@@ -45,7 +45,7 @@ namespace TheGrind5_EventManagement.Scripts
                 var unusedFiles = new List<string>();
                 foreach (var file in allImageFiles)
                 {
-                    var imageUrl = $"/uploads/events/{file}";
+                    var imageUrl = $"/assets/images/events/{file}";
                     if (!usedImages.Contains(imageUrl))
                     {
                         unusedFiles.Add(file);

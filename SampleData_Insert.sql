@@ -81,7 +81,7 @@ VALUES (
     0.00,
     GETUTCDATE(),
     GETUTCDATE(),
-    NULL, -- Avatar
+    '/assets/images/avatars/user_1.jpg', -- Avatar
     '1985-03-15', -- DateOfBirth
     N'Nam' -- Gender
 );
@@ -98,7 +98,7 @@ VALUES (
     0.00,
     GETUTCDATE(),
     GETUTCDATE(),
-    NULL, -- Avatar
+    '/assets/images/avatars/user_2.jpg', -- Avatar
     '1988-07-22', -- DateOfBirth
     N'Nữ' -- Gender
 );
@@ -115,7 +115,7 @@ VALUES (
     500000.00,
     GETUTCDATE(),
     GETUTCDATE(),
-    NULL, -- Avatar
+    '/assets/images/avatars/user_3.jpg', -- Avatar
     '1992-11-08', -- DateOfBirth
     N'Nam' -- Gender
 );
@@ -132,7 +132,7 @@ VALUES (
     1250000.50,
     GETUTCDATE(),
     GETUTCDATE(),
-    NULL, -- Avatar
+    '/assets/images/avatars/user_4.jpg', -- Avatar
     '1995-04-12', -- DateOfBirth
     N'Nữ' -- Gender
 );
@@ -149,7 +149,7 @@ VALUES (
     999999.99,
     GETUTCDATE(),
     GETUTCDATE(),
-    NULL, -- Avatar
+    '/assets/images/avatars/user_5.jpg', -- Avatar
     '1990-09-25', -- DateOfBirth
     N'Nam' -- Gender
 );
@@ -171,7 +171,7 @@ VALUES (
     'Offline',
     'Technology',
     'Open',
-    N'{"venue": "Trung tâm Hội nghị Quốc gia", "images": ["workshop1.jpg", "workshop2.jpg"], "introduction": "Khóa học lập trình web toàn diện", "specialGuests": ["Nguyễn Văn A - Senior Developer"]}',
+    N'{"venue": "Trung tâm Hội nghị Quốc gia", "images": ["/assets/images/events/workshop1.jpg", "/assets/images/events/workshop2.jpg"], "introduction": "Khóa học lập trình web toàn diện", "specialGuests": ["Nguyễn Văn A - Senior Developer"]}',
     N'{"terms": "Khong hoan tien sau khi dang ky", "childrenTerms": "Trẻ em dưới 16 tuổi cần người giám hộ", "vatTerms": "Đã bao gồm VAT 10%"}',
     N'{"logo": "techworkshop_logo.png", "name": "TechWorkshop Vietnam", "info": "Tổ chức các khóa học công nghệ hàng đầu"}',
     GETUTCDATE(),
@@ -190,7 +190,7 @@ VALUES (
     'Offline',
     'Technology',
     'Open',
-    N'{"venue": "Trung tâm Hội nghị TP.HCM", "images": ["ai1.jpg", "ai2.jpg"], "introduction": "Hội thảo AI hàng đầu Việt Nam", "specialGuests": ["GS. Trần Văn B - AI Expert"]}',
+    N'{"venue": "Trung tâm Hội nghị TP.HCM", "images": ["/assets/images/events/ai1.jpg", "/assets/images/events/ai2.jpg"], "introduction": "Hội thảo AI hàng đầu Việt Nam", "specialGuests": ["GS. Trần Văn B - AI Expert"]}',
     N'{"terms": "Co the hoan tien truoc 7 ngay", "childrenTerms": "Khong phu hop cho tre em", "vatTerms": "Đã bao gồm VAT 10%"}',
     N'{"logo": "aiconference_logo.png", "name": "AI Vietnam Conference", "info": "Tổ chức hội thảo AI chuyên nghiệp"}',
     GETUTCDATE(),
@@ -209,7 +209,7 @@ VALUES (
     'Offline',
     'Business',
     'Open',
-    N'{"venue": "Khách sạn 5 sao Đà Nẵng", "images": ["networking1.jpg", "networking2.jpg"], "introduction": "Sự kiện kết nối startup lớn nhất miền Trung", "specialGuests": ["CEO Startup A", "Nhà đầu tư B"]}',
+    N'{"venue": "Khách sạn 5 sao Đà Nẵng", "images": ["/assets/images/events/networking1.jpg", "/assets/images/events/networking2.jpg"], "introduction": "Sự kiện kết nối startup lớn nhất miền Trung", "specialGuests": ["CEO Startup A", "Nhà đầu tư B"]}',
     N'{"terms": "Mien phi tham du", "childrenTerms": "Khong phu hop cho tre em", "vatTerms": "Khong ap dung VAT"}',
     N'{"logo": "startupnetwork_logo.png", "name": "Startup Network Vietnam", "info": "Tổ chức sự kiện kết nối startup"}',
     GETUTCDATE(),
@@ -229,7 +229,7 @@ VALUES (
     'Offline',
     'Entertainment',
     'Open',
-    N'{"venue": "Nhà hát Lớn Hà Nội", "images": ["concert1.jpg", "concert2.jpg"], "introduction": "Đêm nhạc acoustic đặc sắc", "specialGuests": ["Ca sĩ A", "Ca sĩ B"]}',
+    N'{"venue": "Nhà hát Lớn Hà Nội", "images": ["/assets/images/events/concert1.jpg", "/assets/images/events/concert2.jpg"], "introduction": "Đêm nhạc acoustic đặc sắc", "specialGuests": ["Ca sĩ A", "Ca sĩ B"]}',
     N'{"terms": "Khong hoan tien sau khi mua", "childrenTerms": "Trẻ em dưới 3 tuổi miễn phí", "vatTerms": "Đã bao gồm VAT 10%"}',
     N'{"logo": "acousticconcert_logo.png", "name": "Acoustic Music Vietnam", "info": "Tổ chức các buổi hòa nhạc acoustic"}',
     GETUTCDATE(),
@@ -248,7 +248,7 @@ VALUES (
     'Offline',
     'Art',
     'Open',
-    N'{"venue": "Bảo tàng Mỹ thuật TP.HCM", "images": ["art1.jpg", "art2.jpg"], "introduction": "Triển lãm nghệ thuật đương đại lớn nhất năm", "specialGuests": ["Nghệ sĩ A", "Nghệ sĩ B"]}',
+    N'{"venue": "Bảo tàng Mỹ thuật TP.HCM", "images": ["/assets/images/events/art1.jpg", "/assets/images/events/art2.jpg"], "introduction": "Triển lãm nghệ thuật đương đại lớn nhất năm", "specialGuests": ["Nghệ sĩ A", "Nghệ sĩ B"]}',
     N'{"terms": "Co the hoan tien truoc 1 ngay", "childrenTerms": "Trẻ em dưới 12 tuổi miễn phí", "vatTerms": "Đã bao gồm VAT 10%"}',
     N'{"logo": "artexhibition_logo.png", "name": "Contemporary Art Vietnam", "info": "Tổ chức triển lãm nghệ thuật đương đại"}',
     GETUTCDATE(),
@@ -267,7 +267,7 @@ VALUES (
     'Offline',
     'Lifestyle',
     'Open',
-    N'{"venue": "Trung tâm ẩm thực Hà Nội", "images": ["cooking1.jpg", "cooking2.jpg"], "introduction": "Workshop nau an healthy cho moi gia dinh", "specialGuests": ["Đầu bếp A", "Chuyên gia dinh dưỡng B"]}',
+    N'{"venue": "Trung tâm ẩm thực Hà Nội", "images": ["/assets/images/events/cooking1.jpg", "/assets/images/events/cooking2.jpg"], "introduction": "Workshop nau an healthy cho moi gia dinh", "specialGuests": ["Đầu bếp A", "Chuyên gia dinh dưỡng B"]}',
     N'{"terms": "Co the hoan tien truoc 3 ngay", "childrenTerms": "Trẻ em từ 8 tuổi trở lên", "vatTerms": "Đã bao gồm VAT 10%"}',
     N'{"logo": "healthyfood_logo.png", "name": "Healthy Food Vietnam", "info": "Tổ chức workshop nau an healthy"}',
     GETUTCDATE(),

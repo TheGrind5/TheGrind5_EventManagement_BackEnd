@@ -18,6 +18,7 @@ import { ArrowBack, Save } from '@mui/icons-material';
 import Header from '../components/layout/Header';
 import EventInfoStep from '../components/event-creation/EventInfoStep';
 import DateTimeTicketStep from '../components/event-creation/DateTimeTicketStep';
+import VirtualStageStep from '../components/stage/VirtualStageStep';
 import ProductStep from '../components/event-creation/ProductStep';
 import SettingsStep from '../components/event-creation/SettingsStep';
 import PaymentStep from '../components/event-creation/PaymentStep';
@@ -64,6 +65,16 @@ const CreateEventPage = () => {
     };
   });
 
+  const [virtualStageData, setVirtualStageData] = useState(() => {
+    const saved = localStorage.getItem('createEvent_virtualStage');
+    return saved ? JSON.parse(saved) : {
+      hasVirtualStage: false,
+      canvasWidth: 1000,
+      canvasHeight: 700,
+      areas: []
+    };
+  });
+
   const [step3Data, setStep3Data] = useState(() => {
     const saved = localStorage.getItem('createEvent_step3');
     return saved ? JSON.parse(saved) : {
@@ -105,6 +116,7 @@ const CreateEventPage = () => {
   const steps = [
     'Thông tin cơ bản',
     'Thời gian & Loại vé',
+    'Sân khấu ảo',
     'Sản phẩm phụ kiện',
     'Cài đặt',
     'Thanh toán'
@@ -441,7 +453,35 @@ const CreateEventPage = () => {
         setLoading(false);
       }
     } else if (activeStep === 2) {
-      // Bước 3: Sản phẩm phụ kiện - Lưu vào database
+      // Bước 3: Sân khấu ảo (VirtualStage) - Lưu layout
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Step 3 (Virtual Stage) Data:', virtualStageData);
+        
+        // Chỉ lưu nếu user bật tính năng sân khấu ảo
+        if (virtualStageData.hasVirtualStage && eventId) {
+          console.log('Saving venue layout for eventId:', eventId);
+          
+          const response = await eventsAPI.updateStep3(eventId, {
+            VenueLayout: virtualStageData
+          });
+          
+          console.log('Venue layout saved:', response);
+        } else {
+          console.log('Virtual stage disabled or no eventId, skipping save');
+        }
+        
+        setActiveStep(activeStep + 1);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error saving venue layout:', error);
+        setError(error.message || 'Có lỗi xảy ra khi lưu sân khấu ảo');
+        setLoading(false);
+      }
+    } else if (activeStep === 3) {
+      // Bước 4: Sản phẩm phụ kiện - Lưu vào database
       try {
         setLoading(true);
         setError(null);
@@ -532,47 +572,14 @@ const CreateEventPage = () => {
       } finally {
         setLoading(false);
       }
-    } else if (activeStep === 3) {
-      // Bước 4: Cài đặt sự kiện - Gửi đến backend step3 (EventSettings)
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Debug: Log step4Data trước khi gửi
-        console.log('Step 4 Data Before Send:', step4Data);
-        console.log('Step 4 Data Keys:', Object.keys(step4Data));
-        console.log('Step 4 Data Values:', Object.values(step4Data));
-        
-        // 🔧 FIX: Frontend step4 (Cài đặt sự kiện) = Backend step3 (EventSettings)
-        const step4Request = {
-          EventSettings: JSON.stringify({
-            eventStatus: step4Data.eventStatus || 'Draft',
-            priority: step4Data.priority || 'Normal',
-            maxAttendees: step4Data.maxAttendees || 0,
-            registrationDeadline: step4Data.registrationDeadline || 0,
-            contactEmail: step4Data.contactEmail || '',
-            contactPhone: step4Data.contactPhone || '',
-            internalNotes: step4Data.internalNotes || ''
-          }),
-          AllowRefund: true,
-          RefundDaysBefore: 7,
-          RequireApproval: false
-        };
-        
-        console.log('Step 4 Request Data:', step4Request);
-        console.log('Step 4 Request Data JSON:', JSON.stringify(step4Request, null, 2));
-        
-        // Gửi đến backend step3 (EventSettings)
-        await eventsAPI.updateStep3(eventId, step4Request);
-        
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
-      } catch (err) {
-        setError(err.message || 'Có lỗi xảy ra khi cập nhật cài đặt sự kiện');
-      } finally {
-        setLoading(false);
-      }
     } else if (activeStep === 4) {
-      // Bước 5: Thanh toán
+      // Bước 5: Cài đặt sự kiện - Optional, không cần gọi API
+      // Settings được lưu cục bộ, không gửi lên backend
+      console.log('Step 5 (Settings) Data:', step4Data);
+      console.log('Settings is optional, moving to next step');
+      setActiveStep(activeStep + 1);
+    } else if (activeStep === 5) {
+      // Bước 6: Thanh toán - Hoàn tất và kích hoạt event
       try {
         setLoading(true);
         setError(null);
@@ -759,10 +766,12 @@ const CreateEventPage = () => {
         
         return isValidStep2;
       case 2:
-        return true; // Products are optional
+        return true; // Virtual stage is optional
       case 3:
-        return true; // Settings are optional
+        return true; // Products are optional
       case 4:
+        return true; // Settings are optional
+      case 5:
         // Check if at least one payment method is selected
         const hasPaymentMethods = step5Data.selectedPaymentMethods && 
                                  step5Data.selectedPaymentMethods.length > 0;
@@ -818,19 +827,27 @@ const CreateEventPage = () => {
         );
       case 2:
         return (
+          <VirtualStageStep
+            data={virtualStageData}
+            onChange={setVirtualStageData}
+            ticketTypes={step2Data.ticketTypes}
+          />
+        );
+      case 3:
+        return (
           <ProductStep
             data={step3Data}
             onChange={setStep3Data}
           />
         );
-      case 3:
+      case 4:
         return (
           <SettingsStep
             data={step4Data}
             onChange={setStep4Data}
           />
         );
-      case 4:
+      case 5:
         return (
           <PaymentStep
             data={step5Data}

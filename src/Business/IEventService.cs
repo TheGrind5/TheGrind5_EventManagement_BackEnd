@@ -5,6 +5,7 @@ namespace TheGrind5_EventManagement.Business
 {
     public interface IEventService
     {
+        
         Task<List<Event>> GetAllEventsAsync();
         Task<Event?> GetEventByIdAsync(int eventId);
         Task<Event?> CreateEventAsync(Event eventData);
@@ -18,5 +19,6 @@ namespace TheGrind5_EventManagement.Business
         object MapToEventDetailDto(Event eventData);
         Event MapFromCreateEventRequest(CreateEventRequest request, int userId);
     }
+    
 }
 

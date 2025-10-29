@@ -139,6 +139,13 @@ const CreateEventPage = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      localStorage.setItem('createEvent_virtualStage', JSON.stringify(virtualStageData));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [virtualStageData]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
       localStorage.setItem('createEvent_step3', JSON.stringify(step3Data));
     }, 500);
     return () => clearTimeout(timer);

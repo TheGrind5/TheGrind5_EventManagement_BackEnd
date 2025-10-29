@@ -40,9 +40,10 @@ const FeedbackSection = ({ eventId }) => {
     try {
       setLoading(true);
       const response = await feedbackAPI.getByEvent(eventId);
-      setFeedbacks(response.data || []);
+      setFeedbacks(response.data?.feedbacks || []);
     } catch (err) {
       console.error('Error fetching feedbacks:', err);
+      setFeedbacks([]);
     } finally {
       setLoading(false);
     }

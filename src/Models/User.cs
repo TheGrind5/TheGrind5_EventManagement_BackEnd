@@ -39,7 +39,7 @@ public partial class User
     public DateTime? DateOfBirth { get; set; }
 
     public string? Gender { get; set; }
-    // Wallet properties
+    
     public decimal WalletBalance { get; set; } = 0;
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();

@@ -12,8 +12,17 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
     [Migration("20251026141635_AddVenueLayoutColumn")]
     partial class AddVenueLayoutColumn
+========
+<<<<<<<< HEAD:src/Migrations/20251016031432_InitialCreate.Designer.cs
+    [Migration("20251016031432_InitialCreate")]
+========
+    [Migration("20251016083948_InitialCreate")]
+>>>>>>>> 6b7d9416e824d02079f3a12b0d85eecaab08df0f:src/Migrations/20251016083948_InitialCreate.Designer.cs
+    partial class InitialCreate
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,6 +54,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
 
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
                     b.Property<string>("EventDetails")
                         .HasColumnType("nvarchar(max)");
 
@@ -54,35 +64,45 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<string>("EventType")
                         .HasColumnType("nvarchar(max)");
 
+========
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
                     b.Property<int>("HostId")
                         .HasColumnType("int");
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
 
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
                     b.Property<string>("OrganizerInfo")
                         .HasColumnType("nvarchar(max)");
 
+========
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
                     b.Property<string>("TermsAndConditions")
                         .HasColumnType("nvarchar(max)");
 
+========
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
                     b.Property<string>("VenueLayout")
                         .HasColumnType("nvarchar(max)");
 
+========
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
                     b.HasKey("EventId");
 
                     b.HasIndex("HostId");
@@ -314,7 +334,11 @@ namespace TheGrind5_EventManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
                     b.Property<string>("Avatar")
+========
+                    b.Property<string>("AvatarUrl")
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -348,11 +372,14 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+<<<<<<<< HEAD:src/Migrations/20251026141635_AddVenueLayoutColumn.Designer.cs
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Username");
 
+========
+>>>>>>>> Minh_NewBranch:src/Migrations/20251016031432_InitialCreate.Designer.cs
                     b.Property<decimal>("WalletBalance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");

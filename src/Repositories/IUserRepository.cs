@@ -14,6 +14,9 @@ namespace TheGrind5_EventManagement.Repositories
         // Wallet methods
         Task<bool> UpdateWalletBalanceAsync(int userId, decimal newBalance);
         Task<decimal> GetWalletBalanceAsync(int userId);
+        
+        // Avatar methods
+        Task<bool> UpdateAvatarAsync(int userId, string avatarUrl);
     }
 }
 

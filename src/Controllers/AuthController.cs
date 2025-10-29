@@ -5,6 +5,7 @@ using TheGrind5_EventManagement.Repositories;
 using TheGrind5_EventManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IO;
 
 namespace TheGrind5_EventManagement.Controllers
 {

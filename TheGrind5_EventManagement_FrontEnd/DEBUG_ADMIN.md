@@ -61,7 +61,7 @@ Trong Console, anh sẽ thấy:
 
 **Fix:**
 ```bash
-cd C:\Users\Lenovo\OneDrive\Desktop\TheGrind5\TheGrind5_EventManagement_BackEnd\src
+cd TheGrind5_EventManagement_BackEnd\src
 dotnet run
 ```
 

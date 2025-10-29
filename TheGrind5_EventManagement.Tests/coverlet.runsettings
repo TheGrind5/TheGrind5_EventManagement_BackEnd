@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Format>json</Format>
+          <SkipAutoProps>true</SkipAutoProps>
+          <UseSourceLink>true</UseSourceLink>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          <SingleHit>false</SingleHit>
+          <Threshold>80</Threshold>
+          <ThresholdType>line</ThresholdType>
+          <ThresholdStat>total</ThresholdStat>
+          <Include>[*]*OrderController*</Include>
+          <Include>[*]*OrderService*</Include>
+          <Include>[*]*TicketService*</Include>
+          <Include>[*]*OrderRepository*</Include>
+          <Include>[*]*WalletService*</Include>
+          <Exclude>[*]*Test*</Exclude>
+          <Exclude>[*]*Migrations*</Exclude>
+          <Exclude>[*]*Program*</Exclude>
+          <Exclude>[*]*Startup*</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

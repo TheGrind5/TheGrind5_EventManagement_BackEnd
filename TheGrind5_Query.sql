@@ -68,6 +68,8 @@ CREATE TABLE [Order](
     Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
     Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Paid','Failed','Cancelled','Refunded')),
     PaymentMethod VARCHAR(50),
+    VoucherCode NVARCHAR(50),
+    DiscountAmount DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (DiscountAmount >= 0),
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0),
     CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerId) REFERENCES [User](UserId) ON DELETE CASCADE

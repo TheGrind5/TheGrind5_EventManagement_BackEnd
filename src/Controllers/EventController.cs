@@ -880,6 +880,98 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        // Venue Layout (Virtual Stage 2D) Endpoints
+        
+        [HttpGet("{eventId}/venue-layout")]
+        public async Task<IActionResult> GetVenueLayout(int eventId)
+        {
+            try
+            {
+                var eventData = await _eventService.GetEventByIdAsync(eventId);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                var venueLayout = eventData.GetVenueLayout();
+                return Ok(venueLayout);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy layout sân khấu", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{eventId}/venue-layout")]
+        [Authorize]
+        public async Task<IActionResult> SaveVenueLayout(int eventId, [FromBody] VenueLayoutData layoutData)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var eventData = await _eventService.GetEventByIdAsync(eventId);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                // Check ownership
+                if (eventData.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+
+                // Validate layout data
+                if (layoutData.CanvasWidth <= 0 || layoutData.CanvasWidth > 5000)
+                    return BadRequest(new { message = "Chiều rộng canvas phải từ 1 đến 5000px" });
+
+                if (layoutData.CanvasHeight <= 0 || layoutData.CanvasHeight > 5000)
+                    return BadRequest(new { message = "Chiều cao canvas phải từ 1 đến 5000px" });
+
+                if (layoutData.Areas != null && layoutData.Areas.Count > 100)
+                    return BadRequest(new { message = "Không thể có quá 100 khu vực" });
+
+                // Save layout
+                eventData.SetVenueLayout(layoutData);
+                eventData.UpdatedAt = DateTime.UtcNow;
+                await _eventService.UpdateEventAsync(eventId, eventData);
+
+                return Ok(new { message = "Lưu layout sân khấu thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lưu layout sân khấu", error = ex.Message });
+            }
+        }
+
+        [HttpDelete("{eventId}/venue-layout")]
+        [Authorize]
+        public async Task<IActionResult> DeleteVenueLayout(int eventId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                var eventData = await _eventService.GetEventByIdAsync(eventId);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                // Check ownership
+                if (eventData.HostId != userId.Value)
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
+
+                // Delete layout by setting empty layout
+                eventData.SetVenueLayout(new VenueLayoutData());
+                eventData.UpdatedAt = DateTime.UtcNow;
+                await _eventService.UpdateEventAsync(eventId, eventData);
+
+                return Ok(new { message = "Xóa layout sân khấu thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi xóa layout sân khấu", error = ex.Message });
+            }
+        }
+
         private int? GetUserIdFromToken()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

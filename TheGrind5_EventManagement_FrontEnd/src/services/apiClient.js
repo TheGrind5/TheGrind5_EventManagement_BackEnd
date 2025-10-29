@@ -219,6 +219,19 @@ export const eventsAPI = {
   updateStep5: async (eventId, eventData) => {
     return api.put(`/Event/${eventId}/create/step5`, eventData);
   },
+  
+  // Venue Layout (Virtual Stage 2D)
+  getVenueLayout: async (eventId) => {
+    return api.get(`/Event/${eventId}/venue-layout`);
+  },
+  
+  saveVenueLayout: async (eventId, layoutData) => {
+    return api.post(`/Event/${eventId}/venue-layout`, layoutData);
+  },
+  
+  deleteVenueLayout: async (eventId) => {
+    return api.delete(`/Event/${eventId}/venue-layout`);
+  },
 
   // Product API methods
   createProduct: async (productData) => {

@@ -460,33 +460,13 @@ const CreateEventPage = () => {
         setLoading(false);
       }
     } else if (activeStep === 2) {
-      // Bước 3: Sân khấu ảo (VirtualStage) - Lưu layout
-      try {
-        setLoading(true);
-        setError(null);
-        
-        console.log('Step 3 (Virtual Stage) Data:', virtualStageData);
-        
-        // Chỉ lưu nếu user bật tính năng sân khấu ảo
-        if (virtualStageData.hasVirtualStage && eventId) {
-          console.log('Saving venue layout for eventId:', eventId);
-          
-          const response = await eventsAPI.updateStep3(eventId, {
-            VenueLayout: virtualStageData
-          });
-          
-          console.log('Venue layout saved:', response);
-        } else {
-          console.log('Virtual stage disabled or no eventId, skipping save');
-        }
-        
-        setActiveStep(activeStep + 1);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error saving venue layout:', error);
-        setError(error.message || 'Có lỗi xảy ra khi lưu sân khấu ảo');
-        setLoading(false);
-      }
+      // Bước 3: Sân khấu ảo (VirtualStage) - Optional, skip API call
+      console.log('Step 3 (Virtual Stage) Data:', virtualStageData);
+      console.log('Virtual stage is optional, skipping to next step');
+      
+      // TODO: Implement full virtual stage feature with API integration
+      // For now, just save to localStorage and move to next step
+      setActiveStep(activeStep + 1);
     } else if (activeStep === 3) {
       // Bước 4: Sản phẩm phụ kiện - Lưu vào database
       try {

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TheGrind5_EventManagement")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+35761384944026f94df3e01b6327736fb6d6e6ff")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f29ebcbd918dcfd4e00f8cff05428b5058047bf5")]
 [assembly: System.Reflection.AssemblyProductAttribute("TheGrind5_EventManagement")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TheGrind5_EventManagement")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

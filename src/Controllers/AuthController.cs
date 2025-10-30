@@ -46,6 +46,11 @@ namespace TheGrind5_EventManagement.Controllers
                 _logger.LogInformation("Successful login for user: {Email}", request.Email);
                 return Ok(CreateLoginResponse(result));
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Banned user login attempt for email: {Email}", request.Email);
+                return StatusCode(403, new { message = ex.Message, isBanned = true });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login for email: {Email}", request.Email);
@@ -312,7 +317,10 @@ namespace TheGrind5_EventManagement.Controllers
                     dateOfBirth = user.DateOfBirth,
                     gender = user.Gender,
                     createdAt = user.CreatedAt,
-                    updatedAt = user.UpdatedAt
+                    updatedAt = user.UpdatedAt,
+                    isBanned = user.IsBanned,
+                    bannedAt = user.BannedAt,
+                    banReason = user.BanReason
                 }).ToList();
 
                 return Ok(new { 
@@ -515,5 +523,105 @@ namespace TheGrind5_EventManagement.Controllers
                 user.Gender
             );
         }
+
+        // Ban/Unban User Endpoints
+        [HttpPost("users/{userId}/ban")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BanUser(int userId, [FromBody] BanUserRequest request)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                if (user.Role == "Admin")
+                {
+                    return BadRequest(new { message = "Không thể ban tài khoản Admin" });
+                }
+
+                if (user.IsBanned)
+                {
+                    return BadRequest(new { message = "Tài khoản đã bị cấm trước đó" });
+                }
+
+                user.IsBanned = true;
+                user.BannedAt = DateTime.UtcNow;
+                user.BanReason = request.Reason ?? "Vi phạm chính sách";
+
+                await _userRepository.UpdateUserAsync(user);
+
+                _logger.LogInformation("User {UserId} has been banned by admin. Reason: {Reason}", userId, user.BanReason);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã cấm tài khoản thành công",
+                    data = new
+                    {
+                        userId = user.UserId,
+                        isBanned = user.IsBanned,
+                        bannedAt = user.BannedAt,
+                        banReason = user.BanReason
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error banning user {UserId}", userId);
+                return StatusCode(500, new { message = "Có lỗi xảy ra khi cấm tài khoản" });
+            }
+        }
+
+        [HttpPost("users/{userId}/unban")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UnbanUser(int userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                if (!user.IsBanned)
+                {
+                    return BadRequest(new { message = "Tài khoản không bị cấm" });
+                }
+
+                user.IsBanned = false;
+                user.BannedAt = null;
+                user.BanReason = null;
+
+                await _userRepository.UpdateUserAsync(user);
+
+                _logger.LogInformation("User {UserId} has been unbanned by admin", userId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã mở cấm tài khoản thành công",
+                    data = new
+                    {
+                        userId = user.UserId,
+                        isBanned = user.IsBanned
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unbanning user {UserId}", userId);
+                return StatusCode(500, new { message = "Có lỗi xảy ra khi mở cấm tài khoản" });
+            }
+        }
+    }
+
+    // DTO for ban request
+    public class BanUserRequest
+    {
+        public string? Reason { get; set; }
     }
 }

@@ -30,7 +30,7 @@ TheGrind5_EventManagement_BackEnd/
 │   └── TheGrind5_EventManagement.csproj
 ├── 📄 run.bat                     # Development startup script
 ├── 📄 README.md                   # This file
-├── 📄 SampleData_Insert.sql       # Sample data for database
+├── 📄 ExtendedSampleData_Insert.sql  # Sample data for database (includes admin account)
 └── 📄 TheGrind5_Query.sql         # Database queries
 ```
 

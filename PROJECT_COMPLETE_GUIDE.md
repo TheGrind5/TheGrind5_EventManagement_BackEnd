@@ -476,7 +476,7 @@ git commit -m "feat: Chuyển ảnh sang assets/images/ để commit vào git
 - Tạo thư mục assets/images/ cho ảnh mẫu
 - Cập nhật .gitignore để track assets/images/
 - Cập nhật FileManagementService, AuthController, Program.cs
-- Cập nhật SampleData_Insert.sql với đường dẫn mới
+- Cập nhật ExtendedSampleData_Insert.sql với đường dẫn mới
 - Ảnh giờ được commit vào git, clone về là có sẵn"
 
 # 4. Push lên GitHub

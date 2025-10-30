@@ -28,7 +28,10 @@ CREATE TABLE [User](
     -- User Profile Fields (Added for profile management)
     Avatar NVARCHAR(MAX),           -- Profile avatar image path
     DateOfBirth DATETIME2,          -- User's date of birth
-    Gender NVARCHAR(MAX)             -- User's gender
+    Gender NVARCHAR(MAX),            -- User's gender
+    BanReason NVARCHAR(255) NULL,   -- Lý do bị cấm (mới)
+    BannedAt DATETIME2 NULL,        -- Thời gian bị cấm (mới)
+    IsBanned BIT NOT NULL DEFAULT 0 -- Trạng thái banned (mới)
 );
 
 CREATE TABLE Event(

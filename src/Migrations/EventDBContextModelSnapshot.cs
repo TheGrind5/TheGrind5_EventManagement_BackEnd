@@ -105,6 +105,9 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
 
@@ -113,6 +116,9 @@ namespace TheGrind5_EventManagement.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("VoucherCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("OrderId");
 

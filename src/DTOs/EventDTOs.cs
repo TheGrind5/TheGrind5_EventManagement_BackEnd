@@ -64,6 +64,46 @@ namespace TheGrind5_EventManagement.DTOs
         string TaxInfo
     );
 
+    // DTO để tạo event hoàn chỉnh với tất cả 5 bước cùng lúc
+    public record CreateCompleteEventRequest(
+        // Step 1
+        string Title,
+        string? Description,
+        string? EventMode,
+        string? Location,
+        string? VenueName,
+        string? Province,
+        string? District,
+        string? Ward,
+        string? StreetAddress,
+        string? EventType,
+        string? Category,
+        string? EventImage,
+        string? BackgroundImage,
+        string? EventIntroduction,
+        string? EventDetails,
+        string? SpecialGuests,
+        string? SpecialExperience,
+        string? TermsAndConditions,
+        string? ChildrenTerms,
+        string? VATTerms,
+        string? OrganizerLogo,
+        string? OrganizerName,
+        string? OrganizerInfo,
+        // Step 2
+        DateTime StartTime,
+        DateTime EndTime,
+        List<CreateTicketTypeRequest> TicketTypes,
+        // Step 3
+        VenueLayoutData? VenueLayout,
+        // Step 4 - Settings (optional)
+        string? EventSettings,
+        // Step 5
+        string PaymentMethod,
+        string BankAccount,
+        string TaxInfo
+    );
+
     public record CreateTicketTypeRequest(
         string TypeName,
         decimal Price,

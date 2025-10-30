@@ -173,7 +173,7 @@ VALUES (
     'Open',
     N'{"venue": "Trung tâm Hội nghị Quốc gia", "images": ["/assets/images/events/workshop1.jpg", "/assets/images/events/workshop2.jpg"], "introduction": "Khóa học lập trình web toàn diện", "specialGuests": ["Nguyễn Văn A - Senior Developer"]}',
     N'{"terms": "Khong hoan tien sau khi dang ky", "childrenTerms": "Trẻ em dưới 16 tuổi cần người giám hộ", "vatTerms": "Đã bao gồm VAT 10%"}',
-    N'{"logo": "techworkshop_logo.png", "name": "TechWorkshop Vietnam", "info": "Tổ chức các khóa học công nghệ hàng đầu"}',
+    N'{"OrganizerLogo": "/assets/images/organizers/techworkshop_logo.png", "OrganizerName": "TechWorkshop Vietnam", "OrganizerInfo": "Tổ chức các khóa học công nghệ hàng đầu"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -192,7 +192,7 @@ VALUES (
     'Open',
     N'{"venue": "Trung tâm Hội nghị TP.HCM", "images": ["/assets/images/events/ai1.jpg", "/assets/images/events/ai2.jpg"], "introduction": "Hội thảo AI hàng đầu Việt Nam", "specialGuests": ["GS. Trần Văn B - AI Expert"]}',
     N'{"terms": "Co the hoan tien truoc 7 ngay", "childrenTerms": "Khong phu hop cho tre em", "vatTerms": "Đã bao gồm VAT 10%"}',
-    N'{"logo": "aiconference_logo.png", "name": "AI Vietnam Conference", "info": "Tổ chức hội thảo AI chuyên nghiệp"}',
+    N'{"OrganizerLogo": "/assets/images/organizers/aiconference_logo.png", "OrganizerName": "AI Vietnam Conference", "OrganizerInfo": "Tổ chức hội thảo AI chuyên nghiệp"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -211,7 +211,7 @@ VALUES (
     'Open',
     N'{"venue": "Khách sạn 5 sao Đà Nẵng", "images": ["/assets/images/events/networking1.jpg", "/assets/images/events/networking2.jpg"], "introduction": "Sự kiện kết nối startup lớn nhất miền Trung", "specialGuests": ["CEO Startup A", "Nhà đầu tư B"]}',
     N'{"terms": "Mien phi tham du", "childrenTerms": "Khong phu hop cho tre em", "vatTerms": "Khong ap dung VAT"}',
-    N'{"logo": "startupnetwork_logo.png", "name": "Startup Network Vietnam", "info": "Tổ chức sự kiện kết nối startup"}',
+    N'{"OrganizerLogo": "/assets/images/organizers/startupnetwork_logo.png", "OrganizerName": "Startup Network Vietnam", "OrganizerInfo": "Tổ chức sự kiện kết nối startup"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -231,7 +231,7 @@ VALUES (
     'Open',
     N'{"venue": "Nhà hát Lớn Hà Nội", "images": ["/assets/images/events/concert1.jpg", "/assets/images/events/concert2.jpg"], "introduction": "Đêm nhạc acoustic đặc sắc", "specialGuests": ["Ca sĩ A", "Ca sĩ B"]}',
     N'{"terms": "Khong hoan tien sau khi mua", "childrenTerms": "Trẻ em dưới 3 tuổi miễn phí", "vatTerms": "Đã bao gồm VAT 10%"}',
-    N'{"logo": "acousticconcert_logo.png", "name": "Acoustic Music Vietnam", "info": "Tổ chức các buổi hòa nhạc acoustic"}',
+    N'{"OrganizerLogo": "/assets/images/organizers/acousticconcert_logo.png", "OrganizerName": "Acoustic Music Vietnam", "OrganizerInfo": "Tổ chức các buổi hòa nhạc acoustic"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -250,7 +250,7 @@ VALUES (
     'Open',
     N'{"venue": "Bảo tàng Mỹ thuật TP.HCM", "images": ["/assets/images/events/art1.jpg", "/assets/images/events/art2.jpg"], "introduction": "Triển lãm nghệ thuật đương đại lớn nhất năm", "specialGuests": ["Nghệ sĩ A", "Nghệ sĩ B"]}',
     N'{"terms": "Co the hoan tien truoc 1 ngay", "childrenTerms": "Trẻ em dưới 12 tuổi miễn phí", "vatTerms": "Đã bao gồm VAT 10%"}',
-    N'{"logo": "artexhibition_logo.png", "name": "Contemporary Art Vietnam", "info": "Tổ chức triển lãm nghệ thuật đương đại"}',
+    N'{"OrganizerLogo": "/assets/images/organizers/artexhibition_logo.png", "OrganizerName": "Contemporary Art Vietnam", "OrganizerInfo": "Tổ chức triển lãm nghệ thuật đương đại"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -269,7 +269,7 @@ VALUES (
     'Open',
     N'{"venue": "Trung tâm ẩm thực Hà Nội", "images": ["/assets/images/events/cooking1.jpg", "/assets/images/events/cooking2.jpg"], "introduction": "Workshop nau an healthy cho moi gia dinh", "specialGuests": ["Đầu bếp A", "Chuyên gia dinh dưỡng B"]}',
     N'{"terms": "Co the hoan tien truoc 3 ngay", "childrenTerms": "Trẻ em từ 8 tuổi trở lên", "vatTerms": "Đã bao gồm VAT 10%"}',
-    N'{"logo": "healthyfood_logo.png", "name": "Healthy Food Vietnam", "info": "Tổ chức workshop nau an healthy"}',
+    N'{"OrganizerLogo": "/assets/images/organizers/healthyfood_logo.png", "OrganizerName": "Healthy Food Vietnam", "OrganizerInfo": "Tổ chức workshop nau an healthy"}',
     GETUTCDATE(),
     GETUTCDATE()
 );
@@ -417,10 +417,10 @@ VALUES (
     'Active'
 );
 
--- Ticket Types cho Event 6: Workshop Nấu Ăn Healthy
+-- Ticket Types cho Event 5: Workshop Nấu Ăn Healthy
 INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
 VALUES (
-    6, -- EventId của Workshop Nấu Ăn Healthy
+    5, -- EventId của Workshop Nấu Ăn Healthy
     N'Vé Thường',
     280000, -- 280k VND
     40, -- 40 vé
@@ -433,7 +433,7 @@ VALUES (
 
 INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
 VALUES (
-    6, -- EventId của Workshop Nấu Ăn Healthy
+    5, -- EventId của Workshop Nấu Ăn Healthy
     N'Vé Cặp Đôi',
     500000, -- 500k VND (giá cho 2 người)
     20, -- 20 cặp (40 người)

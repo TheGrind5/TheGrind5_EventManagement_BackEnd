@@ -228,7 +228,7 @@ namespace TheGrind5_EventManagement.Services
             return serialNumber;
         }
 
-        public async Task<TicketType> GetTicketTypeByIdAsync(int ticketTypeId)
+        public async Task<TicketType?> GetTicketTypeByIdAsync(int ticketTypeId)
         {
             return await _context.TicketTypes
                 .Include(tt => tt.Event)

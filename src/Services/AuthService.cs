@@ -31,6 +31,12 @@ namespace TheGrind5_EventManagement.Services
             if (user == null || !_passwordService.VerifyPassword(password, user.PasswordHash))
                 return null;
 
+            // Check if user is banned
+            if (user.IsBanned)
+            {
+                throw new UnauthorizedAccessException("Tài khoản của bạn đã bị cấm");
+            }
+
             var token = _jwtService.GenerateToken(user);
             var userDto = _userMapper.MapToUserReadDto(user);
             

@@ -39,6 +39,12 @@ public partial class User
     public DateTime? DateOfBirth { get; set; }
 
     public string? Gender { get; set; }
+    
+    // Ban properties
+    public bool IsBanned { get; set; } = false;
+    public DateTime? BannedAt { get; set; }
+    public string? BanReason { get; set; }
+    
     // Wallet properties
     public decimal WalletBalance { get; set; } = 0;
 

@@ -292,6 +292,41 @@ namespace TheGrind5_EventManagement.Controllers
             };
         }
 
+        [HttpGet("users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            try
+            {
+                var users = await _userRepository.GetAllUsersAsync();
+                var userDtos = users.Select(user => new
+                {
+                    userId = user.UserId,
+                    username = user.Username,
+                    fullName = user.FullName,
+                    email = user.Email,
+                    phone = user.Phone,
+                    role = user.Role,
+                    walletBalance = user.WalletBalance,
+                    avatar = user.Avatar,
+                    dateOfBirth = user.DateOfBirth,
+                    gender = user.Gender,
+                    createdAt = user.CreatedAt,
+                    updatedAt = user.UpdatedAt
+                }).ToList();
+
+                return Ok(new { 
+                    success = true,
+                    data = userDtos,
+                    totalCount = userDtos.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách users", error = ex.Message });
+            }
+        }
+
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetUserById(int userId)
         {

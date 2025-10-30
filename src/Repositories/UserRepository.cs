@@ -24,6 +24,13 @@ namespace TheGrind5_EventManagement.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         }
 
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _context.Users
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
+
         public async Task<User> CreateUserAsync(User user)
         {
             _context.Users.Add(user);

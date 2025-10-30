@@ -61,8 +61,7 @@ CoverageReport/
 *.html
 *.htm
 
-# Large SQL files
-*.sql
+
 
 # Test results
 TestResults/
@@ -76,6 +75,4 @@ TestResults/
 # Documentation (optional - uncomment if docs are causing lag)
 # *.md
 
-# Large data files
-ExtendedSampleData_Insert.sql
-SampleData_Insert.sql
+

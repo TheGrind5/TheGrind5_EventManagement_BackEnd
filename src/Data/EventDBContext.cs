@@ -19,6 +19,7 @@ public partial class EventDBContext : DbContext
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
     public DbSet<Wishlist> Wishlists => Set<Wishlist>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
+    public DbSet<Campus> Campuses => Set<Campus>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -36,6 +37,7 @@ public partial class EventDBContext : DbContext
         b.Entity<Payment>().ToTable("Payment");
         b.Entity<Wishlist>().ToTable("Wishlist");
         b.Entity<Voucher>().ToTable("Voucher");
+        b.Entity<Campus>().ToTable("Campus");
         
         // Configure column mappings for User table
         b.Entity<User>(entity =>
@@ -51,6 +53,7 @@ public partial class EventDBContext : DbContext
         ConfigurePaymentRelationships(b);
         ConfigureWalletRelationships(b);
         ConfigureWishlistRelationships(b);
+        ConfigureCampusRelationships(b);
         ConfigureDecimalPrecision(b);
     }
 
@@ -163,6 +166,23 @@ public partial class EventDBContext : DbContext
         b.Entity<Wishlist>()
          .HasIndex(w => new { w.UserId, w.TicketTypeId })
          .IsUnique();
+    }
+
+    private void ConfigureCampusRelationships(ModelBuilder b)
+    {
+        // Event -> Campus : optional
+        b.Entity<Event>()
+         .HasOne(e => e.Campus)
+         .WithMany(c => c.Events)
+         .HasForeignKey(e => e.CampusId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // User -> Campus : optional
+        b.Entity<User>()
+         .HasOne(u => u.Campus)
+         .WithMany(c => c.Users)
+         .HasForeignKey(u => u.CampusId)
+         .OnDelete(DeleteBehavior.Restrict);
     }
 
     private void ConfigureDecimalPrecision(ModelBuilder b)

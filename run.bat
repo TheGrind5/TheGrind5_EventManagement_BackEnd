@@ -1,4 +1,5 @@
 @echo off
+
 echo Starting Backend Server...
 start "Backend" cmd /k "cd /d %~dp0src && dotnet run --urls http://localhost:5000"
 echo.

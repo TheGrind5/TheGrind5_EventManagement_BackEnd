@@ -208,3 +208,40 @@ CREATE INDEX IX_Event_EndTime ON Event(EndTime);
 
 -- Additional indexes for Voucher table
 CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
+
+-- ============================================
+-- Migration Script: Ensure OrganizerInfo column exists
+-- ============================================
+-- Script này đảm bảo cột OrganizerInfo tồn tại trong bảng Event
+-- Nếu database đã có cột này thì không cần chạy lại
+-- ============================================
+
+-- Kiểm tra và thêm cột OrganizerInfo nếu chưa có
+IF NOT EXISTS (
+    SELECT 1 
+    FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = 'Event' 
+    AND COLUMN_NAME = 'OrganizerInfo'
+    AND TABLE_SCHEMA = 'dbo'
+)
+BEGIN
+    ALTER TABLE Event
+    ADD OrganizerInfo NVARCHAR(MAX) NULL;
+    
+    PRINT 'Đã thêm cột OrganizerInfo vào bảng Event';
+END
+ELSE
+BEGIN
+    PRINT 'Cột OrganizerInfo đã tồn tại trong bảng Event';
+END
+GO
+
+-- ============================================
+-- Cấu trúc JSON của OrganizerInfo:
+-- ============================================
+-- {
+--   "OrganizerLogo": "string",      -- Đường dẫn ảnh logo ban tổ chức
+--   "OrganizerName": "string",      -- Tên ban tổ chức
+--   "OrganizerInfo": "string"       -- Thông tin chi tiết về ban tổ chức
+-- }
+-- ============================================

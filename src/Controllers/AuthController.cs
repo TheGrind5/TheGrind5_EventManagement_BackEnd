@@ -210,8 +210,8 @@ namespace TheGrind5_EventManagement.Controllers
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
 
-                // Tạo thư mục uploads nếu chưa tồn tại
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                // Tạo thư mục assets/images/avatars nếu chưa tồn tại
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "assets", "images", "avatars");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
@@ -242,7 +242,7 @@ namespace TheGrind5_EventManagement.Controllers
                 }
 
                 // Cập nhật DB
-                var avatarUrl = $"/uploads/avatars/{fileName}";
+                var avatarUrl = $"/assets/images/avatars/{fileName}";
                 var user = await _userRepository.GetUserByIdAsync(userId.Value);
                 if (user != null)
                 {
@@ -268,7 +268,7 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars", fileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "assets", "images", "avatars", fileName);
                 
                 if (!System.IO.File.Exists(filePath))
                     return NotFound(new { message = "Avatar not found" });

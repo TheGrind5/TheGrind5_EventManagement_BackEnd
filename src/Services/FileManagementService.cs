@@ -16,7 +16,7 @@ namespace TheGrind5_EventManagement.Services
 
     public class FileManagementService : IFileManagementService
     {
-        private readonly string _uploadsFolder;
+        private readonly string _assetsFolder;
         private readonly string _eventsFolder;
         private readonly ILogger<FileManagementService> _logger;
         private readonly EventDBContext _context;
@@ -25,12 +25,15 @@ namespace TheGrind5_EventManagement.Services
         {
             _logger = logger;
             _context = context;
-            _uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-            _eventsFolder = Path.Combine(_uploadsFolder, "events");
+            // Đổi sang assets/images để commit vào git (ngoài folder src)
+            _assetsFolder = Path.Combine(Directory.GetCurrentDirectory(), "..", "assets", "images");
+            _eventsFolder = Path.Combine(_assetsFolder, "events");
             
             // Tạo thư mục nếu chưa có
             if (!Directory.Exists(_eventsFolder))
                 Directory.CreateDirectory(_eventsFolder);
+            
+            _logger.LogInformation($"Events folder path: {_eventsFolder}");
         }
 
         public async Task<string> SaveEventImageAsync(IFormFile file)
@@ -57,7 +60,7 @@ namespace TheGrind5_EventManagement.Services
                     await file.CopyToAsync(stream);
                 }
 
-                var imageUrl = $"/uploads/events/{fileName}";
+                var imageUrl = $"/assets/images/events/{fileName}";
                 _logger.LogInformation($"Event image saved: {imageUrl}");
                 return imageUrl;
             }
@@ -139,7 +142,7 @@ namespace TheGrind5_EventManagement.Services
                 var unusedFiles = new List<string>();
                 foreach (var file in allImageFiles)
                 {
-                    var imageUrl = $"/uploads/events/{file}";
+                    var imageUrl = $"/assets/images/events/{file}";
                     if (!usedImages.Contains(imageUrl))
                     {
                         unusedFiles.Add(file);
@@ -208,8 +211,8 @@ namespace TheGrind5_EventManagement.Services
             if (string.IsNullOrEmpty(imageUrl))
                 return string.Empty;
 
-            // Extract filename from URL like "/uploads/events/filename.jpg"
-            var match = Regex.Match(imageUrl, @"/uploads/events/([^/]+)$");
+            // Extract filename from URL like "/assets/images/events/filename.jpg"
+            var match = Regex.Match(imageUrl, @"/assets/images/events/([^/]+)$");
             return match.Success ? match.Groups[1].Value : string.Empty;
         }
     }

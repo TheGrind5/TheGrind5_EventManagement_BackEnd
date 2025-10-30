@@ -9,6 +9,11 @@ GO
 USE EventDB;
 GO
 
+-- Bật mức tương thích hỗ trợ các hàm JSON (SQL Server 2016+/Compat >= 130)
+-- Bỏ thiết lập compatibility level vì một số môi trường chỉ hỗ trợ 90/100/110
+-- Lưu ý: Các phần xử lý JSON sẽ dùng REPLACE thuần T-SQL thay vì JSON_VALUE/JSON_MODIFY
+GO
+
 CREATE TABLE [User](
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     Username NVARCHAR(100) NOT NULL UNIQUE,
@@ -208,3 +213,49 @@ CREATE INDEX IX_Event_EndTime ON Event(EndTime);
 
 -- Additional indexes for Voucher table
 CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
+
+-- ============================================================
+-- IMAGE NORMALIZATION SUPPORT (assets/images/*)
+-- - Chuẩn hóa đường dẫn ảnh về dạng /assets/images/{events|avatars}/...
+-- ============================================================
+GO
+
+-- Chuẩn hóa dữ liệu ảnh bằng REPLACE thuần (không dùng JSON functions)
+
+-- 1) User Avatars
+UPDATE [User]
+SET Avatar = 
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(ISNULL(Avatar, ''), 'http://localhost:5000', ''),
+        'https://localhost:5001', ''),
+      '/uploads/avatars/', '/assets/images/avatars/'),
+    '/wwwroot/uploads/avatars/', '/assets/images/avatars/')
+WHERE Avatar IS NOT NULL;
+
+-- 2) Event Organizer Logo trong OrganizerInfo JSON (thay thế chuỗi thô)
+UPDATE Event
+SET OrganizerInfo = 
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(ISNULL(OrganizerInfo, ''), 'http://localhost:5000', ''),
+        'https://localhost:5001', ''),
+      '/wwwroot/uploads/avatars/', '/assets/images/avatars/'),
+    '/uploads/avatars/', '/assets/images/avatars/')
+WHERE OrganizerInfo IS NOT NULL;
+
+-- 3) EventDetails JSON: thay thế đường dẫn ảnh thô (EventImage, BackgroundImage, images[])
+UPDATE Event
+SET EventDetails = 
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(
+            REPLACE(ISNULL(EventDetails, ''), 'http://localhost:5000', ''),
+          'https://localhost:5001', ''),
+        '/wwwroot/uploads/events/', '/assets/images/events/'),
+      '/uploads/events/', '/assets/images/events/'),
+    '\\', '/')
+WHERE EventDetails IS NOT NULL;

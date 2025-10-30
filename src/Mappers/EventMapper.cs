@@ -10,6 +10,7 @@ namespace TheGrind5_EventManagement.Mappers
         public object MapToEventDto(Event eventData)
         {
             var eventDetails = eventData.GetEventDetails();
+            var organizerInfo = eventData.GetOrganizerInfo(); // Lấy OrganizerInfo từ JSON
             
             // Construct location from address components if Location field is empty
             var location = eventData.Location;
@@ -39,9 +40,27 @@ namespace TheGrind5_EventManagement.Mappers
                 hostName = eventData.Host?.FullName,
                 hostEmail = eventData.Host?.Email,
                 eventDetails = eventDetails,
-                eventImage = eventDetails?.images?.FirstOrDefault() ?? eventDetails?.EventImage,
-                backgroundImage = eventDetails?.images?.Skip(1).FirstOrDefault() ?? eventDetails?.BackgroundImage,
-                ticketTypes = CreateTicketTypeDtos(eventData.TicketTypes)
+                // QUAN TRỌNG: Ưu tiên EventImage/BackgroundImage trực tiếp từ EventDetails, không fallback nếu empty
+                // Chỉ fallback về images array nếu EventImage/BackgroundImage là null (không phải empty string)
+                eventImage = !string.IsNullOrEmpty(eventDetails?.EventImage) 
+                    ? eventDetails.EventImage 
+                    : (eventDetails?.images != null && eventDetails.images.Length > 0) 
+                        ? eventDetails.images.FirstOrDefault() 
+                        : null,
+                backgroundImage = !string.IsNullOrEmpty(eventDetails?.BackgroundImage) 
+                    ? eventDetails.BackgroundImage 
+                    : (eventDetails?.images != null && eventDetails.images.Length > 1) 
+                        ? eventDetails.images.Skip(1).FirstOrDefault() 
+                        : null,
+                // Trả về organizerInfo để frontend có thể sử dụng
+                organizerInfo = organizerInfo != null ? new { 
+                    organizerName = organizerInfo.OrganizerName ?? "", 
+                    organizerInfo = organizerInfo.OrganizerInfo ?? "", 
+                    organizerLogo = organizerInfo.OrganizerLogo ?? "" 
+                } : new { organizerName = "", organizerInfo = "", organizerLogo = "" },
+                ticketTypes = CreateTicketTypeDtos(eventData.TicketTypes),
+                createdAt = eventData.CreatedAt,
+                updatedAt = eventData.UpdatedAt // QUAN TRỌNG: Trả về UpdatedAt để frontend cache bust
             };
         }
 
@@ -49,6 +68,7 @@ namespace TheGrind5_EventManagement.Mappers
         {
             var eventDetails = eventData.GetEventDetails();
             var venueLayout = eventData.GetVenueLayout();
+            var organizerInfo = eventData.GetOrganizerInfo(); // QUAN TRỌNG: Lấy OrganizerInfo từ JSON
             
             // Construct location from address components if Location field is empty
             var location = eventData.Location;
@@ -78,13 +98,30 @@ namespace TheGrind5_EventManagement.Mappers
                 category = eventData.Category,
                 status = eventData.Status,
                 createdAt = eventData.CreatedAt,
+                updatedAt = eventData.UpdatedAt, // QUAN TRỌNG: Trả về UpdatedAt để frontend cache bust
                 hostId = eventData.HostId,
                 hostName = eventData.Host?.FullName,
                 hostEmail = eventData.Host?.Email,
                 eventDetails = eventDetails,
-                eventImage = eventDetails?.EventImage,
-                backgroundImage = eventDetails?.BackgroundImage,
+                // QUAN TRỌNG: Ưu tiên EventImage/BackgroundImage trực tiếp từ EventDetails, không fallback nếu empty
+                // Chỉ fallback về images array nếu EventImage/BackgroundImage là null (không phải empty string)
+                eventImage = !string.IsNullOrEmpty(eventDetails?.EventImage) 
+                    ? eventDetails.EventImage 
+                    : (eventDetails?.images != null && eventDetails.images.Length > 0) 
+                        ? eventDetails.images.FirstOrDefault() 
+                        : null,
+                backgroundImage = !string.IsNullOrEmpty(eventDetails?.BackgroundImage) 
+                    ? eventDetails.BackgroundImage 
+                    : (eventDetails?.images != null && eventDetails.images.Length > 1) 
+                        ? eventDetails.images.Skip(1).FirstOrDefault() 
+                        : null,
                 venueLayout = venueLayout,
+                // QUAN TRỌNG: Trả về organizerInfo riêng biệt để frontend có thể load khi chỉnh sửa
+                organizerInfo = organizerInfo != null ? new { 
+                    organizerName = organizerInfo.OrganizerName ?? "", 
+                    organizerInfo = organizerInfo.OrganizerInfo ?? "", 
+                    organizerLogo = organizerInfo.OrganizerLogo ?? "" 
+                } : new { organizerName = "", organizerInfo = "", organizerLogo = "" },
                 ticketTypes = CreateTicketTypeDtos(eventData.TicketTypes)
             };
         }

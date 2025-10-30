@@ -1,3 +1,6 @@
 @echo off
+echo Stopping any existing backend processes...
+taskkill /F /IM "TheGrind5_EventManagement.exe" 2>nul
+echo Starting Backend and Frontend...
 start "Backend" cmd /k "cd /d %~dp0src && dotnet run --urls http://localhost:5000"
-start "Frontend" cmd /k "cd /d C:\Users\ASUS\source\repos\TheGrind5_EventManagement_FrontEnd && npm start"
+start "Frontend" cmd /k "cd /d C:\Users\PHOENIX\Desktop\5GrindThe\TheGrind5_EventManagement_FrontEnd && npm start"

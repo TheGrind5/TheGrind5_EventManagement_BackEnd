@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Linq;
 using TheGrind5_EventManagement.Extensions;
 using TheGrind5_EventManagement.Constants;
 using TheGrind5_EventManagement.Middleware;
@@ -72,15 +73,65 @@ if (app.Environment.IsProduction())
 // Enable static files to serve uploaded files (phải đặt trước CORS)
 app.UseStaticFiles();
 
-// Enable static files for assets/images directory (sample images committed to git)
-var assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "assets", "images");
-if (Directory.Exists(assetsPath))
+// Enable static files for assets/images directory (resolve from ContentRootPath to avoid bin/ path issues)
+var contentRoot = builder.Environment.ContentRootPath; // typically .../TheGrind5/src
+var assetsPath = Path.Combine(contentRoot, "..", "assets", "images");
+var absoluteAssetsPath = Path.GetFullPath(assetsPath);
+Console.WriteLine($"[Static Files] ContentRoot: {contentRoot}");
+Console.WriteLine($"[Static Files] Assets Path: {absoluteAssetsPath}");
+Console.WriteLine($"[Static Files] Assets Directory Exists: {Directory.Exists(absoluteAssetsPath)}");
+
+if (Directory.Exists(absoluteAssetsPath))
 {
     app.UseStaticFiles(new StaticFileOptions
     {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(assetsPath),
-        RequestPath = "/assets/images"
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(absoluteAssetsPath),
+        RequestPath = "/assets/images",
+        OnPrepareResponse = ctx =>
+        {
+            // Detect file type by content, not just extension
+            var filePath = ctx.File.PhysicalPath;
+            var isSvg = false;
+            if (!string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
+            {
+                var bytes = System.IO.File.ReadAllBytes(filePath);
+                
+                // Check if it's actually SVG by content
+                if (bytes.Length > 0 && bytes.Length < 100000) // SVG files are usually small
+                {
+                    var header = System.Text.Encoding.ASCII.GetString(bytes.Take(Math.Min(100, bytes.Length)).ToArray());
+                    if (header.TrimStart().StartsWith("<svg", StringComparison.OrdinalIgnoreCase) ||
+                        header.TrimStart().StartsWith("<?xml", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // It's SVG, set correct content type with charset
+                        ctx.Context.Response.ContentType = "image/svg+xml; charset=utf-8";
+                        isSvg = true;
+                        Console.WriteLine($"[Static Files] Detected SVG file: {ctx.File.Name}, setting content-type to image/svg+xml");
+                    }
+                }
+                
+                // For other files, let ASP.NET Core auto-detect from extension
+            }
+            
+            // Set cache headers - more aggressive for SVG to prevent stale cache
+            if (isSvg)
+            {
+                // For SVG files, use no-cache to force browser to always check for updates
+                ctx.Context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+                ctx.Context.Response.Headers.Pragma = "no-cache";
+            }
+            else
+            {
+                // For regular images, allow caching but with revalidation
+                ctx.Context.Response.Headers.CacheControl = "public, max-age=3600, must-revalidate";
+            }
+        }
     });
+    Console.WriteLine($"[Static Files] Configured to serve from: {absoluteAssetsPath} at /assets/images");
+}
+else
+{
+    Console.WriteLine($"[Static Files] WARNING: Assets directory not found at {absoluteAssetsPath}");
 }
 
 app.UseCors(AppConstants.CORS_POLICY_NAME);

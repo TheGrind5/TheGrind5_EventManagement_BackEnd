@@ -68,9 +68,7 @@ TestResults/
 **/TestResults/
 
 # Scripts (PowerShell, BAT - not needed for code understanding)
-*.ps1
-*.bat
-*.sh
+
 
 # Documentation (optional - uncomment if docs are causing lag)
 # *.md

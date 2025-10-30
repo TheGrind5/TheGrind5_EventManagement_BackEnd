@@ -9,6 +9,11 @@ GO
 USE EventDB;
 GO
 
+-- Bật mức tương thích hỗ trợ các hàm JSON (SQL Server 2016+/Compat >= 130)
+-- Bỏ thiết lập compatibility level vì một số môi trường chỉ hỗ trợ 90/100/110
+-- Lưu ý: Các phần xử lý JSON sẽ dùng REPLACE thuần T-SQL thay vì JSON_VALUE/JSON_MODIFY
+GO
+
 CREATE TABLE [User](
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     Username NVARCHAR(100) NOT NULL UNIQUE,
@@ -23,7 +28,10 @@ CREATE TABLE [User](
     -- User Profile Fields (Added for profile management)
     Avatar NVARCHAR(MAX),           -- Profile avatar image path
     DateOfBirth DATETIME2,          -- User's date of birth
-    Gender NVARCHAR(MAX)             -- User's gender
+    Gender NVARCHAR(MAX),            -- User's gender
+    BanReason NVARCHAR(255) NULL,   -- Lý do bị cấm (mới)
+    BannedAt DATETIME2 NULL,        -- Thời gian bị cấm (mới)
+    IsBanned BIT NOT NULL DEFAULT 0 -- Trạng thái banned (mới)
 );
 
 CREATE TABLE Event(
@@ -209,39 +217,48 @@ CREATE INDEX IX_Event_EndTime ON Event(EndTime);
 -- Additional indexes for Voucher table
 CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
 
--- ============================================
--- Migration Script: Ensure OrganizerInfo column exists
--- ============================================
--- Script này đảm bảo cột OrganizerInfo tồn tại trong bảng Event
--- Nếu database đã có cột này thì không cần chạy lại
--- ============================================
-
--- Kiểm tra và thêm cột OrganizerInfo nếu chưa có
-IF NOT EXISTS (
-    SELECT 1 
-    FROM INFORMATION_SCHEMA.COLUMNS 
-    WHERE TABLE_NAME = 'Event' 
-    AND COLUMN_NAME = 'OrganizerInfo'
-    AND TABLE_SCHEMA = 'dbo'
-)
-BEGIN
-    ALTER TABLE Event
-    ADD OrganizerInfo NVARCHAR(MAX) NULL;
-    
-    PRINT 'Đã thêm cột OrganizerInfo vào bảng Event';
-END
-ELSE
-BEGIN
-    PRINT 'Cột OrganizerInfo đã tồn tại trong bảng Event';
-END
+-- ============================================================
+-- IMAGE NORMALIZATION SUPPORT (assets/images/*)
+-- - Chuẩn hóa đường dẫn ảnh về dạng /assets/images/{events|avatars}/...
+-- ============================================================
 GO
 
--- ============================================
--- Cấu trúc JSON của OrganizerInfo:
--- ============================================
--- {
---   "OrganizerLogo": "string",      -- Đường dẫn ảnh logo ban tổ chức
---   "OrganizerName": "string",      -- Tên ban tổ chức
---   "OrganizerInfo": "string"       -- Thông tin chi tiết về ban tổ chức
--- }
--- ============================================
+-- Chuẩn hóa dữ liệu ảnh bằng REPLACE thuần (không dùng JSON functions)
+
+-- 1) User Avatars
+UPDATE [User]
+SET Avatar = 
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(ISNULL(Avatar, ''), 'http://localhost:5000', ''),
+        'https://localhost:5001', ''),
+      '/uploads/avatars/', '/assets/images/avatars/'),
+    '/wwwroot/uploads/avatars/', '/assets/images/avatars/')
+WHERE Avatar IS NOT NULL;
+
+-- 2) Event Organizer Logo trong OrganizerInfo JSON (thay thế chuỗi thô)
+UPDATE Event
+SET OrganizerInfo = 
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(ISNULL(OrganizerInfo, ''), 'http://localhost:5000', ''),
+        'https://localhost:5001', ''),
+      '/wwwroot/uploads/avatars/', '/assets/images/avatars/'),
+    '/uploads/avatars/', '/assets/images/avatars/')
+WHERE OrganizerInfo IS NOT NULL;
+
+-- 3) EventDetails JSON: thay thế đường dẫn ảnh thô (EventImage, BackgroundImage, images[])
+UPDATE Event
+SET EventDetails = 
+    REPLACE(
+      REPLACE(
+        REPLACE(
+          REPLACE(
+            REPLACE(ISNULL(EventDetails, ''), 'http://localhost:5000', ''),
+          'https://localhost:5001', ''),
+        '/wwwroot/uploads/events/', '/assets/images/events/'),
+      '/uploads/events/', '/assets/images/events/'),
+    '\\', '/')
+WHERE EventDetails IS NOT NULL;

@@ -63,6 +63,10 @@ namespace TheGrind5_EventManagement.Extensions
 
             services.AddScoped<ITicketService, TicketService>();
             services.AddScoped<IVoucherService, VoucherService>();
+            services.AddScoped<ISampleDataExportService, SampleDataExportService>();
+            
+            // Admin service
+            services.AddScoped<IAdminService, AdminService>();
 
             
             return services;

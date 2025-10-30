@@ -14,6 +14,11 @@ namespace TheGrind5_EventManagement.Repositories
         // Wallet methods
         Task<bool> UpdateWalletBalanceAsync(int userId, decimal newBalance);
         Task<decimal> GetWalletBalanceAsync(int userId);
+        
+        // Admin methods - với các parameter filter
+        Task<List<User>> GetAllUsersAsync(string? role = null, string? searchTerm = null, string sortBy = "CreatedAt", string sortOrder = "desc", int skip = 0, int take = int.MaxValue);
+        Task<int> GetTotalUsersCountAsync(string? role = null, string? searchTerm = null);
+        Task<Dictionary<string, int>> GetUserStatisticsAsync();
     }
 }
 

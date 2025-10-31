@@ -31,7 +31,8 @@ CREATE TABLE [User](
     Gender NVARCHAR(MAX),            -- User's gender
     BanReason NVARCHAR(255) NULL,   -- Lý do bị cấm (mới)
     BannedAt DATETIME2 NULL,        -- Thời gian bị cấm (mới)
-    IsBanned BIT NOT NULL DEFAULT 0 -- Trạng thái banned (mới)
+    IsBanned BIT NOT NULL DEFAULT 0, -- Trạng thái banned (mới)
+    CampusId INT NULL               -- Foreign key to Campus table (mới)
 );
 
 CREATE TABLE Event(
@@ -53,6 +54,7 @@ CREATE TABLE Event(
     VenueLayout NVARCHAR(MAX) NULL, -- JSON chứa: Virtual Stage 2D layout data (hasVirtualStage, canvasWidth, canvasHeight, areas)
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0) NULL,
+    CampusId INT NULL,              -- Foreign key to Campus table (mới)
     CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId) ON DELETE CASCADE
 );
 
@@ -73,14 +75,17 @@ CREATE TABLE TicketType(
 CREATE TABLE [Order](
     OrderId INT IDENTITY(1,1) PRIMARY KEY,
     CustomerId INT NOT NULL,
+    EventId INT NOT NULL, -- Foreign key to Event table (added for ticket booking flow)
     Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
     Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Paid','Failed','Cancelled','Refunded')),
     PaymentMethod VARCHAR(50),
     VoucherCode NVARCHAR(50),
     DiscountAmount DECIMAL(18,2) NOT NULL DEFAULT 0 CHECK (DiscountAmount >= 0),
+    OrderAnswers NVARCHAR(MAX) NULL, -- JSON string: {questionId: answer} for event questions (added for ticket booking flow)
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0),
-    CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerId) REFERENCES [User](UserId) ON DELETE CASCADE
+    CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    CONSTRAINT FK_Order_Event_EventId FOREIGN KEY (EventId) REFERENCES [Event](EventId) ON DELETE NO ACTION
 );
 
 CREATE TABLE OrderItem(
@@ -142,6 +147,34 @@ CREATE TABLE Voucher(
     UpdatedAt DATETIME2(0)
 );
 
+-- Campus table for FPT campuses
+CREATE TABLE Campus(
+    CampusId INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Code NVARCHAR(50) NULL,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0) NULL
+);
+
+-- EventQuestion table for event-specific questions in ticket booking flow
+CREATE TABLE EventQuestion(
+    QuestionId INT IDENTITY(1,1) PRIMARY KEY,
+    EventId INT NOT NULL,
+    QuestionText NVARCHAR(500) NOT NULL,
+    QuestionType NVARCHAR(MAX) NOT NULL, -- Text, Number, Email, Phone, Date, Radio, Checkbox, Dropdown
+    IsRequired BIT NOT NULL DEFAULT 0,
+    Options NVARCHAR(MAX) NULL, -- JSON string for Radio/Checkbox/Dropdown options
+    Placeholder NVARCHAR(MAX) NULL,
+    ValidationRules NVARCHAR(MAX) NULL, -- JSON string for validation rules
+    DisplayOrder INT NOT NULL DEFAULT 0, -- Order to display questions
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0) NULL,
+    CONSTRAINT FK_EventQuestion_Event_EventId 
+        FOREIGN KEY (EventId) REFERENCES [Event](EventId) ON DELETE CASCADE
+);
+
+GO
+
 -- Wallet functionality for users
 -- WalletBalance: Stores user's wallet balance with precision (18,2)
 -- Default value: 0 (new users start with 0 balance)
@@ -157,10 +190,24 @@ CREATE TABLE Voucher(
 -- Gender: User's gender for demographic analysis and personalization
 -- ============================================
 
+GO
+
+-- Foreign keys for Campus (must be after Campus table is created)
+ALTER TABLE [User]
+ADD CONSTRAINT FK_User_Campus_CampusId FOREIGN KEY (CampusId) REFERENCES Campus(CampusId) ON DELETE NO ACTION;
+
+ALTER TABLE Event
+ADD CONSTRAINT FK_Event_Campus_CampusId FOREIGN KEY (CampusId) REFERENCES Campus(CampusId) ON DELETE NO ACTION;
+
+GO
 
 CREATE INDEX IX_Event_HostId ON Event(HostId);
 CREATE INDEX IX_TicketType_EventId ON TicketType(EventId);
+CREATE INDEX IX_User_CampusId ON [User](CampusId);
+CREATE INDEX IX_Event_CampusId ON Event(CampusId);
 CREATE INDEX IX_Order_CustomerId ON [Order](CustomerId);
+CREATE INDEX IX_Order_EventId ON [Order](EventId);
+CREATE INDEX IX_EventQuestion_EventId ON EventQuestion(EventId);
 CREATE INDEX IX_OrderItem_OrderId ON OrderItem(OrderId);
 CREATE INDEX IX_OrderItem_TicketTypeId ON OrderItem(TicketTypeId);
 CREATE INDEX IX_Ticket_TicketTypeId ON Ticket(TicketTypeId);
@@ -199,12 +246,31 @@ CREATE TABLE OtpCode(
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
 );
 
+-- Notification table for user notifications
+CREATE TABLE [Notification](
+    NotificationId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Content NVARCHAR(MAX) NULL,
+    [Type] NVARCHAR(MAX) NOT NULL,
+    IsRead BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    ReadAt DATETIME2(0) NULL,
+    RelatedEventId INT NULL,
+    RelatedOrderId INT NULL,
+    RelatedTicketId INT NULL,
+    CONSTRAINT FK_Notification_User_UserId FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE
+);
+
 -- Additional indexes for new tables
 CREATE INDEX IX_WalletTransaction_UserId ON WalletTransaction(UserId);
 CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
 CREATE INDEX IX_WalletTransaction_CreatedAt ON WalletTransaction(CreatedAt);
 CREATE INDEX IX_OtpCode_Email ON OtpCode(Email);
 CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
+CREATE INDEX IX_Notification_UserId ON [Notification](UserId);
+CREATE INDEX IX_Notification_IsRead ON [Notification](IsRead);
+CREATE INDEX IX_Notification_CreatedAt ON [Notification](CreatedAt);
 
 -- Indexes for Event table (simplified)
 CREATE INDEX IX_Event_EventMode ON Event(EventMode);

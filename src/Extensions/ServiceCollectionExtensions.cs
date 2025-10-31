@@ -33,6 +33,7 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IEventQuestionRepository, EventQuestionRepository>();
             
             return services;
         }
@@ -64,6 +65,8 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<ITicketService, TicketService>();
             services.AddScoped<IVoucherService, VoucherService>();
             services.AddScoped<ISampleDataExportService, SampleDataExportService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IEventQuestionService, EventQuestionService>();
             
             // Admin service
             services.AddScoped<IAdminService, AdminService>();

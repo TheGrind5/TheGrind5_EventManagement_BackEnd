@@ -153,6 +153,43 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrderRequest request)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "ID order không hợp lệ" });
+
+                var userId = GetUserIdFromToken();
+                if (userId == null)
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+
+                // Kiểm tra quyền sở hữu order
+                var existingOrder = await _orderService.GetOrderByIdAsync(id);
+                if (existingOrder == null)
+                    return NotFound(new { message = "Không tìm thấy order" });
+
+                if (existingOrder.CustomerId != userId.Value)
+                    return Forbid("Bạn chỉ có thể cập nhật order của mình");
+
+                var result = await _orderService.UpdateOrderAsync(id, request);
+                if (!result)
+                    return NotFound(new { message = "Không tìm thấy order để cập nhật" });
+
+                return Ok(new { message = "Cập nhật order thành công" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật order", error = ex.Message });
+            }
+        }
+
         [HttpPut("{id}/status")]
         [Authorize]
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusRequest request)

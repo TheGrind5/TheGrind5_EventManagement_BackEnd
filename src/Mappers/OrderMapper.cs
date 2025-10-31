@@ -13,6 +13,7 @@ namespace TheGrind5_EventManagement.Mappers
                 {
                     OrderId = order.OrderId,
                     CustomerId = order.CustomerId,
+                    EventId = order.EventId,
                     CustomerName = order.Customer?.FullName ?? string.Empty,
                     CustomerEmail = order.Customer?.Email ?? string.Empty,
                     Amount = order.Amount,
@@ -37,6 +38,7 @@ namespace TheGrind5_EventManagement.Mappers
             {
                 OrderId = order.OrderId,
                 CustomerId = order.CustomerId,
+                EventId = order.EventId,
                 CustomerName = order.Customer?.FullName ?? string.Empty,
                 CustomerEmail = order.Customer?.Email ?? string.Empty,
                 Amount = order.Amount,
@@ -56,6 +58,7 @@ namespace TheGrind5_EventManagement.Mappers
             var order = new Order
             {
                 CustomerId = customerId,
+                EventId = request.EventId,
                 Amount = 0, // Sẽ được tính toán trong service
                 Status = "Pending",
                 PaymentMethod = string.Empty,

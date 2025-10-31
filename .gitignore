@@ -69,3 +69,7 @@ _ReSharper*/
 *.trx
 *.coverage
 *.coveragexml
+
+# Configuration files with secrets
+src/appsettings.json
+!src/appsettings.Example.json

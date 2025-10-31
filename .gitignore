@@ -70,8 +70,7 @@ _ReSharper*/
 *.coverage
 *.coveragexml
 
-# Configuration files with secrets
-src/appsettings.json
+# Configuration files with secrets (OAuth credentials only)
 src/secrets.json
-!src/appsettings.Example.json
+src/appsettings.Secrets.json
 !src/secrets.json.example

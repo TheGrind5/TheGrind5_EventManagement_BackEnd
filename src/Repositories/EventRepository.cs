@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.Models;
+using TheGrind5_EventManagement.DTOs;
 
 namespace TheGrind5_EventManagement.Repositories
 {
@@ -21,6 +22,67 @@ namespace TheGrind5_EventManagement.Repositories
                 .Where(e => e.Status == "Open")
                 .OrderBy(e => e.StartTime)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResponse<Event>> SearchEventsAsync(EventSearchRequest request)
+        {
+            var query = _context.Events
+                .Include(e => e.Host)
+                .Include(e => e.TicketTypes)
+                .AsQueryable();
+
+            // Search by term (Title or Description)
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                var searchTerm = request.SearchTerm.Trim().ToLower();
+                query = query.Where(e => 
+                    e.Title.ToLower().Contains(searchTerm) || 
+                    (e.Description != null && e.Description.ToLower().Contains(searchTerm))
+                );
+            }
+
+            // Filter by Category
+            if (!string.IsNullOrWhiteSpace(request.Category))
+            {
+                query = query.Where(e => e.Category == request.Category);
+            }
+
+            // Filter by EventMode (Online/Offline)
+            if (!string.IsNullOrWhiteSpace(request.EventMode))
+            {
+                query = query.Where(e => e.EventMode == request.EventMode);
+            }
+
+            // Filter by Status
+            if (!string.IsNullOrWhiteSpace(request.Status))
+            {
+                query = query.Where(e => e.Status == request.Status);
+            }
+
+            // Filter by StartDate (events starting from this date)
+            if (request.StartDate.HasValue)
+            {
+                query = query.Where(e => e.StartTime >= request.StartDate.Value);
+            }
+
+            // Filter by EndDate (events ending before this date)
+            if (request.EndDate.HasValue)
+            {
+                query = query.Where(e => e.EndTime <= request.EndDate.Value);
+            }
+
+            // Order by StartTime ascending
+            query = query.OrderBy(e => e.StartTime);
+
+            // Get total count before pagination
+            var totalCount = await query.CountAsync();
+
+            // Apply pagination
+            var events = await query
+                .Paginate(request)
+                .ToListAsync();
+
+            return new PagedResponse<Event>(events, totalCount, request.Page, request.PageSize);
         }
 
         public async Task<Event?> GetEventByIdAsync(int eventId)

@@ -11,6 +11,9 @@ namespace TheGrind5_EventManagement.Business
         // New paginated method
         Task<PagedResponse<Event>> GetAllEventsAsync(PagedRequest request);
         
+        // Search and filter method
+        Task<PagedResponse<Event>> SearchEventsAsync(EventSearchRequest request);
+        
         Task<Event?> GetEventByIdAsync(int eventId);
         Task<Event?> CreateEventAsync(Event eventData);
         Task<Event?> UpdateEventAsync(int eventId, Event eventData);

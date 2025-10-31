@@ -59,6 +59,12 @@ public class EventService : IEventService
         return new PagedResponse<Event>(events, totalCount, request.Page, request.PageSize);
     }
 
+    // Search and filter method
+    public async Task<PagedResponse<Event>> SearchEventsAsync(EventSearchRequest request)
+    {
+        return await _eventRepository.SearchEventsAsync(request);
+    }
+
     public async Task<Event?> GetEventByIdAsync(int eventId)
     {
         // Try get from cache first

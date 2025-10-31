@@ -62,20 +62,13 @@ CoverageReport/
 *.htm
 
 # Large SQL files
-*.sql
 
 # Test results
 TestResults/
 **/TestResults/
 
 # Scripts (PowerShell, BAT - not needed for code understanding)
-*.ps1
-*.bat
-*.sh
+
 
 # Documentation (optional - uncomment if docs are causing lag)
 # *.md
-
-# Large data files
-ExtendedSampleData_Insert.sql
-SampleData_Insert.sql

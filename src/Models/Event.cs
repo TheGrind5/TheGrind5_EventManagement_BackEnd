@@ -53,6 +53,12 @@ public partial class Event
 
     public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 
+    public virtual ICollection<EventQuestion> EventQuestions { get; set; } = new List<EventQuestion>();
+
+    public int? CampusId { get; set; }
+
+    public virtual Campus? Campus { get; set; }
+
     // Helper methods for JSON properties
     public EventDetailsData GetEventDetails()
     {
@@ -191,6 +197,7 @@ public class StageArea
     public List<PointData> Coordinates { get; set; } = new List<PointData>();
     public string Color { get; set; } = "#667eea";
     public int? TicketTypeId { get; set; }
+    public LinkedTicketSnapshot? LinkedTicket { get; set; }
     public bool IsStanding { get; set; } = false;
     public int? Capacity { get; set; }
     public string? Label { get; set; }
@@ -200,4 +207,17 @@ public class PointData
 {
     public double X { get; set; }
     public double Y { get; set; }
+}
+
+public class LinkedTicketSnapshot
+{
+    public int TicketTypeId { get; set; }
+    public string TypeName { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
+    public int MinOrder { get; set; }
+    public int MaxOrder { get; set; }
+    public DateTime SaleStart { get; set; }
+    public DateTime SaleEnd { get; set; }
+    public string Status { get; set; } = "Active";
 }

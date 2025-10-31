@@ -1,0 +1,76 @@
+# Ignore .NET build output
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+*.vsp
+*.vspx
+*.vspscc
+*.vssscc
+
+# Rider
+.idea/
+*.sln.iml
+
+# Others
+*.dbmdl
+*.pdb
+*.mdb
+*.cache
+*.log
+*.tlog
+*.vsix
+*.ncrunch*
+
+# DotCover
+*.dotCover
+
+# Publish/Web deploy stuff
+[Aa]pp[Pp]ackages/
+.publish/
+
+# Nuget
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+!**/[Pp]ackages/repositories.config
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Backup & temp
+*~
+*.tmp
+*.bak
+*.old
+
+# SQL database/EF
+*.mdf
+*.ldf
+*.ndf
+
+# Others
+*.dbmdl
+
+# Ignore test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# Configuration files with secrets (OAuth credentials only)
+src/secrets.json
+src/appsettings.Secrets.json
+!src/secrets.json.example

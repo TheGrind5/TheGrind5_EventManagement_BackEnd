@@ -30,7 +30,6 @@ obj/
 *.tlog
 *.vsix
 *.ncrunch*
-*
 
 # DotCover
 *.dotCover

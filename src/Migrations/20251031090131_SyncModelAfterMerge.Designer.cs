@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheGrind5_EventManagement.Data;
 
@@ -11,9 +12,11 @@ using TheGrind5_EventManagement.Data;
 namespace TheGrind5_EventManagement.Migrations
 {
     [DbContext(typeof(EventDBContext))]
-    partial class EventDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251031090131_SyncModelAfterMerge")]
+    partial class SyncModelAfterMerge
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,102 +123,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("Event", (string)null);
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.EventQuestion", b =>
-                {
-                    b.Property<int>("QuestionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Options")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Placeholder")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ValidationRules")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("QuestionId");
-
-                    b.HasIndex("EventId");
-
-                    b.ToTable("EventQuestion", (string)null);
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("RelatedEventId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RelatedOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RelatedTicketId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notification", (string)null);
-                });
-
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Order", b =>
                 {
                     b.Property<int>("OrderId")
@@ -237,12 +144,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<decimal>("DiscountAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OrderAnswers")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
 
@@ -258,8 +159,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.HasKey("OrderId");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("EventId");
 
                     b.ToTable("Order", (string)null);
                 });
@@ -653,39 +552,11 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Navigation("Host");
                 });
 
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.EventQuestion", b =>
-                {
-                    b.HasOne("TheGrind5_EventManagement.Models.Event", "Event")
-                        .WithMany("EventQuestions")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.Notification", b =>
-                {
-                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany("Notifications")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Order", b =>
                 {
                     b.HasOne("TheGrind5_EventManagement.Models.User", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TheGrind5_EventManagement.Models.Event", null)
-                        .WithMany()
-                        .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -800,8 +671,6 @@ namespace TheGrind5_EventManagement.Migrations
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
-                    b.Navigation("EventQuestions");
-
                     b.Navigation("TicketTypes");
                 });
 
@@ -827,8 +696,6 @@ namespace TheGrind5_EventManagement.Migrations
             modelBuilder.Entity("TheGrind5_EventManagement.Models.User", b =>
                 {
                     b.Navigation("Events");
-
-                    b.Navigation("Notifications");
 
                     b.Navigation("Orders");
 

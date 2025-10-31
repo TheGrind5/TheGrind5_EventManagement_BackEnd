@@ -105,6 +105,7 @@ namespace TheGrind5_EventManagement.Repositories
                 existingOrder.Amount = order.Amount;
                 existingOrder.Status = order.Status;
                 existingOrder.PaymentMethod = order.PaymentMethod;
+                existingOrder.OrderAnswers = order.OrderAnswers;
                 existingOrder.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();

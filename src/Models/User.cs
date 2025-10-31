@@ -56,6 +56,8 @@ public partial class User
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
     public int? CampusId { get; set; }
 
     public virtual Campus? Campus { get; set; }

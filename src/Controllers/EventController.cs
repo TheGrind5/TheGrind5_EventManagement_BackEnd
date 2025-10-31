@@ -141,7 +141,7 @@ namespace TheGrind5_EventManagement.Controllers
 
                 Console.WriteLine($"Found event: {existingEvent.Title}, HostId: {existingEvent.HostId}");
 
-                // Cáº­p nháº­t thông tin cÆ¡ báº£n cá»§a event
+                // Cáº­p nháº­t thÃ´ng tin cÆ¡ báº£n cá»§a event
                 existingEvent.Title = request.Title ?? existingEvent.Title;
                 existingEvent.Description = request.Description ?? existingEvent.Description;
                 existingEvent.Category = request.Category ?? existingEvent.Category;
@@ -158,18 +158,18 @@ namespace TheGrind5_EventManagement.Controllers
                 string NormalizeImagePath(string? imagePath)
                 {
                     if (string.IsNullOrEmpty(imagePath)) return string.Empty;
-                    // Chuyá»ƒn Ä‘á»•i tá»« /uploads/events/ thÃ nh /assets/images/events/
+                    // Chuyá»ƒn Ä‘á»•i tá»« /uploads/events/ thÃ nh /assets/images/events/
                     return imagePath.Replace("/uploads/events/", "/assets/images/events/")
                                    .Replace("/uploads/avatars/", "/assets/images/avatars/");
                 }
                 
-                // Xá»­ lÃ½ images array - Æ°u tiÃªn EventImage vÃ BackgroundImage tá»« request
+                // Xá»­ lÃ½ images array - Æ°u tiÃªn EventImage vÃ  BackgroundImage tá»« request
                 var imagesList = new List<string>();
                 
-                // QUAN TRá»ŒNG: Xá»­ lÃ½ EventImage - náº¿u cÃ³ giÃ¡ trá»‹ má»›i (dÃ¹ lÃ empty string), dÃ¹ng giÃ¡ trá»‹ má»›i
-                // Náº¿u request.EventImage lÃ null hoáº·c empty, thÃ¬ giá»¯ giÃ¡ trá»‹ cÅ©
+                // QUAN TRá»ŒNG: Xá»­ lÃ½ EventImage - náº¿u cÃ³ giÃ¡ trá»‹ má»›i (dÃ¹ lÃ  empty string), dÃ¹ng giÃ¡ trá»‹ má»›i
+                // Náº¿u request.EventImage lÃ  null hoáº·c empty, thÃ¬ giá»¯ giÃ¡ trá»‹ cÅ©
                 var normalizedEventImage = string.Empty;
-                if (request.EventImage != null) // CÃ³ field trong request (dÃ¹ cÃ³ thá»ƒ lÃ empty)
+                if (request.EventImage != null) // CÃ³ field trong request (dÃ¹ cÃ³ thá»ƒ lÃ  empty)
                 {
                     normalizedEventImage = NormalizeImagePath(request.EventImage);
                     Console.WriteLine($"Processing request EventImage (may be empty): '{request.EventImage}' -> '{normalizedEventImage}'");
@@ -180,7 +180,7 @@ namespace TheGrind5_EventManagement.Controllers
                 }
                 else
                 {
-                    // Náº¿u request không cÃ³ EventImage (null), giá»¯ EventImage cÅ© (Ä‘Ã£ normalize)
+                    // Náº¿u request khÃ´ng cÃ³ EventImage (null), giá»¯ EventImage cÅ© (Ä‘Ã£ normalize)
                     var existingEventImage = NormalizeImagePath(existingDetails?.EventImage);
                     if (!string.IsNullOrEmpty(existingEventImage))
                     {
@@ -189,7 +189,7 @@ namespace TheGrind5_EventManagement.Controllers
                     }
                     else if (existingDetails?.images != null && existingDetails.images.Length > 0)
                     {
-                        // Náº¿u cÃ³ images array, normalize vÃ láº¥y pháº§n tá»­ Ä‘áº§u tiÃªn
+                        // Náº¿u cÃ³ images array, normalize vÃ  láº¥y pháº§n tá»­ Ä‘áº§u tiÃªn
                         normalizedEventImage = NormalizeImagePath(existingDetails.images[0]);
                         if (!string.IsNullOrEmpty(normalizedEventImage))
                         {
@@ -198,9 +198,9 @@ namespace TheGrind5_EventManagement.Controllers
                     }
                 }
                 
-                // QUAN TRá»ŒNG: Xá»­ lÃ½ BackgroundImage - náº¿u cÃ³ giÃ¡ trá»‹ má»›i (dÃ¹ lÃ empty string), dÃ¹ng giÃ¡ trá»‹ má»›i
+                // QUAN TRá»ŒNG: Xá»­ lÃ½ BackgroundImage - náº¿u cÃ³ giÃ¡ trá»‹ má»›i (dÃ¹ lÃ  empty string), dÃ¹ng giÃ¡ trá»‹ má»›i
                 var normalizedBackgroundImage = string.Empty;
-                if (request.BackgroundImage != null) // CÃ³ field trong request (dÃ¹ cÃ³ thá»ƒ lÃ empty)
+                if (request.BackgroundImage != null) // CÃ³ field trong request (dÃ¹ cÃ³ thá»ƒ lÃ  empty)
                 {
                     normalizedBackgroundImage = NormalizeImagePath(request.BackgroundImage);
                     Console.WriteLine($"Processing request BackgroundImage (may be empty): '{request.BackgroundImage}' -> '{normalizedBackgroundImage}'");
@@ -211,7 +211,7 @@ namespace TheGrind5_EventManagement.Controllers
                 }
                 else
                 {
-                    // Náº¿u request không cÃ³ BackgroundImage (null), giá»¯ BackgroundImage cÅ© (Ä‘Ã£ normalize)
+                    // Náº¿u request khÃ´ng cÃ³ BackgroundImage (null), giá»¯ BackgroundImage cÅ© (Ä‘Ã£ normalize)
                     var existingBgImage = NormalizeImagePath(existingDetails?.BackgroundImage);
                     if (!string.IsNullOrEmpty(existingBgImage))
                     {
@@ -220,7 +220,7 @@ namespace TheGrind5_EventManagement.Controllers
                     }
                     else if (existingDetails?.images != null && existingDetails.images.Length > 1)
                     {
-                        // Náº¿u cÃ³ images array, normalize vÃ láº¥y pháº§n tá»­ thá»© 2
+                        // Náº¿u cÃ³ images array, normalize vÃ  láº¥y pháº§n tá»­ thá»© 2
                         normalizedBackgroundImage = NormalizeImagePath(existingDetails.images[1]);
                         if (!string.IsNullOrEmpty(normalizedBackgroundImage))
                         {
@@ -229,8 +229,8 @@ namespace TheGrind5_EventManagement.Controllers
                     }
                 }
                 
-                // Äáº£m báº£o EventImage vÃ BackgroundImage Ä‘Æ°á»£c sync vá»›i images array (Ä‘Ã£ normalize)
-                // finalEventImage vÃ finalBackgroundImage cÃ³ thá»ƒ lÃ empty string náº¿u user xÃ³a áº£nh
+                // Äáº£m báº£o EventImage vÃ  BackgroundImage Ä‘Æ°á»£c sync vá»›i images array (Ä‘Ã£ normalize)
+                // finalEventImage vÃ  finalBackgroundImage cÃ³ thá»ƒ lÃ  empty string náº¿u user xÃ³a áº£nh
                 var finalEventImage = normalizedEventImage ?? NormalizeImagePath(existingDetails?.EventImage ?? (imagesList.Count > 0 ? imagesList[0] : null));
                 var finalBackgroundImage = normalizedBackgroundImage ?? NormalizeImagePath(existingDetails?.BackgroundImage ?? (imagesList.Count > 1 ? imagesList[1] : null));
                 
@@ -884,7 +884,7 @@ namespace TheGrind5_EventManagement.Controllers
                 else
                 {
                     Console.WriteLine("Failed to remove old ticket types");
-                    return BadRequest(new { message = "Không thá»ƒ xÃ³a loáº¡i vÃ© cÅ©" });
+                    return BadRequest(new { message = "KhÃ´ng thá»ƒ xÃ³a loáº¡i vÃ© cÅ©" });
                 }
                 
                 // Tạo ticket types mới
@@ -1090,39 +1090,6 @@ namespace TheGrind5_EventManagement.Controllers
                 {
                     Console.WriteLine($"Saving venue layout with HasVirtualStage: {request.VenueLayout.HasVirtualStage}");
                     Console.WriteLine($"Number of areas: {request.VenueLayout.Areas?.Count ?? 0}");
-                    
-                    // AUTO-FIX: Nếu area có TicketTypeId nhưng LinkedTicket null, tự động bổ sung snapshot
-                    if (request.VenueLayout.Areas != null && request.VenueLayout.Areas.Count > 0)
-                    {
-                        var eventTicketTypes = existingEvent.TicketTypes?.ToList() ?? new List<TicketType>();
-                        foreach (var area in request.VenueLayout.Areas)
-                        {
-                            if (area != null && area.TicketTypeId.HasValue && area.LinkedTicket == null)
-                            {
-                                var matched = eventTicketTypes.FirstOrDefault(t => t.TicketTypeId == area.TicketTypeId.Value);
-                                if (matched != null)
-                                {
-                                    area.LinkedTicket = new LinkedTicketSnapshot
-                                    {
-                                        TicketTypeId = matched.TicketTypeId,
-                                        TypeName = matched.TypeName,
-                                        Price = matched.Price,
-                                        Quantity = matched.Quantity,
-                                        MinOrder = matched.MinOrder,
-                                        MaxOrder = matched.MaxOrder,
-                                        SaleStart = matched.SaleStart,
-                                        SaleEnd = matched.SaleEnd,
-                                        Status = matched.Status ?? "Active"
-                                    };
-                                    Console.WriteLine($"Auto-filled LinkedTicket for area {area.Id} with TicketTypeId {area.TicketTypeId}");
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"Warning: TicketTypeId {area.TicketTypeId} not found for event {eventId}. LinkedTicket remains null.");
-                                }
-                            }
-                        }
-                    }
                     
                     existingEvent.SetVenueLayout(request.VenueLayout);
                     

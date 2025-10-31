@@ -61,7 +61,7 @@ CoverageReport/
 *.html
 *.htm
 
-
+# Large SQL files
 
 # Test results
 TestResults/
@@ -72,5 +72,3 @@ TestResults/
 
 # Documentation (optional - uncomment if docs are causing lag)
 # *.md
-
-

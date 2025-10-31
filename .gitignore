@@ -72,4 +72,6 @@ _ReSharper*/
 
 # Configuration files with secrets
 src/appsettings.json
+src/secrets.json
 !src/appsettings.Example.json
+!src/secrets.json.example

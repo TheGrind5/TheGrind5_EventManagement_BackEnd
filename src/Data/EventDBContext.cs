@@ -178,7 +178,7 @@ public partial class EventDBContext : DbContext
         // Unique constraint: mỗi user chỉ có 1 wishlist item cho mỗi TicketType
         b.Entity<Wishlist>()
          .HasIndex(w => new { w.UserId, w.TicketTypeId })
-         .IsUnique();
+            .IsUnique();
     }
 
     private void ConfigureCampusRelationships(ModelBuilder b)

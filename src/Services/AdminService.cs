@@ -10,11 +10,13 @@ namespace TheGrind5_EventManagement.Services
     public class AdminService : IAdminService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly ILogger<AdminService> _logger;
 
-        public AdminService(IUserRepository userRepository, ILogger<AdminService> logger)
+        public AdminService(IUserRepository userRepository, IOrderRepository orderRepository, ILogger<AdminService> logger)
         {
             _userRepository = userRepository;
+            _orderRepository = orderRepository;
             _logger = logger;
         }
 
@@ -130,6 +132,76 @@ namespace TheGrind5_EventManagement.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user {UserId} details", userId);
+                throw;
+            }
+        }
+
+        public async Task<AdminDTOs.GetOrdersResponse> GetAllOrdersAsync(AdminDTOs.GetOrdersRequest request)
+        {
+            try
+            {
+                // Validation
+                if (request.PageNumber < 1) request = request with { PageNumber = 1 };
+                if (request.PageSize < 1) request = request with { PageSize = 10 };
+                if (request.PageSize > 100) request = request with { PageSize = 100 }; // Max 100 items per page
+
+                // Calculate skip
+                var skip = (request.PageNumber - 1) * request.PageSize;
+
+                // Get orders from repository
+                var orders = await _orderRepository.GetAllOrdersAsync(
+                    searchTerm: request.SearchTerm,
+                    sortBy: request.SortBy,
+                    sortOrder: request.SortOrder,
+                    skip: skip,
+                    take: request.PageSize
+                );
+
+                // Get total count
+                var totalCount = await _orderRepository.GetTotalOrdersCountAsync(
+                    searchTerm: request.SearchTerm
+                );
+
+                // Calculate total pages
+                var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+                // Map to DTO
+                var orderDtos = orders.Select(o =>
+                {
+                    // Format ticket info: "EventTitle - TicketTypeName" (combine all order items)
+                    var ticketInfos = o.OrderItems
+                        .Select(oi => $"{oi.TicketType.Event.Title} - {oi.TicketType.TypeName}")
+                        .Distinct()
+                        .ToList();
+                    var ticketInfo = string.Join("; ", ticketInfos);
+                    if (string.IsNullOrEmpty(ticketInfo))
+                        ticketInfo = "N/A";
+
+                    // Calculate total quantity from all order items
+                    var totalQuantity = o.OrderItems?.Sum(oi => oi.Quantity) ?? 0;
+
+                    return new AdminDTOs.OrderManagementDto(
+                        OrderId: o.OrderId,
+                        CustomerName: o.Customer?.FullName ?? "N/A",
+                        CustomerEmail: o.Customer?.Email ?? "N/A",
+                        TicketInfo: ticketInfo,
+                        Quantity: totalQuantity,
+                        Amount: o.Amount,
+                        CreatedAt: o.CreatedAt
+                    );
+                }).ToList();
+
+                return new AdminDTOs.GetOrdersResponse(
+                    Orders: orderDtos,
+                    TotalCount: totalCount,
+                    PageNumber: request.PageNumber,
+                    PageSize: request.PageSize,
+                    TotalPages: totalPages
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting orders list for admin");
                 throw;
             }
         }

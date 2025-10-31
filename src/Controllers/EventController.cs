@@ -376,6 +376,40 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        // Admin delete any event bypassing host ownership (for admin panel)
+        [HttpDelete("{id}/admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminDeleteEvent(int id)
+        {
+            try
+            {
+                var eventData = await _eventService.GetEventByIdAsync(id);
+                if (eventData == null)
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
+
+                var hasTicketsSold = await _eventService.CheckHasPaidTicketsAsync(id);
+                if (hasTicketsSold)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Không thể xóa sự kiện đã có vé được mua thành công. Hãy liên hệ hỗ trợ nếu muốn hủy sự kiện."
+                    });
+                }
+
+                var result = await _eventService.DeleteEventAsync(id);
+                if (!result)
+                {
+                    return BadRequest(new { message = "Xóa sự kiện thất bại" });
+                }
+
+                return Ok(new { success = true, message = "Xóa sự kiện thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Có lỗi xảy ra khi xóa sự kiện", error = ex.Message });
+            }
+        }
+
         [HttpGet("host/{hostId}")]
         public async Task<IActionResult> GetEventsByHost(int hostId)
         {

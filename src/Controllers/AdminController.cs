@@ -230,6 +230,52 @@ namespace TheGrind5_EventManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// Lấy danh sách tất cả orders với filter và pagination
+        /// GET: api/admin/orders?searchTerm=nguyen&pageNumber=1&pageSize=10
+        /// </summary>
+        [HttpGet("orders")]
+        public async Task<IActionResult> GetAllOrders(
+            [FromQuery] string? searchTerm = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string sortBy = "CreatedAt",
+            [FromQuery] string sortOrder = "desc")
+        {
+            try
+            {
+                var adminId = GetCurrentUserId();
+                _logger.LogInformation("Admin {AdminId} requested orders list", adminId);
+
+                var request = new AdminDTOs.GetOrdersRequest(
+                    SearchTerm: searchTerm,
+                    PageNumber: pageNumber,
+                    PageSize: pageSize,
+                    SortBy: sortBy,
+                    SortOrder: sortOrder
+                );
+
+                var response = await _adminService.GetAllOrdersAsync(request);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lấy danh sách orders thành công",
+                    data = response
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting orders list");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Có lỗi xảy ra khi lấy danh sách orders",
+                    error = ex.Message
+                });
+            }
+        }
+
         // Helper method để lấy UserId từ JWT token
         private int GetCurrentUserId()
         {

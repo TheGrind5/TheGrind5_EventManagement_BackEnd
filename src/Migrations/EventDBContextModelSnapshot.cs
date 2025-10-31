@@ -168,6 +168,38 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("EventQuestion", (string)null);
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.EventReport", b =>
+                {
+                    b.Property<int>("ReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReportReason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("ReportedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReportId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("EventReport", (string)null);
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -662,6 +694,25 @@ namespace TheGrind5_EventManagement.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.EventReport", b =>
+                {
+                    b.HasOne("TheGrind5_EventManagement.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Notification", b =>

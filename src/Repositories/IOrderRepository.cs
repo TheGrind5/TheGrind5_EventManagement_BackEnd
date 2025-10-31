@@ -21,5 +21,16 @@ namespace TheGrind5_EventManagement.Repositories
         
         // Cập nhật order status
         Task<bool> UpdateOrderStatusAsync(int orderId, string status);
+        
+        // Lấy tất cả orders với filter và pagination (cho Admin)
+        Task<List<Order>> GetAllOrdersAsync(
+            string? searchTerm = null,
+            string sortBy = "CreatedAt",
+            string sortOrder = "desc",
+            int skip = 0,
+            int take = 10);
+        
+        // Đếm tổng số orders với filter (cho Admin)
+        Task<int> GetTotalOrdersCountAsync(string? searchTerm = null);
     }
 }

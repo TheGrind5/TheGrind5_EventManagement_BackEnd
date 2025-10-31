@@ -156,5 +156,92 @@ namespace TheGrind5_EventManagement.Repositories
                 throw new Exception($"Error updating order status: {ex.Message}", ex);
             }
         }
+
+        public async Task<List<Order>> GetAllOrdersAsync(
+            string? searchTerm = null,
+            string sortBy = "CreatedAt",
+            string sortOrder = "desc",
+            int skip = 0,
+            int take = 10)
+        {
+            try
+            {
+                var query = _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.TicketType)
+                            .ThenInclude(tt => tt.Event)
+                    .AsQueryable();
+
+                // Filter by search term
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var searchLower = searchTerm.ToLower();
+                    query = query.Where(o =>
+                        o.Customer.FullName.ToLower().Contains(searchLower) ||
+                        o.Customer.Email.ToLower().Contains(searchLower) ||
+                        o.OrderItems.Any(oi => oi.TicketType.Event.Title.ToLower().Contains(searchLower)) ||
+                        o.OrderItems.Any(oi => oi.TicketType.TypeName.ToLower().Contains(searchLower))
+                    );
+                }
+
+                // Sort
+                query = sortBy.ToLower() switch
+                {
+                    "amount" => sortOrder.ToLower() == "asc"
+                        ? query.OrderBy(o => o.Amount)
+                        : query.OrderByDescending(o => o.Amount),
+                    "quantity" => sortOrder.ToLower() == "asc"
+                        ? query.OrderBy(o => o.OrderItems.Sum(oi => oi.Quantity))
+                        : query.OrderByDescending(o => o.OrderItems.Sum(oi => oi.Quantity)),
+                    "customername" => sortOrder.ToLower() == "asc"
+                        ? query.OrderBy(o => o.Customer.FullName)
+                        : query.OrderByDescending(o => o.Customer.FullName),
+                    _ => sortOrder.ToLower() == "asc"
+                        ? query.OrderBy(o => o.CreatedAt)
+                        : query.OrderByDescending(o => o.CreatedAt)
+                };
+
+                return await query
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting all orders: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<int> GetTotalOrdersCountAsync(string? searchTerm = null)
+        {
+            try
+            {
+                var query = _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.TicketType)
+                            .ThenInclude(tt => tt.Event)
+                    .AsQueryable();
+
+                // Filter by search term
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var searchLower = searchTerm.ToLower();
+                    query = query.Where(o =>
+                        o.Customer.FullName.ToLower().Contains(searchLower) ||
+                        o.Customer.Email.ToLower().Contains(searchLower) ||
+                        o.OrderItems.Any(oi => oi.TicketType.Event.Title.ToLower().Contains(searchLower)) ||
+                        o.OrderItems.Any(oi => oi.TicketType.TypeName.ToLower().Contains(searchLower))
+                    );
+                }
+
+                return await query.CountAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error counting orders: {ex.Message}", ex);
+            }
+        }
     }
 }

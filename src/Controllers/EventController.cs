@@ -24,19 +24,34 @@ namespace TheGrind5_EventManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEvents([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllEvents(
+            [FromQuery] string? searchTerm = null,
+            [FromQuery] string? category = null,
+            [FromQuery] string? eventMode = null,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null,
+            [FromQuery] string? status = null,
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 10)
         {
             try
             {
-                Console.WriteLine($"Getting events - Page: {page}, PageSize: {pageSize}");
+                Console.WriteLine($"Getting events - SearchTerm: {searchTerm}, Category: {category}, Page: {page}, PageSize: {pageSize}");
                 
-                var pagedRequest = new PagedRequest
+                // Create search request
+                var searchRequest = new EventSearchRequest
                 {
+                    SearchTerm = searchTerm,
+                    Category = category,
+                    EventMode = eventMode,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Status = status,
                     Page = page,
                     PageSize = pageSize
                 };
                 
-                var pagedEvents = await _eventService.GetAllEventsAsync(pagedRequest);
+                var pagedEvents = await _eventService.SearchEventsAsync(searchRequest);
                 Console.WriteLine($"Found {pagedEvents.TotalCount} total events, returning {pagedEvents.Data.Count} for page {page}");
                 
                 var eventDtos = pagedEvents.Data.Select(e => _eventService.MapToEventDto(e)).ToList();
@@ -54,7 +69,7 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 Console.WriteLine($"Error in GetAllEvents: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi láº¥y danh sÃ¡ch sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện", error = ex.Message });
             }
         }
    
@@ -64,17 +79,17 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 if (id <= 0)
-                    return BadRequest(new { message = "ID sá»± kiá»‡n khÃ´ng há»£p lá»‡" });
+                    return BadRequest(new { message = "ID sự kiện không hợp lệ" });
 
                 var eventData = await _eventService.GetEventByIdAsync(id);
                 if (eventData == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 return Ok(_eventService.MapToEventDetailDto(eventData));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi láº¥y thÃ´ng tin sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy thông tin sự kiện", error = ex.Message });
             }
         }
 
@@ -86,16 +101,16 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
                 var eventData = _eventService.MapFromCreateEventRequest(request, userId.Value);
                 var createdEvent = await _eventService.CreateEventAsync(eventData);
 
-                return Ok(new { message = "Táº¡o sá»± kiá»‡n thÃ nh cÃ´ng", eventId = createdEvent?.EventId });
+                return Ok(new { message = "Tạo sự kiện thành công", eventId = createdEvent?.EventId });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi táº¡o sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi tạo sự kiện", error = ex.Message });
             }
         }
 
@@ -114,15 +129,15 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
                 // Kiá»ƒm tra quyá»n sá»Ÿ há»¯u event
                 var existingEvent = await _eventService.GetEventByIdAsync(id);
                 if (existingEvent == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 if (existingEvent.HostId != userId.Value)
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n chá»‰nh sá»­a sá»± kiá»‡n nÃ y");
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
 
                 Console.WriteLine($"Found event: {existingEvent.Title}, HostId: {existingEvent.HostId}");
 
@@ -134,12 +149,12 @@ namespace TheGrind5_EventManagement.Controllers
                 existingEvent.Location = request.Location ?? existingEvent.Location;
                 existingEvent.UpdatedAt = DateTime.UtcNow;
 
-                // Cáº­p nháº­t EventDetails - MERGE vá»›i data cÅ© Ä‘á»ƒ khÃ´ng máº¥t thÃ´ng tin
+                // Cập nhật EventDetails - MERGE với data cũ để không mất thông tin
                 var existingDetails = existingEvent.GetEventDetails();
                 Console.WriteLine($"Existing EventImage: {existingDetails?.EventImage ?? "NULL"}");
                 Console.WriteLine($"Existing BackgroundImage: {existingDetails?.BackgroundImage ?? "NULL"}");
                 
-                // Helper method Ä‘á»ƒ normalize Ä‘Æ°á»ng dáº«n áº£nh: /uploads/events/ -> /assets/images/events/
+                // Helper method để normalize đường dẫn ảnh: /uploads/events/ -> /assets/images/events/
                 string NormalizeImagePath(string? imagePath)
                 {
                     if (string.IsNullOrEmpty(imagePath)) return string.Empty;
@@ -232,13 +247,13 @@ namespace TheGrind5_EventManagement.Controllers
                     else if (imagesList.Count == 1) imagesList.Add(finalBackgroundImage);
                     else
                     {
-                        // Náº¿u khÃ´ng cÃ³ eventImage, thÃªm empty string Ä‘á»ƒ giá»¯ vá»‹ trÃ­
+                        // Nếu không có eventImage, thêm empty string để giữ vị trí
                         if (imagesList.Count == 0) imagesList.Add("");
                         imagesList.Add(finalBackgroundImage);
                     }
                 }
                 
-                // Normalize cÃ¡c áº£nh cÃ²n láº¡i trong images array (náº¿u cÃ³)
+                // Normalize các ảnh còn lại trong images array (nếu có)
                 for (int i = 2; i < existingDetails?.images?.Length; i++)
                 {
                     var normalizedImg = NormalizeImagePath(existingDetails.images[i]);
@@ -250,16 +265,16 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 var eventDetails = new EventDetailsData
                 {
-                    // Giá»¯ nguyÃªn data cÅ© náº¿u request khÃ´ng cÃ³
+                    // Giữ nguyên data cũ nếu request không có
                     VenueName = request.VenueName ?? existingDetails?.VenueName,
                     Province = request.Province ?? existingDetails?.Province,
                     District = request.District ?? existingDetails?.District,
                     Ward = request.Ward ?? existingDetails?.Ward,
                     StreetAddress = request.StreetAddress ?? existingDetails?.StreetAddress,
-                    // QUAN TRá»ŒNG: LuÃ´n cáº­p nháº­t EventImage vÃ  BackgroundImage (Ä‘Ã£ normalize vá» /assets/images/events/)
+                    // QUAN TRỌNG: Luôn cập nhật EventImage và BackgroundImage (đã normalize về /assets/images/events/)
                     EventImage = finalEventImage,
                     BackgroundImage = finalBackgroundImage,
-                    // Cáº­p nháº­t images array - Ä‘áº£m báº£o sync vá»›i EventImage vÃ  BackgroundImage (Ä‘Ã£ normalize)
+                    // Cập nhật images array - đảm bảo sync với EventImage và BackgroundImage (đã normalize)
                     images = imagesList.Where(img => !string.IsNullOrEmpty(img)).ToArray(),
                     introduction = existingDetails?.introduction ?? request.EventIntroduction,
                     specialGuests = existingDetails?.specialGuests,
@@ -275,7 +290,7 @@ namespace TheGrind5_EventManagement.Controllers
 
                 existingEvent.SetEventDetails(eventDetails);
                 
-                // Cáº­p nháº­t OrganizerInfo riÃªng
+                // Cập nhật OrganizerInfo riêng
                 if (!string.IsNullOrEmpty(request.OrganizerName) || !string.IsNullOrEmpty(request.OrganizerInfo) || !string.IsNullOrEmpty(request.OrganizerLogo))
                 {
                     var organizerInfo = new OrganizerInfoData
@@ -288,14 +303,14 @@ namespace TheGrind5_EventManagement.Controllers
                     existingEvent.SetOrganizerInfo(organizerInfo);
                 }
 
-                // Cáº­p nháº­t event vÃ o database
+                // Cập nhật event vào database
                 var updatedEvent = await _eventService.UpdateEventAsync(id, existingEvent);
                 if (updatedEvent == null)
                 {
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
 
-                // Debug: Kiá»ƒm tra data sau khi update
+                // Debug: Kiểm tra data sau khi update
                 var verifyDetails = updatedEvent.GetEventDetails();
                 Console.WriteLine($"=== After Update Verification ===");
                 Console.WriteLine($"EventId: {updatedEvent.EventId}");
@@ -303,20 +318,20 @@ namespace TheGrind5_EventManagement.Controllers
                 Console.WriteLine($"BackgroundImage in DB: {verifyDetails?.BackgroundImage}");
                 Console.WriteLine($"UpdatedAt: {updatedEvent.UpdatedAt}");
                 
-                // Tráº£ vá» event Ä‘Ã£ update Ä‘á»ƒ frontend cÃ³ thá»ƒ reload ngay
+                // Trả về event đã update để frontend có thể reload ngay
                 var responseDto = _eventService.MapToEventDetailDto(updatedEvent);
                 Console.WriteLine("Event updated successfully");
 
                 return Ok(new { 
-                    message = "Cáº­p nháº­t sá»± kiá»‡n thÃ nh cÃ´ng",
-                    eventData = responseDto // Tráº£ vá» event data Ä‘á»ƒ frontend cÃ³ thá»ƒ update state ngay
+                    message = "Cập nhật sự kiện thành công",
+                    eventData = responseDto // Trả về event data để frontend có thể update state ngay
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating event: {ex.Message}");
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện", error = ex.Message });
             }
         }
 
@@ -328,36 +343,36 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
-                // Kiá»ƒm tra quyá»n sá»Ÿ há»¯u event
+                // Kiểm tra quyền sở hữu event
                 var eventData = await _eventService.GetEventByIdAsync(id);
                 if (eventData == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 if (eventData.HostId != userId.Value)
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n xÃ³a sá»± kiá»‡n nÃ y");
+                    return Forbid("Bạn không có quyền xóa sự kiện này");
 
-                // Kiá»ƒm tra xem event cÃ³ vÃ© Ä‘Ã£ Ä‘Æ°á»£c bÃ¡n thÃ nh cÃ´ng chÆ°a (Status = "Paid")
+                // Kiểm tra xem event có vé đã được bán thành công chưa (Status = "Paid")
                 var hasTicketsSold = await _eventService.CheckHasPaidTicketsAsync(id);
                 if (hasTicketsSold)
                 {
                     return BadRequest(new { 
-                        message = "KhÃ´ng thá»ƒ xÃ³a sá»± kiá»‡n Ä‘Ã£ cÃ³ vÃ© Ä‘Æ°á»£c mua thÃ nh cÃ´ng. HÃ£y liÃªn há»‡ há»— trá»£ náº¿u muá»‘n há»§y sá»± kiá»‡n." 
+                        message = "Không thể xóa sự kiện đã có vé được mua thành công. Hãy liên hệ hỗ trợ nếu muốn hủy sự kiện." 
                     });
                 }
 
                 var result = await _eventService.DeleteEventAsync(id);
                 if (!result)
                 {
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
 
-                return Ok(new { message = "XÃ³a sá»± kiá»‡n thÃ nh cÃ´ng" });
+                return Ok(new { message = "Xóa sự kiện thành công" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi xÃ³a sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi xóa sự kiện", error = ex.Message });
             }
         }
 
@@ -372,7 +387,7 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xcháº£y ra khi láº¥y danh sÃ¡ch sá»± kiá»‡n cá»§a host", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện của host", error = ex.Message });
             }
         }
 
@@ -384,7 +399,7 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
                 var events = await _eventService.GetEventsByHostAsync(userId.Value);
                 var eventDtos = events.Select(e => _eventService.MapToEventDto(e)).ToList();
@@ -392,7 +407,7 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi láº¥y danh sÃ¡ch sá»± kiá»‡n cá»§a tÃ´i", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy danh sách sự kiện của tôi", error = ex.Message });
             }
         }
 
@@ -404,19 +419,19 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
                 var eventData = await _eventService.GetEventByIdAsync(id);
                 if (eventData == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 if (eventData.HostId != userId.Value)
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n xem sá»± kiá»‡n nÃ y");
+                    return Forbid("Bạn không có quyền xem sự kiện này");
 
-                // Kiá»ƒm tra xem event cÃ³ ticket Ä‘Ã£ Ä‘Æ°á»£c bÃ¡n chÆ°a
+                // Kiểm tra xem event có ticket đã được bán chưa
                 var hasTicketsSold = await _eventService.CheckHasTicketsSoldAsync(id);
 
-                // Kiá»ƒm tra xem cÃ²n cÃ¡ch thá»i gian báº¯t Ä‘áº§u bao nhiÃªu giá»
+                    // Kiểm tra xem còn cách thời gian bắt đầu bao nhiêu giờ
                 var hoursUntilStart = (eventData.StartTime - DateTime.UtcNow).TotalHours;
                 var canEditTimeLocation = hoursUntilStart >= 48;
                 var timeUntilEvent = hoursUntilStart > 0 ? Math.Round(hoursUntilStart, 2) : 0;
@@ -429,15 +444,15 @@ namespace TheGrind5_EventManagement.Controllers
                     hasTicketsSold = hasTicketsSold,
                     hoursUntilStart = timeUntilEvent,
                     message = hasTicketsSold 
-                        ? "KhÃ´ng thá»ƒ chá»‰nh sá»­a sá»± kiá»‡n Ä‘Ã£ cÃ³ vÃ© Ä‘Æ°á»£c bÃ¡n" 
+                        ? "Không thể chỉnh sửa sự kiện đã có vé được bán" 
                         : !canEditTimeLocation
-                            ? $"Chá»‰ cÃ³ thá»ƒ chá»‰nh sá»­a thá»i gian vÃ  Ä‘á»‹a Ä‘iá»ƒm trÆ°á»›c 48 giá». CÃ²n {Math.Round(hoursUntilStart, 1)} giá» Ä‘áº¿n sá»± kiá»‡n."
-                            : "CÃ³ thá»ƒ chá»‰nh sá»­a sá»± kiá»‡n"
+                            ? $"Chỉ có thể chỉnh sửa thời gian và địa điểm trước 48 giờ. Còn {Math.Round(hoursUntilStart, 1)} giờ đến sự kiện."
+                            : "Có thể chỉnh sửa sự kiện"
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi kiá»ƒm tra tráº¡ng thÃ¡i chá»‰nh sá»­a", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi kiểm tra trạng thái chỉnh sửa", error = ex.Message });
             }
         }
 
@@ -445,8 +460,8 @@ namespace TheGrind5_EventManagement.Controllers
         // NEW EVENT CREATION ENDPOINTS (Ticket Box Style)
         // ========================================
 
-        // IMPORTANT: create/complete pháº£i Ä‘áº·t trÆ°á»›c create/step1 Ä‘á»ƒ trÃ¡nh route conflict
-        // (Route cá»¥ thá»ƒ hÆ¡n pháº£i Ä‘áº·t trÆ°á»›c route generic hÆ¡n)
+        // IMPORTANT: create/complete phải đặt trước create/step1 để tránh route conflict
+        // (Route cụ thể hơn phải đặt trước route generic hơn)
 
         [HttpPost("create/complete")]
         [Authorize]
@@ -458,62 +473,62 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
-                // VALIDATION: Kiá»ƒm tra táº¥t cáº£ 5 bÆ°á»›c trÆ°á»›c khi táº¡o event
+                // VALIDATION: Kiểm tra tất cả 5 bước trước khi tạo event
                 var validationErrors = new List<string>();
 
-                // BÆ°á»›c 1: Kiá»ƒm tra thÃ´ng tin cÆ¡ báº£n
+                // Bước 1: Kiểm tra thông tin cơ bản
                 if (string.IsNullOrWhiteSpace(request.Title))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tÃªn sá»± kiá»‡n (Title)");
+                    validationErrors.Add("Bước 1: Thiếu tên sự kiện (Title)");
                 
                 if (string.IsNullOrWhiteSpace(request.Description))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u mÃ´ táº£ sá»± kiá»‡n (Description)");
+                    validationErrors.Add("Bước 1: Thiếu mô tả sự kiện (Description)");
                 
                 if (string.IsNullOrWhiteSpace(request.Category))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u danh má»¥c sá»± kiá»‡n (Category)");
+                    validationErrors.Add("Bước 1: Thiếu danh mục sự kiện (Category)");
                 
                 if (string.IsNullOrWhiteSpace(request.EventMode))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u cháº¿ Ä‘á»™ sá»± kiá»‡n (EventMode)");
+                    validationErrors.Add("Bước 1: Thiếu chế độ sự kiện (EventMode)");
 
-                // Kiá»ƒm tra thÃ´ng tin Ä‘á»‹a chá»‰
+                // Kiểm tra thông tin địa chỉ
                 if (request.EventMode == "Offline")
                 {
                     if (string.IsNullOrWhiteSpace(request.VenueName))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tÃªn Ä‘á»‹a Ä‘iá»ƒm (VenueName) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu tên địa điểm (VenueName) cho sự kiện Offline");
                     
                     if (string.IsNullOrWhiteSpace(request.Province))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tá»‰nh/thÃ nh phá»‘ (Province) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu tỉnh/thành phố (Province) cho sự kiện Offline");
                     
                     if (string.IsNullOrWhiteSpace(request.StreetAddress))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u Ä‘á»‹a chá»‰ Ä‘Æ°á»ng (StreetAddress) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu địa chỉ đường (StreetAddress) cho sự kiện Offline");
                 }
                 else if (request.EventMode == "Online")
                 {
                     if (string.IsNullOrWhiteSpace(request.Location))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u link sá»± kiá»‡n (Location) cho sá»± kiá»‡n Online");
+                        validationErrors.Add("Bước 1: Thiếu link sự kiện (Location) cho sự kiện Online");
                 }
 
-                // Kiá»ƒm tra thÃ´ng tin tá»• chá»©c
+                // Kiểm tra thông tin tổ chức
                 if (string.IsNullOrWhiteSpace(request.OrganizerName))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tÃªn tá»• chá»©c (OrganizerName)");
+                    validationErrors.Add("Bước 1: Thiếu tên tổ chức (OrganizerName)");
                 
                 if (string.IsNullOrWhiteSpace(request.OrganizerInfo))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u thÃ´ng tin tá»• chá»©c (OrganizerInfo)");
+                    validationErrors.Add("Bước 1: Thiếu thông tin tổ chức (OrganizerInfo)");
 
-                // BÆ°á»›c 2: Kiá»ƒm tra thá»i gian vÃ  loáº¡i vÃ©
+                // Bước 2: Kiểm tra thời gian và loại vé
                 if (request.StartTime == default || request.StartTime == DateTime.MinValue)
-                    validationErrors.Add("BÆ°á»›c 2: Thiáº¿u thá»i gian báº¯t Ä‘áº§u (StartTime)");
+                    validationErrors.Add("Bước 2: Thiếu thời gian bắt đầu (StartTime)");
                 
                 if (request.EndTime == default || request.EndTime == DateTime.MinValue)
-                    validationErrors.Add("BÆ°á»›c 2: Thiáº¿u thá»i gian káº¿t thÃºc (EndTime)");
+                    validationErrors.Add("Bước 2: Thiếu thời gian kết thúc (EndTime)");
                 
                 if (request.StartTime != default && request.EndTime != default && request.StartTime >= request.EndTime)
-                    validationErrors.Add("BÆ°á»›c 2: Thá»i gian báº¯t Ä‘áº§u pháº£i nhá» hÆ¡n thá»i gian káº¿t thÃºc");
+                    validationErrors.Add("Bước 2: Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc");
                 
-                // Kiá»ƒm tra ticket types
+                // Kiểm tra ticket types
                 if (request.TicketTypes == null || !request.TicketTypes.Any())
-                    validationErrors.Add("BÆ°á»›c 2: Thiáº¿u loáº¡i vÃ© (cáº§n Ã­t nháº¥t má»™t loáº¡i vÃ©)");
+                    validationErrors.Add("Bước 2: Thiếu loại vé (cần ít nhất một loại vé)");
                 else
                 {
                     int ticketIndex = 0;
@@ -521,33 +536,33 @@ namespace TheGrind5_EventManagement.Controllers
                     {
                         int i = ticketIndex++;
                         if (string.IsNullOrWhiteSpace(ticketType.TypeName))
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} thiáº¿u tÃªn (TypeName)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} thiếu tên (TypeName)");
                         
                         if (ticketType.Price < 0)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ giÃ¡ khÃ´ng há»£p lá»‡ (Price)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có giá không hợp lệ (Price)");
                         
                         if (ticketType.Quantity < 0)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ sá»‘ lÆ°á»£ng khÃ´ng há»£p lá»‡ (Quantity)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có số lượng không hợp lệ (Quantity)");
                         
                         if (ticketType.MinOrder < 1)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ Ä‘Æ¡n hÃ ng tá»‘i thiá»ƒu khÃ´ng há»£p lá»‡ (MinOrder)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có đơn hàng tối thiểu không hợp lệ (MinOrder)");
                         
                         if (ticketType.MaxOrder < 1)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ Ä‘Æ¡n hÃ ng tá»‘i Ä‘a khÃ´ng há»£p lá»‡ (MaxOrder)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có đơn hàng tối đa không hợp lệ (MaxOrder)");
                         
                         if (ticketType.MinOrder > ticketType.MaxOrder)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ MinOrder lá»›n hÆ¡n MaxOrder");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có MinOrder lớn hơn MaxOrder");
                     }
                 }
 
-                // BÆ°á»›c 5: Kiá»ƒm tra thÃ´ng tin thanh toÃ¡n
+                // Bước 5: Kiểm tra thông tin thanh toán
                 if (string.IsNullOrWhiteSpace(request.PaymentMethod))
-                    validationErrors.Add("BÆ°á»›c 5: Thiáº¿u phÆ°Æ¡ng thá»©c thanh toÃ¡n (PaymentMethod)");
+                    validationErrors.Add("Bước 5: Thiếu phương thức thanh toán (PaymentMethod)");
                 
                 if (string.IsNullOrWhiteSpace(request.BankAccount))
-                    validationErrors.Add("BÆ°á»›c 5: Thiáº¿u thÃ´ng tin tÃ i khoáº£n ngÃ¢n hÃ ng (BankAccount)");
+                    validationErrors.Add("Bước 5: Thiếu thông tin tài khoản ngân hàng (BankAccount)");
 
-                // Náº¿u cÃ³ lá»—i validation, khÃ´ng cho phÃ©p táº¡o event
+                // Nếu có lỗi validation, không cho phép tạo event
                 if (validationErrors.Any())
                 {
                     Console.WriteLine("=== Validation Failed ===");
@@ -557,16 +572,16 @@ namespace TheGrind5_EventManagement.Controllers
                     }
                     
                     return BadRequest(new { 
-                        message = "KhÃ´ng thá»ƒ táº¡o sá»± kiá»‡n. Vui lÃ²ng hoÃ n thÃ nh táº¥t cáº£ cÃ¡c bÆ°á»›c báº¯t buá»™c.",
+                        message = "Không thể tạo sự kiện. Vui lòng hoàn thành tất cả các bước bắt buộc.",
                         errors = validationErrors,
                         completed = false
                     });
                 }
 
-                // Táº¥t cáº£ validation Ä‘á»u pass - Táº¡o event hoÃ n chá»‰nh
+                // Tất cả validation đều pass - Tạo event hoàn chỉnh
                 Console.WriteLine("=== All Validations Passed - Creating Complete Event ===");
                 
-                // Táº¡o location string
+                // Tạo location string
                 string locationString = string.Empty;
                 if (request.EventMode == "Online")
                 {
@@ -582,7 +597,7 @@ namespace TheGrind5_EventManagement.Controllers
                     locationString = string.Join(", ", addressParts);
                 }
 
-                // Táº¡o event vá»›i táº¥t cáº£ thÃ´ng tin
+                // Tạo event với tất cả thông tin
                 var eventData = new Event
                 {
                     HostId = userId.Value,
@@ -594,7 +609,7 @@ namespace TheGrind5_EventManagement.Controllers
                     Location = locationString,
                     StartTime = request.StartTime,
                     EndTime = request.EndTime,
-                    Status = "Open", // Trá»±c tiáº¿p set Open vÃ¬ Ä‘Ã£ hoÃ n thÃ nh Ä‘á»§ 5 bÆ°á»›c
+                    Status = "Open", // Trực tiếp set Open vì đã hoàn thành 5 bước
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -634,16 +649,16 @@ namespace TheGrind5_EventManagement.Controllers
                 };
                 eventData.SetOrganizerInfo(organizerInfo);
 
-                // Set VenueLayout náº¿u cÃ³
+                // Set VenueLayout nếu có
                 if (request.VenueLayout != null)
                 {
                     eventData.SetVenueLayout(request.VenueLayout);
                 }
 
-                // Táº¡o event
+                // Tạo event
                 var createdEvent = await _eventService.CreateEventAsync(eventData);
 
-                // Táº¡o ticket types
+                // Tạo ticket types
                 if (request.TicketTypes != null && request.TicketTypes.Any())
                 {
                     var ticketTypesToAdd = new List<TicketType>();
@@ -669,7 +684,7 @@ namespace TheGrind5_EventManagement.Controllers
                         ticketTypesToAdd.Add(ticketType);
                     }
 
-                    // ThÃªm ticket types vÃ o event
+                    // Thêm ticket types vào event
                     if (createdEvent.TicketTypes == null)
                         createdEvent.TicketTypes = new List<TicketType>();
                     
@@ -678,11 +693,11 @@ namespace TheGrind5_EventManagement.Controllers
                         createdEvent.TicketTypes.Add(ticketType);
                     }
 
-                    // Update event Ä‘á»ƒ lÆ°u ticket types
+                    // Update event để lưu ticket types
                     await _eventService.UpdateEventAsync(createdEvent.EventId, createdEvent);
                 }
 
-                // ThÃªm thÃ´ng tin thanh toÃ¡n vÃ o Description
+                // Thêm thông tin thanh toán vào Description
                 var paymentInfo = $"Payment Method: {request.PaymentMethod}\n" +
                                 $"Bank Account: {request.BankAccount}\n" +
                                 $"Tax Info: {request.TaxInfo}";
@@ -694,7 +709,7 @@ namespace TheGrind5_EventManagement.Controllers
 
                 return Ok(new EventCreationResponse(
                     createdEvent.EventId,
-                    "Sá»± kiá»‡n Ä‘Ã£ Ä‘Æ°á»£c táº¡o thÃ nh cÃ´ng!",
+                    "Sự kiện đã được tạo thành công!",
                     true
                 ));
             }
@@ -702,7 +717,7 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 Console.WriteLine($"Error creating complete event: {ex.Message}");
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi táº¡o sá»± kiá»‡n hoÃ n chá»‰nh", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi tạo sự kiện hoàn chỉnh", error = ex.Message });
             }
         }
 
@@ -714,9 +729,9 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
-                // Táº¡o event vá»›i thÃ´ng tin bÆ°á»›c 1
+                // Tạo event với thông tin bước 1
                 var eventData = new Event
                 {
                     HostId = userId.Value,
@@ -769,13 +784,13 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 return Ok(new EventCreationResponse(
                     createdEvent.EventId,
-                    "BÆ°á»›c 1: ThÃ´ng tin sá»± kiá»‡n Ä‘Ã£ Ä‘Æ°á»£c lÆ°u thÃ nh cÃ´ng",
+                    "Bước 1: Thông tin sự kiện đã được lưu thành công",
                     true
                 ));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi táº¡o sá»± kiá»‡n bÆ°á»›c 1", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi tạo sự kiện bước 1", error = ex.Message });
             }
         }
 
@@ -796,19 +811,19 @@ namespace TheGrind5_EventManagement.Controllers
                 if (request.StartTime == DateTime.MinValue)
                 {
                     Console.WriteLine("Error: StartTime is DateTime.MinValue");
-                    return BadRequest(new { message = "Thá»i gian báº¯t Ä‘áº§u khÃ´ng há»£p lá»‡" });
+                    return BadRequest(new { message = "Thời gian bắt đầu không hợp lệ" });
                 }
                 
                 if (request.EndTime == DateTime.MinValue)
                 {
                     Console.WriteLine("Error: EndTime is DateTime.MinValue");
-                    return BadRequest(new { message = "Thá»i gian káº¿t thÃºc khÃ´ng há»£p lá»‡" });
+                    return BadRequest(new { message = "Thời gian kết thúc không hợp lệ" });
                 }
                 
                 if (request.StartTime >= request.EndTime)
                 {
                     Console.WriteLine($"Error: StartTime ({request.StartTime}) >= EndTime ({request.EndTime})");
-                    return BadRequest(new { message = "Thá»i gian báº¯t Ä‘áº§u pháº£i nhá» hÆ¡n thá»i gian káº¿t thÃºc" });
+                    return BadRequest(new { message = "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc" });
                 }
                 
                 if (request.TicketTypes != null)
@@ -823,29 +838,29 @@ namespace TheGrind5_EventManagement.Controllers
                 var userId = GetUserIdFromToken();
                 if (userId == null)
                 {
-                    Console.WriteLine("Error: Token khÃ´ng há»£p lá»‡");
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    Console.WriteLine("Error: Token không hợp lệ");
+                    return Unauthorized(new { message = "Token không hợp lệ" });
                 }
 
                 Console.WriteLine($"UserId from token: {userId.Value}");
 
-                // Kiá»ƒm tra quyá»n sá»Ÿ há»¯u event
+                // Kiểm tra quyền sở hữu event
                 var existingEvent = await _eventService.GetEventByIdAsync(eventId);
                 if (existingEvent == null)
                 {
-                    Console.WriteLine($"Error: KhÃ´ng tÃ¬m tháº¥y event vá»›i ID {eventId}");
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    Console.WriteLine($"Error: Không tìm thấy event với ID {eventId}");
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
 
                 Console.WriteLine($"Found event: {existingEvent.Title}, HostId: {existingEvent.HostId}");
 
                 if (existingEvent.HostId != userId.Value)
                 {
-                    Console.WriteLine($"Error: User {userId.Value} khÃ´ng cÃ³ quyá»n chá»‰nh sá»­a event cá»§a Host {existingEvent.HostId}");
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n chá»‰nh sá»­a sá»± kiá»‡n nÃ y");
+                    Console.WriteLine($"Error: User {userId.Value} không có quyền chỉnh sửa event của Host {existingEvent.HostId}");
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
                 }
 
-                // Cáº­p nháº­t thÃ´ng tin thá»i gian
+                // Cập nhật thông tin thời gian
                 existingEvent.StartTime = request.StartTime;
                 existingEvent.EndTime = request.EndTime;
                 existingEvent.UpdatedAt = DateTime.UtcNow;
@@ -854,10 +869,10 @@ namespace TheGrind5_EventManagement.Controllers
                 await _eventService.UpdateEventAsync(eventId, existingEvent);
                 Console.WriteLine("Event time updated successfully");
 
-                // Táº¡o ticket types
+                // Tạo ticket types
                 Console.WriteLine($"Creating {request.TicketTypes?.Count ?? 0} ticket types...");
                 
-                // XÃ³a táº¥t cáº£ ticket types cÅ© trÆ°á»›c khi táº¡o má»›i
+                // Xóa tất cả ticket types cũ trước khi tạo mới
                 Console.WriteLine("Clearing existing ticket types...");
                 var deleteResult = await _eventService.DeleteTicketTypesForEventAsync(eventId);
                 if (deleteResult)
@@ -872,13 +887,13 @@ namespace TheGrind5_EventManagement.Controllers
                     return BadRequest(new { message = "KhÃ´ng thá»ƒ xÃ³a loáº¡i vÃ© cÅ©" });
                 }
                 
-                // Táº¡o ticket types má»›i
+                // Tạo ticket types mới
                 var newTicketTypes = new List<TicketType>();
                 
                 if (request.TicketTypes == null || request.TicketTypes.Count == 0)
                 {
                     Console.WriteLine("No ticket types provided");
-                    return BadRequest(new { message = "Vui lÃ²ng thÃªm Ã­t nháº¥t má»™t loáº¡i vÃ©" });
+                    return BadRequest(new { message = "Vui lòng thêm ít nhất một loại vé" });
                 }
                 
                 foreach (var ticketTypeRequest in request.TicketTypes)
@@ -889,76 +904,76 @@ namespace TheGrind5_EventManagement.Controllers
                     if (string.IsNullOrEmpty(ticketTypeRequest.TypeName))
                     {
                         Console.WriteLine($"Error: TypeName is null or empty");
-                        return BadRequest(new { message = "TÃªn loáº¡i vÃ© khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng" });
+                        return BadRequest(new { message = "Tên loại vé không được để trống" });
                     }
                     
-                    // Validate TypeName content - khÃ´ng cho phÃ©p kÃ½ tá»± khÃ´ng phÃ¹ há»£p
+                    // Validate TypeName content - không cho phép ký tự không phù hợp
                     var cleanTypeName = ticketTypeRequest.TypeName.Trim();
                     if (cleanTypeName.Length < 2)
                     {
                         Console.WriteLine($"Error: TypeName too short: {cleanTypeName}");
-                        return BadRequest(new { message = "TÃªn loáº¡i vÃ© pháº£i cÃ³ Ã­t nháº¥t 2 kÃ½ tá»±" });
+                        return BadRequest(new { message = "Tên loại vé phải có ít nhất 2 ký tự" });
                     }
                     
                     if (cleanTypeName.Length > 100)
                     {
                         Console.WriteLine($"Error: TypeName too long: {cleanTypeName}");
-                        return BadRequest(new { message = "TÃªn loáº¡i vÃ© khÃ´ng Ä‘Æ°á»£c quÃ¡ 100 kÃ½ tá»±" });
+                        return BadRequest(new { message = "Tên loại vé không được quá 100 ký tự" });
                     }
                     
-                    // Kiá»ƒm tra kÃ½ tá»± khÃ´ng phÃ¹ há»£p
+                    // Kiểm tra ký tự không phù hợp
                     var invalidChars = new[] { '<', '>', '&', '"', '\'', '\\', '/', ';', '=', '(', ')', '[', ']', '{', '}' };
                     if (invalidChars.Any(c => cleanTypeName.Contains(c)))
                     {
                         Console.WriteLine($"Error: TypeName contains invalid characters: {cleanTypeName}");
-                        return BadRequest(new { message = "TÃªn loáº¡i vÃ© chá»©a kÃ½ tá»± khÃ´ng há»£p lá»‡" });
+                        return BadRequest(new { message = "Tên loại vé chứa ký tự không hợp lệ" });
                     }
                     
-                    // Kiá»ƒm tra ná»™i dung khÃ´ng phÃ¹ há»£p
+                    // Kiểm tra nội dung không phù hợp
                     var inappropriateWords = new[] { "cáº·c", "lá»", "Ä‘á»‹t", "Ä‘á»¥", "Ä‘Ã©o", "chÃ³", "lá»“n", "buá»“i", "cá»©t" };
                     var lowerTypeName = cleanTypeName.ToLower();
                     if (inappropriateWords.Any(word => lowerTypeName.Contains(word)))
                     {
                         Console.WriteLine($"Error: TypeName contains inappropriate content: {cleanTypeName}");
-                        return BadRequest(new { message = "TÃªn loáº¡i vÃ© chá»©a ná»™i dung khÃ´ng phÃ¹ há»£p. Vui lÃ²ng sá»­ dá»¥ng tÃªn phÃ¹ há»£p." });
+                        return BadRequest(new { message = "Tên loại vé chứa nội dung không phù hợp. Vui lòng sử dụng tên phù hợp." });
                     }
                     
                     if (ticketTypeRequest.Price < 0)
                     {
                         Console.WriteLine($"Error: Price is negative: {ticketTypeRequest.Price}");
-                        return BadRequest(new { message = "GiÃ¡ vÃ© khÃ´ng Ä‘Æ°á»£c Ã¢m" });
+                        return BadRequest(new { message = "Giá vé không được âm" });
                     }
                     
                     if (ticketTypeRequest.Quantity < 0)
                     {
                         Console.WriteLine($"Error: Quantity is negative: {ticketTypeRequest.Quantity}");
-                        return BadRequest(new { message = "Sá»‘ lÆ°á»£ng vÃ© khÃ´ng Ä‘Æ°á»£c Ã¢m" });
+                        return BadRequest(new { message = "Số lượng vé không được âm" });
                     }
                     
                     // Validate MinOrder and MaxOrder
                     if (ticketTypeRequest.MinOrder < 1)
                     {
                         Console.WriteLine($"Error: MinOrder must be at least 1: {ticketTypeRequest.MinOrder}");
-                        return BadRequest(new { message = "ÄÆ¡n hÃ ng tá»‘i thiá»ƒu pháº£i Ã­t nháº¥t lÃ  1" });
+                        return BadRequest(new { message = "Đơn hàng tối thiểu phải ít nhất là 1" });
                     }
                     
                     if (ticketTypeRequest.MaxOrder < 1)
                     {
                         Console.WriteLine($"Error: MaxOrder must be at least 1: {ticketTypeRequest.MaxOrder}");
-                        return BadRequest(new { message = "ÄÆ¡n hÃ ng tá»‘i Ä‘a pháº£i Ã­t nháº¥t lÃ  1" });
+                        return BadRequest(new { message = "Đơn hàng tối đa phải ít nhất là 1" });
                     }
                     
                     if (ticketTypeRequest.MinOrder > ticketTypeRequest.MaxOrder)
                     {
                         Console.WriteLine($"Error: MinOrder ({ticketTypeRequest.MinOrder}) cannot be greater than MaxOrder ({ticketTypeRequest.MaxOrder})");
-                        return BadRequest(new { message = "ÄÆ¡n hÃ ng tá»‘i thiá»ƒu khÃ´ng thá»ƒ lá»›n hÆ¡n Ä‘Æ¡n hÃ ng tá»‘i Ä‘a" });
+                        return BadRequest(new { message = "Đơn hàng tối thiểu không thể lớn hơn đơn hàng tối đa" });
                     }
                     
-                    // Äáº£m báº£o SaleStart vÃ  SaleEnd cÃ³ giÃ¡ trá»‹ há»£p lá»‡
+                    // Đảm bảo SaleStart và SaleEnd có giá trị hợp lệ
                     var saleStart = ticketTypeRequest.SaleStart;
                     var saleEnd = ticketTypeRequest.SaleEnd;
                     
-                    // Náº¿u SaleStart hoáº·c SaleEnd khÃ´ng há»£p lá»‡, sá»­ dá»¥ng giÃ¡ trá»‹ máº·c Ä‘á»‹nh
+                    // Nếu SaleStart hoặc SaleEnd không hợp lệ, sử dụng giá trị mặc định
                     if (saleStart == DateTime.MinValue)
                     {
                         saleStart = DateTime.UtcNow;
@@ -966,7 +981,7 @@ namespace TheGrind5_EventManagement.Controllers
                     
                     if (saleEnd == DateTime.MinValue || saleEnd <= saleStart)
                     {
-                        saleEnd = saleStart.AddDays(30); // 30 ngÃ y sau SaleStart
+                        saleEnd = saleStart.AddDays(30); // 30 ngày sau SaleStart
                     }
                     
                     var ticketType = new TicketType
@@ -988,13 +1003,13 @@ namespace TheGrind5_EventManagement.Controllers
                     newTicketTypes.Add(ticketType);
                 }
                 
-                // ThÃªm ticket types má»›i vÃ o event
+                // Thêm ticket types mới vào event
                 if (existingEvent == null)
                 {
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
                 }
                 
-                // Äáº£m báº£o TicketTypes collection Ä‘Æ°á»£c khá»Ÿi táº¡o
+                // Đảm bảo TicketTypes collection được khởi tạo
                 if (existingEvent.TicketTypes == null)
                 {
                     existingEvent.TicketTypes = new List<TicketType>();
@@ -1027,7 +1042,7 @@ namespace TheGrind5_EventManagement.Controllers
 
                 return Ok(new EventCreationResponse(
                     eventId,
-                    "BÆ°á»›c 2: Thá»i gian vÃ  loáº¡i vÃ© Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t thÃ nh cÃ´ng",
+                    "Bước 2: Thời gian và loại vé đã được cập nhật thành công",
                     true
                 ));
             }
@@ -1040,7 +1055,7 @@ namespace TheGrind5_EventManagement.Controllers
                 {
                     Console.WriteLine($"InnerException: {ex.InnerException.Message}");
                 }
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t sá»± kiá»‡n bÆ°á»›c 2", error = ex.Message, stackTrace = ex.StackTrace });
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 2", error = ex.Message, stackTrace = ex.StackTrace });
             }
         }
 
@@ -1056,21 +1071,21 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
                 Console.WriteLine($"UserId: {userId}");
 
-                // Kiá»ƒm tra quyá»n sá»Ÿ há»¯u event
+                // Kiểm tra quyền sở hữu event
                 var existingEvent = await _eventService.GetEventByIdAsync(eventId);
                 if (existingEvent == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 if (existingEvent.HostId != userId.Value)
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n chá»‰nh sá»­a sá»± kiá»‡n nÃ y");
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
 
                 Console.WriteLine($"Event found: {existingEvent.Title}");
 
-                // LÆ°u venue layout vÃ o event
+                // Lưu venue layout vào event
                 if (request.VenueLayout != null)
                 {
                     Console.WriteLine($"Saving venue layout with HasVirtualStage: {request.VenueLayout.HasVirtualStage}");
@@ -1090,7 +1105,7 @@ namespace TheGrind5_EventManagement.Controllers
 
                 return Ok(new EventCreationResponse(
                     eventId,
-                    "BÆ°á»›c 3: SÃ¢n kháº¥u áº£o Ä‘Ã£ Ä‘Æ°á»£c lÆ°u thÃ nh cÃ´ng",
+                    "Bước 3: Sân khấu ảo đã được lưu thành công",
                     true
                 ));
             }
@@ -1098,7 +1113,7 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 Console.WriteLine($"Error in UpdateEventStep3: {ex.Message}");
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t sá»± kiá»‡n bÆ°á»›c 3", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 3", error = ex.Message });
             }
         }
 
@@ -1120,115 +1135,115 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
-                // Kiá»ƒm tra quyá»n sá»Ÿ há»¯u event
+                // Kiểm tra quyền sở hữu event
                 var existingEvent = await _eventService.GetEventByIdAsync(eventId);
                 if (existingEvent == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 if (existingEvent.HostId != userId.Value)
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n chá»‰nh sá»­a sá»± kiá»‡n nÃ y");
+                    return Forbid("Bạn không có quyền chỉnh sửa sự kiện này");
 
                 Console.WriteLine($"Event found: {existingEvent.Title}");
 
-                // VALIDATION: Kiá»ƒm tra xem táº¥t cáº£ 5 bÆ°á»›c Ä‘Ã£ Ä‘Æ°á»£c hoÃ n thÃ nh chÆ°a
+                // VALIDATION: Kiểm tra xem tất cả 5 bước đã được hoàn thành chưa
                 var validationErrors = new List<string>();
 
-                // BÆ°á»›c 1: Kiá»ƒm tra thÃ´ng tin cÆ¡ báº£n
+                // Bước 1: Kiểm tra thông tin cơ bản
                 if (string.IsNullOrWhiteSpace(existingEvent.Title))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tÃªn sá»± kiá»‡n (Title)");
+                    validationErrors.Add("Bước 1: Thiếu tên sự kiện (Title)");
                 
                 if (string.IsNullOrWhiteSpace(existingEvent.Description))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u mÃ´ táº£ sá»± kiá»‡n (Description)");
+                    validationErrors.Add("Bước 1: Thiếu mô tả sự kiện (Description)");
                 
                 if (string.IsNullOrWhiteSpace(existingEvent.Category))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u danh má»¥c sá»± kiá»‡n (Category)");
+                    validationErrors.Add("Bước 1: Thiếu danh mục sự kiện (Category)");
                 
                 if (string.IsNullOrWhiteSpace(existingEvent.EventMode))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u cháº¿ Ä‘á»™ sá»± kiá»‡n (EventMode)");
+                    validationErrors.Add("Bước 1: Thiếu chế độ sự kiện (EventMode)");
 
-                // Kiá»ƒm tra thÃ´ng tin Ä‘á»‹a chá»‰ tÃ¹y thuá»™c vÃ o EventMode
+                // Kiểm tra thông tin địa chỉ tùy thuộc vào EventMode
                 var eventDetails = existingEvent.GetEventDetails();
                 if (existingEvent.EventMode == "Offline")
                 {
                     if (string.IsNullOrWhiteSpace(eventDetails?.VenueName))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tÃªn Ä‘á»‹a Ä‘iá»ƒm (VenueName) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu tên địa điểm (VenueName) cho sự kiện Offline");
                     
                     if (string.IsNullOrWhiteSpace(eventDetails?.Province))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tá»‰nh/thÃ nh phá»‘ (Province) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu tỉnh/thành phố (Province) cho sự kiện Offline");
                     
                     if (string.IsNullOrWhiteSpace(eventDetails?.StreetAddress))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u Ä‘á»‹a chá»‰ Ä‘Æ°á»ng (StreetAddress) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu địa chỉ đường (StreetAddress) cho sự kiện Offline");
                     
                     if (string.IsNullOrWhiteSpace(existingEvent.Location))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u Ä‘á»‹a chá»‰ Ä‘áº§y Ä‘á»§ (Location) cho sá»± kiá»‡n Offline");
+                        validationErrors.Add("Bước 1: Thiếu địa chỉ đầy đủ (Location) cho sự kiện Offline");
                 }
                 else if (existingEvent.EventMode == "Online")
                 {
                     if (string.IsNullOrWhiteSpace(existingEvent.Location))
-                        validationErrors.Add("BÆ°á»›c 1: Thiáº¿u link sá»± kiá»‡n (Location) cho sá»± kiá»‡n Online");
+                        validationErrors.Add("Bước 1: Thiếu link sự kiện (Location) cho sự kiện Online");
                 }
 
-                // Kiá»ƒm tra thÃ´ng tin tá»• chá»©c
+                // Kiểm tra thông tin tổ chức
                 var organizerInfo = existingEvent.GetOrganizerInfo();
                 if (string.IsNullOrWhiteSpace(organizerInfo?.OrganizerName))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u tÃªn tá»• chá»©c (OrganizerName)");
+                    validationErrors.Add("Bước 1: Thiếu tên tổ chức (OrganizerName)");
                 
                 if (string.IsNullOrWhiteSpace(organizerInfo?.OrganizerInfo))
-                    validationErrors.Add("BÆ°á»›c 1: Thiáº¿u thÃ´ng tin tá»• chá»©c (OrganizerInfo)");
+                    validationErrors.Add("Bước 1: Thiếu thông tin tổ chức (OrganizerInfo)");
 
-                // BÆ°á»›c 2: Kiá»ƒm tra thá»i gian vÃ  loáº¡i vÃ©
+                // Bước 2: Kiểm tra thời gian và loại vé
                 if (existingEvent.StartTime == default || existingEvent.StartTime == DateTime.MinValue)
-                    validationErrors.Add("BÆ°á»›c 2: Thiáº¿u thá»i gian báº¯t Ä‘áº§u (StartTime)");
+                    validationErrors.Add("Bước 2: Thiếu thời gian bắt đầu (StartTime)");
                 
                 if (existingEvent.EndTime == default || existingEvent.EndTime == DateTime.MinValue)
-                    validationErrors.Add("BÆ°á»›c 2: Thiáº¿u thá»i gian káº¿t thÃºc (EndTime)");
+                    validationErrors.Add("Bước 2: Thiếu thời gian kết thúc (EndTime)");
                 
                 if (existingEvent.StartTime != default && existingEvent.EndTime != default && existingEvent.StartTime >= existingEvent.EndTime)
-                    validationErrors.Add("BÆ°á»›c 2: Thá»i gian báº¯t Ä‘áº§u pháº£i nhá» hÆ¡n thá»i gian káº¿t thÃºc");
+                    validationErrors.Add("Bước 2: Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc");
                 
-                // Kiá»ƒm tra ticket types
+                // Kiểm tra ticket types
                 if (existingEvent.TicketTypes == null || !existingEvent.TicketTypes.Any())
-                    validationErrors.Add("BÆ°á»›c 2: Thiáº¿u loáº¡i vÃ© (cáº§n Ã­t nháº¥t má»™t loáº¡i vÃ©)");
+                    validationErrors.Add("Bước 2: Thiếu loại vé (cần ít nhất một loại vé)");
                 else
                 {
-                    // Kiá»ƒm tra tá»«ng loáº¡i vÃ© cÃ³ Ä‘áº§y Ä‘á»§ thÃ´ng tin khÃ´ng
+                    // Kiểm tra từng loại vé có đầy đủ thông tin không
                     int ticketIndex = 0;
                     foreach (var ticketType in existingEvent.TicketTypes)
                     {
                         int i = ticketIndex++;
                         if (string.IsNullOrWhiteSpace(ticketType.TypeName))
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} thiáº¿u tÃªn (TypeName)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} thiếu tên (TypeName)");
                         
                         if (ticketType.Price < 0)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ giÃ¡ khÃ´ng há»£p lá»‡ (Price)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có giá không hợp lệ (Price)");
                         
                         if (ticketType.Quantity < 0)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ sá»‘ lÆ°á»£ng khÃ´ng há»£p lá»‡ (Quantity)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có số lượng không hợp lệ (Quantity)");
                         
                         if (ticketType.MinOrder < 1)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ Ä‘Æ¡n hÃ ng tá»‘i thiá»ƒu khÃ´ng há»£p lá»‡ (MinOrder)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có đơn hàng tối thiểu không hợp lệ (MinOrder)");
                         
                         if (ticketType.MaxOrder < 1)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ Ä‘Æ¡n hÃ ng tá»‘i Ä‘a khÃ´ng há»£p lá»‡ (MaxOrder)");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có đơn hàng tối đa không hợp lệ (MaxOrder)");
                         
                         if (ticketType.MinOrder > ticketType.MaxOrder)
-                            validationErrors.Add($"BÆ°á»›c 2: Loáº¡i vÃ© {i + 1} cÃ³ MinOrder lá»›n hÆ¡n MaxOrder");
+                            validationErrors.Add($"Bước 2: Loại vé {i + 1} có MinOrder lớn hơn MaxOrder");
                     }
                 }
 
-                // BÆ°á»›c 3: Virtual Stage - Optional, khÃ´ng báº¯t buá»™c
-                // KhÃ´ng cáº§n validation
+                // Bước 3: Virtual Stage - Optional, không bắt buộc
+                // Không cần validation
 
-                // BÆ°á»›c 5 (Step 4 trong backend): Kiá»ƒm tra thÃ´ng tin thanh toÃ¡n
+                // Bước 5 (Step 4 trong backend): Kiểm tra thông tin thanh toán
                 if (string.IsNullOrWhiteSpace(request.PaymentMethod))
-                    validationErrors.Add("BÆ°á»›c 5: Thiáº¿u phÆ°Æ¡ng thá»©c thanh toÃ¡n (PaymentMethod)");
+                    validationErrors.Add("Bước 5: Thiếu phương thức thanh toán (PaymentMethod)");
                 
                 if (string.IsNullOrWhiteSpace(request.BankAccount))
-                    validationErrors.Add("BÆ°á»›c 5: Thiáº¿u thÃ´ng tin tÃ i khoáº£n ngÃ¢n hÃ ng (BankAccount)");
+                    validationErrors.Add("Bước 5: Thiếu thông tin tài khoản ngân hàng (BankAccount)");
 
-                // Náº¿u cÃ³ lá»—i validation, khÃ´ng cho phÃ©p kÃ­ch hoáº¡t event
+                // Nếu có lỗi validation, không cho phép kích hoạt event
                 if (validationErrors.Any())
                 {
                     Console.WriteLine("=== Validation Failed ===");
@@ -1238,20 +1253,20 @@ namespace TheGrind5_EventManagement.Controllers
                     }
                     
                     return BadRequest(new { 
-                        message = "KhÃ´ng thá»ƒ kÃ­ch hoáº¡t sá»± kiá»‡n. Vui lÃ²ng hoÃ n thÃ nh táº¥t cáº£ cÃ¡c bÆ°á»›c báº¯t buá»™c.",
+                        message = "Không thể kích hoạt sự kiện. Vui lòng hoàn thành tất cả các bước bắt buộc.",
                         errors = validationErrors,
                         completed = false
                     });
                 }
 
-                // Náº¿u táº¥t cáº£ validation Ä‘á»u pass, má»›i Ä‘Æ°á»£c kÃ­ch hoáº¡t event
+                // Nếu tất cả validation đều pass, mới được kích hoạt event
                 Console.WriteLine("=== All Validations Passed - Activating Event ===");
 
-                // Cáº­p nháº­t thÃ´ng tin thanh toÃ¡n vÃ  chuyá»ƒn status thÃ nh Open
+                // Cập nhật thông tin thanh toán và chuyển status thành Open
                 existingEvent.Status = "Open";
                 existingEvent.UpdatedAt = DateTime.UtcNow;
                 
-                // LÆ°u thÃ´ng tin thanh toÃ¡n vÃ o Description hoáº·c táº¡o field riÃªng
+                // Lưu thông tin thanh toán vào Description hoặc tạo field riêng
                 var paymentInfo = $"Payment Method: {request.PaymentMethod}\n" +
                                 $"Bank Account: {request.BankAccount}\n" +
                                 $"Tax Info: {request.TaxInfo}";
@@ -1260,17 +1275,17 @@ namespace TheGrind5_EventManagement.Controllers
                 
                 await _eventService.UpdateEventAsync(eventId, existingEvent);
 
-                Console.WriteLine("Step 4 update successful - Event activated");
+                Console.WriteLine("Step 4 update successful - Event kích hoạt thành công");
 
                 return Ok(new EventCreationResponse(
                     eventId,
-                    "BÆ°á»›c 4: ThÃ´ng tin thanh toÃ¡n Ä‘Ã£ Ä‘Æ°á»£c lÆ°u vÃ  sá»± kiá»‡n Ä‘Ã£ Ä‘Æ°á»£c kÃ­ch hoáº¡t thÃ nh cÃ´ng!",
+                    "Bước 4: Thông tin thanh toán đã được lưu và sự kiện đã được kích hoạt thành công!",
                     true
                 ));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t sá»± kiá»‡n bÆ°á»›c 4", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi cập nhật sự kiện bước 4", error = ex.Message });
             }
         }
 
@@ -1282,14 +1297,14 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 var userId = GetUserIdFromToken();
                 if (userId == null)
-                    return Unauthorized(new { message = "Token khÃ´ng há»£p lá»‡" });
+                    return Unauthorized(new { message = "Token không hợp lệ" });
 
                 var eventData = await _eventService.GetEventByIdAsync(eventId);
                 if (eventData == null)
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n" });
+                    return NotFound(new { message = "Không tìm thấy sự kiện" });
 
                 if (eventData.HostId != userId.Value)
-                    return Forbid("Báº¡n khÃ´ng cÃ³ quyá»n xem sá»± kiá»‡n nÃ y");
+                    return Forbid("Bạn không có quyền xem sự kiện này");
 
                 var response = new
                 {
@@ -1307,7 +1322,7 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi láº¥y tráº¡ng thÃ¡i táº¡o sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi lấy trạng thái tạo sự kiện", error = ex.Message });
             }
         }
 
@@ -1318,14 +1333,14 @@ namespace TheGrind5_EventManagement.Controllers
             try
             {
                 if (file == null || file.Length == 0)
-                    return BadRequest(new { message = "KhÃ´ng cÃ³ file Ä‘Æ°á»£c chá»n" });
+                    return BadRequest(new { message = "Không có file được chọn" });
 
                 var imageUrl = await _fileManagementService.SaveEventImageAsync(file);
                 
                 return Ok(new { 
                     success = true, 
                     imageUrl = imageUrl,
-                    message = "Upload áº£nh thÃ nh cÃ´ng" 
+                    message = "Upload ảnh thành công" 
                 });
             }
             catch (ArgumentException ex)
@@ -1334,7 +1349,7 @@ namespace TheGrind5_EventManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi upload áº£nh", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi upload ảnh", error = ex.Message });
             }
         }
 
@@ -1349,12 +1364,12 @@ namespace TheGrind5_EventManagement.Controllers
                 return Ok(new { 
                     success = true, 
                     deletedCount = deletedCount,
-                    message = $"ÄÃ£ xÃ³a {deletedCount} áº£nh khÃ´ng sá»­ dá»¥ng" 
+                    message = $"Đã xóa {deletedCount} ảnh không sử dụng" 
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "CÃ³ lá»—i xáº£y ra khi dá»n dáº¹p áº£nh", error = ex.Message });
+                return BadRequest(new { message = "Có lỗi xảy ra khi dọn dẹp ảnh không sử dụng", error = ex.Message });
             }
         }
 
@@ -1365,4 +1380,5 @@ namespace TheGrind5_EventManagement.Controllers
         }
     }
 }
+
 

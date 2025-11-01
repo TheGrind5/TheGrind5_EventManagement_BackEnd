@@ -74,3 +74,25 @@ _ReSharper*/
 src/secrets.json
 src/appsettings.Secrets.json
 !src/secrets.json.example
+
+# Frontend files - should be in separate FrontEnd repository
+src/App.js
+src/index.js
+src/index.css
+src/setupTests.js
+src/components/
+src/pages/
+src/contexts/
+src/hooks/
+src/config/
+src/__tests__/
+src/utils/
+src/constants/index.js
+src/services/*.js
+package.json
+package-lock.json
+jest.config.js
+public/
+start_frontend.bat
+run-frontend-tests.bat
+TheGrind5_EventManagement_FrontEnd/

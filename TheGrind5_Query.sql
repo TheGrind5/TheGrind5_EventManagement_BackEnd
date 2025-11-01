@@ -119,6 +119,13 @@ CREATE TABLE Payment(
     Method VARCHAR(50) NOT NULL,
     Status VARCHAR(16) NOT NULL DEFAULT 'Initiated' CHECK (Status IN ('Initiated','Succeeded','Failed','Refunded')),
     PaymentDate DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    -- VNPay specific fields
+    TransactionId NVARCHAR(100) NULL,         -- Mã giao dịch từ VNPay (vnp_TransactionNo)
+    VnpTxnRef NVARCHAR(100) NULL,             -- Mã tham chiếu VNPay (vnp_TxnRef)
+    ResponseCode NVARCHAR(10) NULL,           -- Mã phản hồi từ VNPay (vnp_ResponseCode)
+    TransactionStatus NVARCHAR(10) NULL,      -- Mã trạng thái VNPay (vnp_TransactionStatus)
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0) NULL,
     CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId) ON DELETE CASCADE
 );
 
@@ -213,6 +220,8 @@ CREATE INDEX IX_OrderItem_TicketTypeId ON OrderItem(TicketTypeId);
 CREATE INDEX IX_Ticket_TicketTypeId ON Ticket(TicketTypeId);
 CREATE INDEX IX_Ticket_OrderItemId ON Ticket(OrderItemId);
 CREATE INDEX IX_Payment_OrderId ON Payment(OrderId);
+CREATE INDEX IX_Payment_TransactionId ON Payment(TransactionId);
+CREATE INDEX IX_Payment_VnpTxnRef ON Payment(VnpTxnRef);
 CREATE INDEX IX_Wishlist_UserId ON Wishlist(UserId);
 CREATE INDEX IX_Wishlist_TicketTypeId ON Wishlist(TicketTypeId);
 CREATE INDEX IX_Wishlist_AddedAt ON Wishlist(AddedAt);
@@ -262,6 +271,17 @@ CREATE TABLE [Notification](
     CONSTRAINT FK_Notification_User_UserId FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE
 );
 
+-- AISuggestion table for storing AI suggestion history
+CREATE TABLE AISuggestion(
+    SuggestionId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    SuggestionType NVARCHAR(MAX) NOT NULL CHECK (SuggestionType IN ('EventRecommendation','ChatbotQA','PricingSuggestion','ContentGeneration')),
+    RequestData NVARCHAR(MAX) NULL, -- JSON string: Request data for the AI suggestion
+    ResponseData NVARCHAR(MAX) NULL, -- JSON string: Response data from AI
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_AISuggestion_User_UserId FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE NO ACTION
+);
+
 -- Additional indexes for new tables
 CREATE INDEX IX_WalletTransaction_UserId ON WalletTransaction(UserId);
 CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
@@ -271,6 +291,8 @@ CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
 CREATE INDEX IX_Notification_UserId ON [Notification](UserId);
 CREATE INDEX IX_Notification_IsRead ON [Notification](IsRead);
 CREATE INDEX IX_Notification_CreatedAt ON [Notification](CreatedAt);
+CREATE INDEX IX_AISuggestion_UserId ON AISuggestion(UserId);
+CREATE INDEX IX_AISuggestion_CreatedAt ON AISuggestion(CreatedAt);
 
 -- Indexes for Event table (simplified)
 CREATE INDEX IX_Event_EventMode ON Event(EventMode);

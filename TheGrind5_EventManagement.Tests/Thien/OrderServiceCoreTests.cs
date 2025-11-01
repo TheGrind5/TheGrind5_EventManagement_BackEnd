@@ -8,6 +8,8 @@ using TheGrind5_EventManagement.Data;
 using TheGrind5_EventManagement.Repositories;
 using TheGrind5_EventManagement.Mappers;
 using TheGrind5_EventManagement.Business;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace TheGrind5_EventManagement.Tests.Thien
 {
@@ -23,6 +25,8 @@ namespace TheGrind5_EventManagement.Tests.Thien
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderMapper _orderMapper;
         private readonly ITicketService _ticketService;
+        private readonly IVoucherService _voucherService;
+        private readonly INotificationService _notificationService;
 
         public OrderServiceTests()
         {
@@ -38,8 +42,11 @@ namespace TheGrind5_EventManagement.Tests.Thien
             _orderRepository = new OrderRepository(_context);
             _orderMapper = new OrderMapper();
             _ticketService = new TicketService(_context);
+            _voucherService = new VoucherService(_context);
+            var mockLogger = new Mock<ILogger<NotificationService>>();
+            _notificationService = new NotificationService(_context, mockLogger.Object);
             
-            _orderService = new OrderService(_orderRepository, _orderMapper, _ticketService, _context);
+            _orderService = new OrderService(_orderRepository, _orderMapper, _ticketService, _voucherService, _notificationService, _context);
             
             // Seed test data
             SeedTestData();

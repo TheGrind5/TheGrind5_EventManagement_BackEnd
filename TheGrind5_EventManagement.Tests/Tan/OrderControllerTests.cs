@@ -11,7 +11,7 @@ using TheGrind5_EventManagement.Services;
 using TheGrind5_EventManagement.Business;
 using TheGrind5_EventManagement.DTOs;
 
-namespace TheGrind5_EventManagement.Tests.UnitTests
+namespace TheGrind5_EventManagement.Tests.Tan
 {
     public class OrderControllerTests
     {

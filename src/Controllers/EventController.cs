@@ -35,12 +35,14 @@ namespace TheGrind5_EventManagement.Controllers
             [FromQuery] DateTime? startDate = null,
             [FromQuery] DateTime? endDate = null,
             [FromQuery] string? status = null,
+            [FromQuery] string? location = null,
+            [FromQuery] string? city = null,
             [FromQuery] int page = 1, 
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                Console.WriteLine($"Getting events - SearchTerm: {searchTerm}, Category: {category}, Page: {page}, PageSize: {pageSize}");
+                Console.WriteLine($"Getting events - SearchTerm: {searchTerm}, Category: {category}, Location: {location}, City: {city}, Page: {page}, PageSize: {pageSize}");
                 
                 // Create search request
                 var searchRequest = new EventSearchRequest
@@ -51,6 +53,8 @@ namespace TheGrind5_EventManagement.Controllers
                     StartDate = startDate,
                     EndDate = endDate,
                     Status = status,
+                    Location = location,
+                    City = city,
                     Page = page,
                     PageSize = pageSize
                 };

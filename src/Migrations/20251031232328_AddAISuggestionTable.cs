@@ -11,36 +11,55 @@ namespace TheGrind5_EventManagement.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "EventReport");
+            // Xóa bảng EventReport nếu tồn tại
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'EventReport')
+                BEGIN
+                    DROP TABLE [EventReport];
+                END
+            ");
 
-            migrationBuilder.CreateTable(
-                name: "AISuggestion",
-                columns: table => new
-                {
-                    SuggestionId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    SuggestionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RequestData = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ResponseData = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AISuggestion", x => x.SuggestionId);
-                    table.ForeignKey(
-                        name: "FK_AISuggestion_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "UserID",
-                        onDelete: ReferentialAction.Restrict);
-                });
+            // Kiểm tra và tạo bảng AISuggestion nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AISuggestion')
+                BEGIN
+                    CREATE TABLE [AISuggestion] (
+                        [SuggestionId] int NOT NULL IDENTITY(1,1),
+                        [UserId] int NOT NULL,
+                        [SuggestionType] nvarchar(max) NOT NULL,
+                        [RequestData] nvarchar(max) NULL,
+                        [ResponseData] nvarchar(max) NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        CONSTRAINT [PK_AISuggestion] PRIMARY KEY ([SuggestionId])
+                    );
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AISuggestion_UserId",
-                table: "AISuggestion",
-                column: "UserId");
+            // Kiểm tra và tạo Foreign Key nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                    WHERE TABLE_NAME = 'AISuggestion' 
+                    AND CONSTRAINT_NAME = 'FK_AISuggestion_User_UserId'
+                )
+                BEGIN
+                    ALTER TABLE [AISuggestion]
+                    ADD CONSTRAINT [FK_AISuggestion_User_UserId] 
+                    FOREIGN KEY ([UserId]) REFERENCES [User] ([UserID]) ON DELETE NO ACTION;
+                END
+            ");
+
+            // Kiểm tra và tạo Index nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM sys.indexes 
+                    WHERE name = 'IX_AISuggestion_UserId' 
+                    AND object_id = OBJECT_ID('AISuggestion')
+                )
+                BEGIN
+                    CREATE INDEX [IX_AISuggestion_UserId] ON [AISuggestion] ([UserId]);
+                END
+            ");
         }
 
         /// <inheritdoc />

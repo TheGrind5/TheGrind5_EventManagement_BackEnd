@@ -40,144 +40,150 @@ namespace TheGrind5_EventManagement.Services
 
         public async Task<CreateOrderResponseDTO> CreateOrderAsync(CreateOrderRequestDTO request, int customerId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // Sử dụng execution strategy để hỗ trợ retry với transaction
+            var strategy = _context.Database.CreateExecutionStrategy();
+            
+            return await strategy.ExecuteAsync(async () =>
             {
-                // Validate request
-                if (request.Quantity <= 0)
-                    throw new ArgumentException("Quantity must be greater than 0");
-
-                // Check if ticket type exists before lock
-                var ticketTypeExists = await _context.TicketTypes
-                    .AnyAsync(tt => tt.TicketTypeId == request.TicketTypeId);
-                
-                if (!ticketTypeExists)
-                {
-                    throw new ArgumentException($"Ticket type {request.TicketTypeId} not found in database");
-                }
-
-                // 🔒 CRITICAL FIX: Lock ticket type row để tránh race condition
-                var ticketType = await _context.TicketTypes
-                    .FromSqlRaw("SELECT * FROM TicketType WITH (UPDLOCK, ROWLOCK) WHERE TicketTypeId = {0}", request.TicketTypeId)
-                    .Include(tt => tt.Event)
-                    .FirstOrDefaultAsync();
-
-                
-                if (ticketType == null)
-                    throw new ArgumentException("Ticket type not found");
-
-                // Kiểm tra event có tồn tại không
-                if (ticketType.Event == null)
-                    throw new ArgumentException("Event not found");
-
-                // BUSINESS VALIDATION - Kiểm tra event status
-                if (ticketType.Event.Status != "Open")
-                    throw new ArgumentException($"Event is not available for booking. Current status: {ticketType.Event.Status}");
-
-                // BUSINESS VALIDATION - Kiểm tra ticket type status
-                if (ticketType.Status != "Active")
-                    throw new ArgumentException("Ticket type is not active");
-
-                // BUSINESS VALIDATION - Kiểm tra thời gian bán vé
-                var now = DateTime.Now;
-                if (now < ticketType.SaleStart)
-                    throw new ArgumentException($"Ticket sales have not started yet. Sales start at: {ticketType.SaleStart:yyyy-MM-dd HH:mm}");
-                
-                if (now > ticketType.SaleEnd)
-                    throw new ArgumentException($"Ticket sales have ended. Sales ended at: {ticketType.SaleEnd:yyyy-MM-dd HH:mm}");
-
-                // BUSINESS VALIDATION - Kiểm tra MinOrder/MaxOrder
-                if (ticketType.MinOrder.HasValue && request.Quantity < ticketType.MinOrder.Value)
-                    throw new ArgumentException($"Minimum order quantity is {ticketType.MinOrder.Value}");
-
-                if (ticketType.MaxOrder.HasValue && request.Quantity > ticketType.MaxOrder.Value)
-                    throw new ArgumentException($"Maximum order quantity is {ticketType.MaxOrder.Value}");
-
-                // 🔒 CRITICAL FIX: Kiểm tra inventory với lock để tránh race condition
-                var availableQuantity = await GetAvailableQuantityWithLockAsync(ticketType.TicketTypeId);
-                if (request.Quantity > availableQuantity)
-                    throw new ArgumentException($"Not enough tickets available. Available: {availableQuantity}, Requested: {request.Quantity}");
-
-                // Tính toán giá (subtotal)
-                var unitPrice = ticketType.Price;
-                var subTotalAmount = unitPrice * request.Quantity;
-
-                // Validate và tính discount nếu có voucher
-                var discountAmount = 0m;
-                if (!string.IsNullOrWhiteSpace(request.VoucherCode))
-                {
-                    var voucherRequest = new VoucherValidationRequest
-                    {
-                        VoucherCode = request.VoucherCode,
-                        OriginalAmount = subTotalAmount
-                    };
-                    
-                    var voucherValidation = await _voucherService.ValidateVoucherAsync(voucherRequest);
-                    
-                    if (!voucherValidation.IsValid)
-                        throw new ArgumentException(voucherValidation.Message);
-                    
-                    discountAmount = voucherValidation.DiscountAmount;
-                }
-
-                // Tính tổng cuối cùng = subtotal - discount
-                var totalAmount = subTotalAmount - discountAmount;
-                if (totalAmount < 0) totalAmount = 0;
-
-                // Tạo order từ request
-                var order = _orderMapper.MapFromCreateOrderRequest(request, customerId);
-                
-                // Set giá và voucher cho order
-                order.Amount = totalAmount;
-                order.DiscountAmount = discountAmount;
-                order.VoucherCode = request.VoucherCode;
-
-                // 🔒 CRITICAL FIX: Tạo order trong transaction với lock
-                var createdOrder = await _orderRepository.CreateOrderAsync(order);
-
-                // 🔒 CRITICAL FIX: Final inventory check trước khi commit
-                // Lưu ý: Không cần kiểm tra lại inventory vì order đã được tạo và inventory đã được reserve
-                // Việc kiểm tra inventory đã được thực hiện trước khi tạo order
-
-                // Load ticket type info cho response
-                await _context.Entry(createdOrder)
-                    .Collection(o => o.OrderItems)
-                    .LoadAsync();
-                    
-                if (createdOrder.OrderItems.Any()) // Kiểm tra nếu có order items
-                {
-                    var orderItem = createdOrder.OrderItems.First(); // Lấy order item đầu tiên
-                    await _context.Entry(orderItem)
-                        .Reference(oi => oi.TicketType)
-                        .LoadAsync();
-                        
-                    await _context.Entry(orderItem.TicketType)
-                        .Reference(tt => tt.Event)
-                        .LoadAsync();
-                }
-
-                // Commit transaction
-                await transaction.CommitAsync();
-
-                // 🔔 Tạo notification sau khi tạo order thành công
+                using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    await _notificationService.CreateOrderConfirmationNotificationAsync(customerId, createdOrder.OrderId);
-                }
-                catch (Exception notifEx)
-                {
-                    // Log lỗi nhưng không fail toàn bộ order creation
-                    Console.WriteLine($"⚠️ Lỗi khi tạo notification cho order {createdOrder.OrderId}: {notifEx.Message}");
-                }
+                    // Validate request
+                    if (request.Quantity <= 0)
+                        throw new ArgumentException("Quantity must be greater than 0");
 
-                // Map thành response DTO
-                return _orderMapper.MapToCreateOrderResponse(createdOrder);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                throw new Exception($"Error creating order: {ex.Message}", ex);
-            }
+                    // Check if ticket type exists before lock
+                    var ticketTypeExists = await _context.TicketTypes
+                        .AnyAsync(tt => tt.TicketTypeId == request.TicketTypeId);
+                    
+                    if (!ticketTypeExists)
+                    {
+                        throw new ArgumentException($"Ticket type {request.TicketTypeId} not found in database");
+                    }
+
+                    // 🔒 CRITICAL FIX: Lock ticket type row để tránh race condition
+                    var ticketType = await _context.TicketTypes
+                        .FromSqlRaw("SELECT * FROM TicketType WITH (UPDLOCK, ROWLOCK) WHERE TicketTypeId = {0}", request.TicketTypeId)
+                        .Include(tt => tt.Event)
+                        .FirstOrDefaultAsync();
+
+                    
+                    if (ticketType == null)
+                        throw new ArgumentException("Ticket type not found");
+
+                    // Kiểm tra event có tồn tại không
+                    if (ticketType.Event == null)
+                        throw new ArgumentException("Event not found");
+
+                    // BUSINESS VALIDATION - Kiểm tra event status
+                    if (ticketType.Event.Status != "Open")
+                        throw new ArgumentException($"Event is not available for booking. Current status: {ticketType.Event.Status}");
+
+                    // BUSINESS VALIDATION - Kiểm tra ticket type status
+                    if (ticketType.Status != "Active")
+                        throw new ArgumentException("Ticket type is not active");
+
+                    // BUSINESS VALIDATION - Kiểm tra thời gian bán vé
+                    var now = DateTime.Now;
+                    if (now < ticketType.SaleStart)
+                        throw new ArgumentException($"Ticket sales have not started yet. Sales start at: {ticketType.SaleStart:yyyy-MM-dd HH:mm}");
+                    
+                    if (now > ticketType.SaleEnd)
+                        throw new ArgumentException($"Ticket sales have ended. Sales ended at: {ticketType.SaleEnd:yyyy-MM-dd HH:mm}");
+
+                    // BUSINESS VALIDATION - Kiểm tra MinOrder/MaxOrder
+                    if (ticketType.MinOrder.HasValue && request.Quantity < ticketType.MinOrder.Value)
+                        throw new ArgumentException($"Minimum order quantity is {ticketType.MinOrder.Value}");
+
+                    if (ticketType.MaxOrder.HasValue && request.Quantity > ticketType.MaxOrder.Value)
+                        throw new ArgumentException($"Maximum order quantity is {ticketType.MaxOrder.Value}");
+
+                    // 🔒 CRITICAL FIX: Kiểm tra inventory với lock để tránh race condition
+                    var availableQuantity = await GetAvailableQuantityWithLockAsync(ticketType.TicketTypeId);
+                    if (request.Quantity > availableQuantity)
+                        throw new ArgumentException($"Not enough tickets available. Available: {availableQuantity}, Requested: {request.Quantity}");
+
+                    // Tính toán giá (subtotal)
+                    var unitPrice = ticketType.Price;
+                    var subTotalAmount = unitPrice * request.Quantity;
+
+                    // Validate và tính discount nếu có voucher
+                    var discountAmount = 0m;
+                    if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+                    {
+                        var voucherRequest = new VoucherValidationRequest
+                        {
+                            VoucherCode = request.VoucherCode,
+                            OriginalAmount = subTotalAmount
+                        };
+                        
+                        var voucherValidation = await _voucherService.ValidateVoucherAsync(voucherRequest);
+                        
+                        if (!voucherValidation.IsValid)
+                            throw new ArgumentException(voucherValidation.Message);
+                        
+                        discountAmount = voucherValidation.DiscountAmount;
+                    }
+
+                    // Tính tổng cuối cùng = subtotal - discount
+                    var totalAmount = subTotalAmount - discountAmount;
+                    if (totalAmount < 0) totalAmount = 0;
+
+                    // Tạo order từ request
+                    var order = _orderMapper.MapFromCreateOrderRequest(request, customerId);
+                    
+                    // Set giá và voucher cho order
+                    order.Amount = totalAmount;
+                    order.DiscountAmount = discountAmount;
+                    order.VoucherCode = request.VoucherCode;
+
+                    // 🔒 CRITICAL FIX: Tạo order trong transaction với lock
+                    var createdOrder = await _orderRepository.CreateOrderAsync(order);
+
+                    // 🔒 CRITICAL FIX: Final inventory check trước khi commit
+                    // Lưu ý: Không cần kiểm tra lại inventory vì order đã được tạo và inventory đã được reserve
+                    // Việc kiểm tra inventory đã được thực hiện trước khi tạo order
+
+                    // Load ticket type info cho response
+                    await _context.Entry(createdOrder)
+                        .Collection(o => o.OrderItems)
+                        .LoadAsync();
+                        
+                    if (createdOrder.OrderItems.Any()) // Kiểm tra nếu có order items
+                    {
+                        var orderItem = createdOrder.OrderItems.First(); // Lấy order item đầu tiên
+                        await _context.Entry(orderItem)
+                            .Reference(oi => oi.TicketType)
+                            .LoadAsync();
+                            
+                        await _context.Entry(orderItem.TicketType)
+                            .Reference(tt => tt.Event)
+                            .LoadAsync();
+                    }
+
+                    // Commit transaction
+                    await transaction.CommitAsync();
+
+                    // 🔔 Tạo notification sau khi tạo order thành công
+                    try
+                    {
+                        await _notificationService.CreateOrderConfirmationNotificationAsync(customerId, createdOrder.OrderId);
+                    }
+                    catch (Exception notifEx)
+                    {
+                        // Log lỗi nhưng không fail toàn bộ order creation
+                        Console.WriteLine($"⚠️ Lỗi khi tạo notification cho order {createdOrder.OrderId}: {notifEx.Message}");
+                    }
+
+                    // Map thành response DTO
+                    return _orderMapper.MapToCreateOrderResponse(createdOrder);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new Exception($"Error creating order: {ex.Message}", ex);
+                }
+            });
         }
 
         public async Task<OrderDTO?> GetOrderByIdAsync(int orderId)

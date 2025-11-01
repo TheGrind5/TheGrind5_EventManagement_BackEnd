@@ -11,64 +11,100 @@ namespace TheGrind5_EventManagement.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "EventId",
-                table: "Order",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            // Kiểm tra và thêm EventId nếu chưa tồn tại (cột có thể đã có trong TheGrind5_Query.sql)
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Order' AND COLUMN_NAME = 'EventId'
+                )
+                BEGIN
+                    ALTER TABLE [Order] ADD [EventId] int NOT NULL DEFAULT 0;
+                END
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "OrderAnswers",
-                table: "Order",
-                type: "nvarchar(max)",
-                nullable: true);
+            // Kiểm tra và thêm OrderAnswers nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Order' AND COLUMN_NAME = 'OrderAnswers'
+                )
+                BEGIN
+                    ALTER TABLE [Order] ADD [OrderAnswers] nvarchar(max) NULL;
+                END
+            ");
 
-            migrationBuilder.CreateTable(
-                name: "EventQuestion",
-                columns: table => new
-                {
-                    QuestionId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EventId = table.Column<int>(type: "int", nullable: false),
-                    QuestionText = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    QuestionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsRequired = table.Column<bool>(type: "bit", nullable: false),
-                    Options = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Placeholder = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ValidationRules = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DisplayOrder = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EventQuestion", x => x.QuestionId);
-                    table.ForeignKey(
-                        name: "FK_EventQuestion_Event_EventId",
-                        column: x => x.EventId,
-                        principalTable: "Event",
-                        principalColumn: "EventId",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            // Kiểm tra và tạo bảng EventQuestion nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'EventQuestion')
+                BEGIN
+                    CREATE TABLE [EventQuestion] (
+                        [QuestionId] int NOT NULL IDENTITY(1,1),
+                        [EventId] int NOT NULL,
+                        [QuestionText] nvarchar(500) NOT NULL,
+                        [QuestionType] nvarchar(max) NOT NULL,
+                        [IsRequired] bit NOT NULL,
+                        [Options] nvarchar(max) NULL,
+                        [Placeholder] nvarchar(max) NULL,
+                        [ValidationRules] nvarchar(max) NULL,
+                        [DisplayOrder] int NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NULL,
+                        CONSTRAINT [PK_EventQuestion] PRIMARY KEY ([QuestionId])
+                    );
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Order_EventId",
-                table: "Order",
-                column: "EventId");
+            // Kiểm tra và tạo Index cho Order.EventId nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM sys.indexes 
+                    WHERE name = 'IX_Order_EventId' 
+                    AND object_id = OBJECT_ID('Order')
+                )
+                BEGIN
+                    CREATE INDEX [IX_Order_EventId] ON [Order] ([EventId]);
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_EventQuestion_EventId",
-                table: "EventQuestion",
-                column: "EventId");
+            // Kiểm tra và tạo Index cho EventQuestion.EventId nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM sys.indexes 
+                    WHERE name = 'IX_EventQuestion_EventId' 
+                    AND object_id = OBJECT_ID('EventQuestion')
+                )
+                BEGIN
+                    CREATE INDEX [IX_EventQuestion_EventId] ON [EventQuestion] ([EventId]);
+                END
+            ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Order_Event_EventId",
-                table: "Order",
-                column: "EventId",
-                principalTable: "Event",
-                principalColumn: "EventId",
-                onDelete: ReferentialAction.Restrict);
+            // Kiểm tra và tạo Foreign Key cho EventQuestion nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                    WHERE TABLE_NAME = 'EventQuestion' 
+                    AND CONSTRAINT_NAME = 'FK_EventQuestion_Event_EventId'
+                )
+                BEGIN
+                    ALTER TABLE [EventQuestion]
+                    ADD CONSTRAINT [FK_EventQuestion_Event_EventId] 
+                    FOREIGN KEY ([EventId]) REFERENCES [Event] ([EventId]) ON DELETE CASCADE;
+                END
+            ");
+
+            // Kiểm tra và tạo Foreign Key cho Order.EventId nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                    WHERE TABLE_NAME = 'Order' 
+                    AND CONSTRAINT_NAME = 'FK_Order_Event_EventId'
+                )
+                BEGIN
+                    ALTER TABLE [Order]
+                    ADD CONSTRAINT [FK_Order_Event_EventId] 
+                    FOREIGN KEY ([EventId]) REFERENCES [Event] ([EventId]) ON DELETE NO ACTION;
+                END
+            ");
         }
 
         /// <inheritdoc />

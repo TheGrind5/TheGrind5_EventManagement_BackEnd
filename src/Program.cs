@@ -10,6 +10,11 @@ using TheGrind5_EventManagement.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Clear EventLog logging to prevent shutdown errors on Windows
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 // Load secrets.json if exists (for OAuth credentials - not committed to git)
 var secretsPath = Path.Combine(builder.Environment.ContentRootPath, "secrets.json");
 if (File.Exists(secretsPath))

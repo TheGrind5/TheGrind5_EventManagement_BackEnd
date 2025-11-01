@@ -11,42 +11,70 @@ namespace TheGrind5_EventManagement.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "CreatedAt",
-                table: "Payment",
-                type: "datetime2",
-                nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+            // Kiểm tra và thêm các cột VNPay nếu chưa tồn tại (có thể đã có trong TheGrind5_Query.sql)
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Payment' AND COLUMN_NAME = 'CreatedAt'
+                )
+                BEGIN
+                    ALTER TABLE [Payment] ADD [CreatedAt] datetime2 NOT NULL DEFAULT SYSDATETIME();
+                END
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "ResponseCode",
-                table: "Payment",
-                type: "nvarchar(max)",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Payment' AND COLUMN_NAME = 'UpdatedAt'
+                )
+                BEGIN
+                    ALTER TABLE [Payment] ADD [UpdatedAt] datetime2 NULL;
+                END
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "TransactionId",
-                table: "Payment",
-                type: "nvarchar(max)",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Payment' AND COLUMN_NAME = 'TransactionId'
+                )
+                BEGIN
+                    ALTER TABLE [Payment] ADD [TransactionId] nvarchar(max) NULL;
+                END
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "TransactionStatus",
-                table: "Payment",
-                type: "nvarchar(max)",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Payment' AND COLUMN_NAME = 'VnpTxnRef'
+                )
+                BEGIN
+                    ALTER TABLE [Payment] ADD [VnpTxnRef] nvarchar(max) NULL;
+                END
+            ");
 
-            migrationBuilder.AddColumn<DateTime>(
-                name: "UpdatedAt",
-                table: "Payment",
-                type: "datetime2",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Payment' AND COLUMN_NAME = 'ResponseCode'
+                )
+                BEGIN
+                    ALTER TABLE [Payment] ADD [ResponseCode] nvarchar(max) NULL;
+                END
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "VnpTxnRef",
-                table: "Payment",
-                type: "nvarchar(max)",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'Payment' AND COLUMN_NAME = 'TransactionStatus'
+                )
+                BEGIN
+                    ALTER TABLE [Payment] ADD [TransactionStatus] nvarchar(max) NULL;
+                END
+            ");
+
+            // Không tạo index cho TransactionId và VnpTxnRef vì chúng là nvarchar(max)
+            // SQL Server không cho phép tạo index cho nvarchar(max)
+            // Index sẽ được tạo bởi SQL script nếu cần (với cột có kích thước cụ thể)
         }
 
         /// <inheritdoc />

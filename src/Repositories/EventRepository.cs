@@ -31,13 +31,39 @@ namespace TheGrind5_EventManagement.Repositories
                 .Include(e => e.TicketTypes)
                 .AsQueryable();
 
-            // Search by term (Title or Description)
+            // Search by term (Title, Description, Location, và trong JSON fields)
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var searchTerm = request.SearchTerm.Trim().ToLower();
                 query = query.Where(e => 
                     e.Title.ToLower().Contains(searchTerm) || 
-                    (e.Description != null && e.Description.ToLower().Contains(searchTerm))
+                    (e.Description != null && e.Description.ToLower().Contains(searchTerm)) ||
+                    (e.Location != null && e.Location.ToLower().Contains(searchTerm)) ||
+                    (e.Category != null && e.Category.ToLower().Contains(searchTerm)) ||
+                    // Tìm kiếm trong JSON fields EventDetails
+                    (e.EventDetails != null && e.EventDetails.ToLower().Contains(searchTerm))
+                );
+            }
+
+            // Filter by Location
+            if (!string.IsNullOrWhiteSpace(request.Location))
+            {
+                var location = request.Location.Trim().ToLower();
+                query = query.Where(e => 
+                    (e.Location != null && e.Location.ToLower().Contains(location)) ||
+                    // Tìm trong JSON EventDetails (VenueName, Province, District, Ward, StreetAddress)
+                    (e.EventDetails != null && e.EventDetails.ToLower().Contains(location))
+                );
+            }
+
+            // Filter by City/Campus
+            if (!string.IsNullOrWhiteSpace(request.City))
+            {
+                var city = request.City.Trim().ToLower();
+                // Tìm theo tên campus hoặc province trong JSON EventDetails
+                query = query.Where(e => 
+                    (e.EventDetails != null && e.EventDetails.ToLower().Contains(city)) ||
+                    (e.Location != null && e.Location.ToLower().Contains(city))
                 );
             }
 

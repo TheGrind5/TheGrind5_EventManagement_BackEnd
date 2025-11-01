@@ -34,6 +34,8 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IEventQuestionRepository, EventQuestionRepository>();
+            services.AddScoped<IAISuggestionRepository, AISuggestionRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
             
             return services;
         }
@@ -49,6 +51,13 @@ namespace TheGrind5_EventManagement.Extensions
             services.AddScoped<IEventMapper, EventMapper>();
             services.AddScoped<IOrderMapper, OrderMapper>();
             services.AddScoped<IWishlistMapper, WishlistMapper>();
+            
+            // AI Services
+            services.AddHttpClient<IHuggingFaceService, HuggingFaceService>();
+            services.AddScoped<IAIRecommendationService, AIRecommendationService>();
+            services.AddScoped<IAIChatbotService, AIChatbotService>();
+            services.AddScoped<IAIPricingService, AIPricingService>();
+            services.AddScoped<IAIContentGenerationService, AIContentGenerationService>();
             
             return services;
         }
@@ -70,6 +79,9 @@ namespace TheGrind5_EventManagement.Extensions
             
             // Admin service
             services.AddScoped<IAdminService, AdminService>();
+            
+            // VNPay service
+            services.AddScoped<IVNPayService, VNPayService>();
 
             
             return services;

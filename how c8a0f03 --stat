@@ -1,0 +1,208 @@
+ TheGrind5_Query.sql                                |  70 [32m++[m[31m-[m
+ VIETNAM_ADMINISTRATIVE_DATA_2025.md                |  28 [31m-[m
+ .../0091c689-7bce-455f-8fb1-05933792bd99.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../02c98c45-d284-4660-b370-107be7f49a88.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../03cd5aa2-880f-4297-ad6d-e92cf6cad918.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../04090055-2959-4dff-a654-07ca74a835d1.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../04143d75-fa8b-4189-bb0e-912e74e0f4ee.jpg       | Bin [31m158298[m -> [32m0[m bytes
+ .../068a16a3-f2c1-40d3-aafd-3f878e24ee44.jpg       | Bin [31m2496805[m -> [32m0[m bytes
+ .../083b9a77-a563-4db3-a8e2-dd352ab07d19.jpg       | Bin [31m264852[m -> [32m0[m bytes
+ .../09af5e0a-1f27-4614-891d-8399068ff110.jpg       | Bin [31m369799[m -> [32m0[m bytes
+ .../0ddcca43-78de-4bbc-b4d6-667e96ba3dfb.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../0dff64e1-cab2-4647-98b2-b765fd23fd40.jpg       | Bin [31m38499[m -> [32m0[m bytes
+ .../0eee1207-9544-47fb-959d-b6d6d65859fc.jpg       | Bin [31m570237[m -> [32m0[m bytes
+ .../0f37ad58-fd8f-416a-97c5-edfb4fc2112a.jpg       | Bin [31m4335884[m -> [32m0[m bytes
+ .../10831d55-596e-4396-b3bf-90b73a899964.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../11209253-0683-4ea8-82fc-46d274fea31e.jpg       | Bin [31m211109[m -> [32m0[m bytes
+ .../116f0380-7dee-49f9-befd-a16e2e116f7e.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../12c15a6d-8919-452c-a587-b51a32b8bc82.png       | Bin [31m2183216[m -> [32m0[m bytes
+ .../12e10f57-5a75-4d31-a2a0-d185935b2b8a.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../138ad0e0-5830-4007-a0b6-2f9e142ce9c7.jpg       | Bin [31m38376[m -> [32m0[m bytes
+ .../14cd78a1-0d3b-46e2-990d-c18229c1322e.jpg       | Bin [31m157291[m -> [32m0[m bytes
+ .../154bb4d2-1cac-49de-ba17-87cfdf72ebd7.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../16c4a43b-e8d0-47d7-bd8b-7cc8d0bab0bc.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../1946be80-4dcd-42c4-bd24-135c06347c7f.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../1a60dc71-fc9e-4aea-bdbb-88519ec75e85.jpg       | Bin [31m253409[m -> [32m0[m bytes
+ .../1e40ce48-86c1-4758-a891-8a50e9046fb5.jpg       | Bin [31m264158[m -> [32m0[m bytes
+ .../1fa9373d-69fb-4fd0-b3a9-e810a02d130e.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../220a66dc-b397-421b-84a3-9f5355737d0e.png       | Bin [31m2509089[m -> [32m0[m bytes
+ .../23a2a804-42c2-4c28-8d2d-bbb71bc5e4b5.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../23ed8120-413b-4a6d-b6df-7faa8999a123.jpg       | Bin [31m191397[m -> [32m0[m bytes
+ .../256f1f64-9aab-4505-baa7-618af059552b.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../2773df59-6399-41d1-9179-a75d779607ec.jpg       | Bin [31m510570[m -> [32m0[m bytes
+ .../2abd85cb-efd2-4d40-8ff7-1dc21c28cb5f.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../2da45a76-a243-4dc1-82f4-cc5414359a66.jpg       | Bin [31m296427[m -> [32m0[m bytes
+ .../3000d65c-c7f8-4a68-8e95-7fc755487858.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../3125337f-26a3-491c-ae32-e86f0a9fe7dd.jpg       | Bin [31m245868[m -> [32m0[m bytes
+ .../33a8c731-b706-47db-8b2b-27d88eb6a318.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../368c1ca8-c680-4ae7-8479-ce4459fed908.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../3777613a-352f-4bd3-8020-11766630c31b.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../3b2f637a-93b7-448a-91c7-eb11d0d3f19f.jpg       | Bin [31m510570[m -> [32m0[m bytes
+ .../3bb04b98-b38a-47a9-b004-6fae3f3741ff.png       | Bin [31m2509089[m -> [32m0[m bytes
+ .../3bcaf0f4-0639-4bbe-aa84-b51b8802c1c2.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../3c96a2ae-a020-49f4-b0a3-1eab007d17e0.jpg       | Bin [31m316197[m -> [32m0[m bytes
+ .../3e59bb3b-065f-47f6-87b4-f0a1fda484f4.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../3eb7416b-8341-4ecc-bcbd-73f2482597e0.jpg       | Bin [31m271187[m -> [32m0[m bytes
+ .../4279a5b8-6b57-4201-aa59-6e4597f8c2a0.jpg       | Bin [31m288980[m -> [32m0[m bytes
+ .../427d0853-7b8b-44a1-80de-662d98e49a43.jpg       | Bin [31m1148775[m -> [32m0[m bytes
+ .../46df0927-9782-44cd-99b4-2ef14b244699.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../47c1eb92-cc38-47af-af88-699261cbe58d.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../47c73d19-d65a-4307-bda2-0391e577da75.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../484e29b4-457a-467d-b772-b72cd7f58552.png       | Bin [31m3923900[m -> [32m0[m bytes
+ .../4a215fdd-36ae-489b-8f5f-c1bef0ca298b.jpg       | Bin [31m395989[m -> [32m0[m bytes
+ .../4b74156a-3403-4584-b0fb-059d364033f5.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../4ec0c80f-6311-4db5-903c-f0df50650eea.jpg       | Bin [31m38499[m -> [32m0[m bytes
+ .../5202cbd1-807a-4e52-8aab-8f90c0d4eb1e.jpg       | Bin [31m264852[m -> [32m0[m bytes
+ .../522dbd6e-0095-4696-953a-be06ccf3a863.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../54b91fa1-515f-433a-a031-a412ed9a8e20.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../564e358f-6bbe-4390-9b74-44cd5d5d9a91.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../577d0814-9ae0-4c0d-a437-bb6aecd9c392.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../578a4649-671b-4450-94af-8b38c8ec782c.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../596603b2-f64b-4f76-a0e6-923a7baa4f66.jpg       | Bin [31m26785[m -> [32m0[m bytes
+ .../5a62f889-1674-40c2-9d39-37b888cbbe50.jpg       | Bin [31m412510[m -> [32m0[m bytes
+ .../5c16f17e-02c8-4061-948c-c5defd1c8c61.jpg       | Bin [31m4335884[m -> [32m0[m bytes
+ .../5c958cc1-2e0c-48e1-aa69-b572531e8922.jpg       | Bin [31m1324787[m -> [32m0[m bytes
+ .../5eb4c628-4496-417b-9389-c14098429330.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../6012dec1-42f5-41de-9c0f-6bb649e60178.jpg       | Bin [31m4335884[m -> [32m0[m bytes
+ .../602a42b2-aa4e-4bd7-8321-e917d6efe62a.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../6097d96f-3b41-42bf-aa8c-fc751f9a546c.jpg       | Bin [31m312481[m -> [32m0[m bytes
+ .../62d4ec6e-f701-4513-83a7-84fd72d0ff6a.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../64ce18dd-cfbf-4ed0-8c3c-527ce3ca12b4.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../6503f709-b716-4155-a13e-523370ecd7f6.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../6c3f6b85-4d5f-4ccd-8740-fd4d20be3fb8.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../6d16f8b3-2160-4562-8a9f-a2ab35002163.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../76ba5965-ff26-495b-ba5b-87fb311b2429.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../77659f31-e6da-4452-b699-c104e7f8ec54.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../77d6f34f-6542-46de-99f2-f3d3b54b96cd.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../792e3db6-8811-4e3a-aeb1-c07d2e96ce40.jpg       | Bin [31m224848[m -> [32m0[m bytes
+ .../7d317b1c-7408-4dc0-acb0-d7e397ebc8ac.jpg       | Bin [31m173911[m -> [32m0[m bytes
+ .../7d663b37-546a-4684-b1ab-d3ce24523401.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../8377d73f-6d44-49e3-9812-c7b3d1291c8e.jpg       | Bin [31m369799[m -> [32m0[m bytes
+ .../84076d69-9c26-4ab9-a1f5-737c004f5326.jpg       | Bin [31m290806[m -> [32m0[m bytes
+ .../85dde1a0-18c9-468b-8383-ea6b91bddc20.png       | Bin [31m2768100[m -> [32m0[m bytes
+ .../871466fe-7419-432c-85f6-7e84b7c20aa7.jpg       | Bin [31m158247[m -> [32m0[m bytes
+ .../87a177c3-95fa-4f6f-b959-5b1c25b7b1ad.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../87b67510-6c4a-45d1-b22d-e192ba6d5272.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../880a19aa-8f48-408f-bbf9-42e7608a519b.jpg       | Bin [31m4335884[m -> [32m0[m bytes
+ .../89508948-6e32-4ce7-87c1-2a5dce2772f1.jpg       | Bin [31m179722[m -> [32m0[m bytes
+ .../8a1f46eb-3d71-4077-a94a-8d04d9616bf2.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../8a1f565f-5b4d-4a37-a0f0-b7fd0c49948f.jpg       | Bin [31m224848[m -> [32m0[m bytes
+ .../8a500ef5-dbf0-4d77-8391-1e35e496bc75.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../8c2ad67f-81dc-48cc-b5dd-ab90839872fb.jpg       | Bin [31m224884[m -> [32m0[m bytes
+ .../8c4bf09b-809f-430b-af6b-1fff858a1d80.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../8d50228a-e278-40a6-ae12-fea80d5cc9ab.jpg       | Bin [31m3363599[m -> [32m0[m bytes
+ .../8dfcf23a-0c95-49eb-8a17-610f6565f143.jpg       | Bin [31m13243[m -> [32m0[m bytes
+ .../8e14e2ca-891e-458d-ad46-6650a7859565.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../8f207a17-05e7-48fe-ab02-e5d5d567225c.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../904e3a2c-c537-43d3-be10-4ea27f47c590.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../9203dc87-fb8e-42de-b70d-f5d3cd78faac.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../9223e4b5-1392-4d9b-8878-8df4d42cc531.jpg       | Bin [31m38376[m -> [32m0[m bytes
+ .../937520ac-c501-495c-a748-9d67503a74ea.png       | Bin [31m2509089[m -> [32m0[m bytes
+ .../93c22092-45c5-442a-9a54-795a23a616bd.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../94592fbe-af9a-45ec-946f-28a61b43c335.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../972d851c-7c30-4c2d-8652-adc858c0c744.png       | Bin [31m3923900[m -> [32m0[m bytes
+ .../97b8dde8-8854-4869-95e0-682ece4e077b.png       | Bin [31m3434075[m -> [32m0[m bytes
+ .../99871eed-387e-4da3-8e0a-0b8a0e1092c5.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../9a6f400a-c153-4906-a31d-6243a1e8961d.jpg       | Bin [31m369799[m -> [32m0[m bytes
+ .../9afba8eb-268e-49b1-9a07-860b4cb42b3b.jpg       | Bin [31m4335884[m -> [32m0[m bytes
+ .../9bbe2396-9316-410f-aa8e-eb4a1f6d52a6.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../9ca4aee7-e5b9-4bb8-a86d-4596cbc733d2.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../9fda9bd4-0964-42dd-9eb7-44accb2fbd9b.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../a155e258-7f03-4042-8e03-e5be165e5fdc.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../a5826725-0db8-4c69-8b99-2ed18018524d.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../a5bcfaab-03d4-4b54-8332-5e5eccfb2d86.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../a69dbd9c-72f1-4e15-b81a-aceb9493345f.png       | Bin [31m3434075[m -> [32m0[m bytes
+ .../a89f7417-5616-46d7-9b0f-f59eb9a785b3.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../a916b08d-abbb-4dd8-bcc6-89d1953074b3.png       | Bin [31m3434075[m -> [32m0[m bytes
+ .../aa3ce938-eb74-4797-be58-7184cbe055bc.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../abbcbfd5-46fc-4274-a266-eaefc201d4d7.jpg       | Bin [31m272986[m -> [32m0[m bytes
+ .../ad8b04d5-430e-4a86-b5a2-580b8aa413c1.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../af28716b-5ef6-421d-87b1-a6cb89150878.jpg       | Bin [31m369799[m -> [32m0[m bytes
+ .../b56156f8-c511-46ee-8b8a-218b137a6bfa.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../b76d169e-f2bc-4ff0-bc4b-32c65b7b2568.png       | Bin [31m1177146[m -> [32m0[m bytes
+ .../b7e60080-2729-418e-b9e6-b18564354ba0.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../b880fbc5-5618-4f20-a095-3322ca47a012.jpg       | Bin [31m404354[m -> [32m0[m bytes
+ .../b98c0aae-3baf-48d4-a030-2943dc568e2c.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../ba26a08a-0827-48a0-bdef-cec4641e6415.jpg       | Bin [31m3073430[m -> [32m0[m bytes
+ .../c0d93e42-1e63-40f2-b85a-962a49d1654d.jpg       | Bin [31m157769[m -> [32m0[m bytes
+ .../c2263021-e985-4354-9da9-7b621a379f9c.jpg       | Bin [31m220483[m -> [32m0[m bytes
+ .../c47c2b17-1d78-4618-8b12-438a40aaa626.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../c518f440-39b0-4324-affb-815ad89e1ca0.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../c68f7a74-a453-47de-bc5e-3199e3f3ee01.jpg       | Bin [31m343880[m -> [32m0[m bytes
+ .../c7102413-b0fd-4c2b-afef-fe5a1d29e0a3.jpg       | Bin [31m316161[m -> [32m0[m bytes
+ .../c71e25be-4465-43f2-9448-67c80dc82c19.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../c740541f-15dd-4eaa-ad8d-309800643b5f.jpg       | Bin [31m224848[m -> [32m0[m bytes
+ .../cac30214-7f0e-458c-b23a-6a835d4f0099.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../cd7ef4aa-8977-4458-8e19-1b6c88d7539f.jpg       | Bin [31m4335884[m -> [32m0[m bytes
+ .../cebc9c89-c89c-44b1-b03d-34c2d4771804.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../cf6495b4-4155-422c-b7d4-702fc5358248.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../d05a3895-bfd6-41f9-84ee-700b336008e2.png       | Bin [31m3434075[m -> [32m0[m bytes
+ .../d05d16dc-8908-4a03-ae46-0cd465366021.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../d180d256-c92d-4836-bc94-7c6a9136c28f.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../d2999ed0-bb2e-49fd-8358-c9797129e258.jpg       | Bin [31m130581[m -> [32m0[m bytes
+ .../d5000177-c1be-4416-97b8-d942a40c2c08.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../d6453765-948f-4ff0-8926-6ded2f436be5.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../d65b78ab-b2a6-4f81-b424-9786261e363f.jpg       | Bin [31m224848[m -> [32m0[m bytes
+ .../d78203b3-a549-4975-af3f-06efa8a05758.jpg       | Bin [31m736683[m -> [32m0[m bytes
+ .../da86858a-e8aa-424b-8545-c4ea23365759.jpg       | Bin [31m211371[m -> [32m0[m bytes
+ .../daeae317-4868-4672-8e5d-c142a860b0dd.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../db949de7-a17e-472e-bf4a-d4aa4e7a9848.jpg       | Bin [31m292473[m -> [32m0[m bytes
+ .../dd568503-0ee2-4522-a2b5-8b978d882a58.jpg       | Bin [31m235753[m -> [32m0[m bytes
+ .../dd578ee1-17bf-4a95-b858-2ef342e29d50.jpg       | Bin [31m28667[m -> [32m0[m bytes
+ .../de08d813-2261-464e-9e00-b55b4724283c.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../de179dfb-5268-4325-b604-dd6293bf5c8c.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../de951fde-de84-4c0d-9fb4-55e9c0ad865e.jpg       | Bin [31m264852[m -> [32m0[m bytes
+ .../e335a2c8-3537-4235-86b7-89e0f8864515.jpg       | Bin [31m294628[m -> [32m0[m bytes
+ .../e3eb6d43-f8b2-4c4b-a23c-ef8ca179ad4c.jpg       | Bin [31m250878[m -> [32m0[m bytes
+ .../e4d11dfc-b5aa-4160-86af-05242e2b6d30.jpg       | Bin [31m38376[m -> [32m0[m bytes
+ .../e97dee0c-ade5-444d-aa77-7496cff03dec.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../eb914b85-a769-4f24-91cd-7b85740e3202.jpg       | Bin [31m9053[m -> [32m0[m bytes
+ .../eb9dfa87-5fb4-4d9b-a9a2-c6cebcf5c9b7.png       | Bin [31m3434075[m -> [32m0[m bytes
+ .../ec232151-1a96-4d64-a721-e701c5bcb8f1.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../ec74ce05-20bb-4e98-b017-a5ee52aa67f0.png       | Bin [31m3434075[m -> [32m0[m bytes
+ assets/images/events/event_23_bg.png               | Bin [31m3434075[m -> [32m0[m bytes
+ assets/images/events/event_23_main.png             | Bin [31m3434075[m -> [32m0[m bytes
+ assets/images/events/event_24_bg.png               | Bin [31m2509089[m -> [32m0[m bytes
+ assets/images/events/event_24_main.png             | Bin [31m2509089[m -> [32m0[m bytes
+ assets/images/events/event_25_bg.png               | Bin [31m4956301[m -> [32m0[m bytes
+ assets/images/events/event_25_main.png             | Bin [31m4956301[m -> [32m0[m bytes
+ assets/images/events/event_26_bg.png               | Bin [31m2183216[m -> [32m0[m bytes
+ assets/images/events/event_26_main.png             | Bin [31m2183216[m -> [32m0[m bytes
+ assets/images/events/event_27_bg.jpg               | Bin [31m296427[m -> [32m0[m bytes
+ assets/images/events/event_27_main.jpg             | Bin [31m296427[m -> [32m0[m bytes
+ .../f11d8d6c-f895-488d-94a4-7a4a306905d6.jpg       | Bin [31m457955[m -> [32m0[m bytes
+ .../f18018d6-3e56-4d96-9187-647917c23304.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../f21fe671-8eac-43e5-94f0-21c47d11d903.png       | Bin [31m2004046[m -> [32m0[m bytes
+ .../f472718a-f761-4067-b4d0-08760d2106ae.png       | Bin [31m8989[m -> [32m0[m bytes
+ .../f62f4318-6c70-4274-a395-b5dc7ccda4a4.jpg       | Bin [31m13243[m -> [32m0[m bytes
+ .../f7114dd5-f3fc-4305-8f5d-9c6bddeefb76.jpg       | Bin [31m287332[m -> [32m0[m bytes
+ .../fc29a509-0992-499c-b565-c04fe02ca18c.jpg       | Bin [31m250878[m -> [32m0[m bytes
+ .../fccf306d-5428-4073-ab19-7fed41096fc4.png       | Bin [31m4956301[m -> [32m0[m bytes
+ .../fd3ce10b-3afa-4e84-8124-5b02d1ce551b.jpg       | Bin [31m450265[m -> [32m0[m bytes
+ .../fd5ef5c2-84b7-4aad-9d51-4b1e064ad835.png       | Bin [31m8989[m -> [32m0[m bytes
+ src/Business/IEmailService.cs                      |   8 [32m+[m
+ src/Business/IOrderService.cs                      |  12 [32m+[m
+ src/Controllers/OrderController.cs                 |  37 [32m++[m
+ src/DTOs/OrderDTOs.cs                              |   2 [32m+[m
+ src/Data/EventDBContext.cs                         |  41 [32m++[m
+ src/Extensions/ServiceCollectionExtensions.cs      |   3 [32m+[m
+ src/Mappers/OrderMapper.cs                         |   3 [32m+[m
+ .../20251023034023_InitialCreate.Designer.cs       | 629 [31m--------------------[m
+ src/Migrations/20251023034023_InitialCreate.cs     | 393 [31m-------------[m
+ ...251025183723_FixPendingModelChanges.Designer.cs | 632 [31m--------------------[m
+ .../20251025183723_FixPendingModelChanges.cs       |  28 [31m-[m
+ ...20251026141635_AddVenueLayoutColumn.Designer.cs | 632 [31m--------------------[m
+ .../20251026141635_AddVenueLayoutColumn.cs         |  22 [31m-[m
+ src/Migrations/20251027000000_AddVoucherToOrder.cs |  43 [31m--[m
+ ...02_SyncModelChanges_20251029_191256.Designer.cs | 638 [31m---------------------[m
+ ...51029121302_SyncModelChanges_20251029_191256.cs |  39 [31m--[m
+ src/Migrations/EventDBContextModelSnapshot.cs      | 142 [32m+++++[m
+ src/Models/Event.cs                                |   2 [32m+[m
+ src/Models/Order.cs                                |   4 [32m+[m
+ src/Models/User.cs                                 |   2 [32m+[m
+ src/Repositories/OrderRepository.cs                |   1 [32m+[m
+ src/Services/EmailService.cs                       | 386 [32m++++++++++++[m[31m-[m
+ src/Services/OrderService.cs                       |  59 [32m+[m[31m-[m
+ src/TheGrind5_EventManagement.csproj               |   2 [32m+[m
+ src/appsettings.json                               |   7 [32m+[m
+ 207 files changed, 759 insertions(+), 3106 deletions(-)

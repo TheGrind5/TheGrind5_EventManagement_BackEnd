@@ -1,0 +1,10 @@
+[33mc8a0f03[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mThuNghiem_Thien[m[33m)[m Update: Cập nhật các thay đổi cho nhánh ThuNghiem_Thien
+[33mdc5685b[m Merge origin/master into ThuNghiem_Thien - resolved conflicts keeping local changes
+[33mea41627[m[33m ([m[1;31morigin/ThuNghiem_Thien[m[33m)[m Update Event service, controller, DTOs and repository
+[33m65e8190[m chore: auto-resolve merge conflicts preferring local (ours)
+[33mc9bac2a[m chore: daily sync - backend auto commit
+[33me919737[m[33m ([m[1;31morigin/HK30B[m[33m, [m[1;31morigin/ADuy_Fix[m[33m)[m Merge pull request #49 from TheGrind5/ThuNghiem_Thien
+[33md764c54[m Xóa các file build (bin/obj) khỏi Git tracking để clean up PR
+[33m21356e5[m Cập nhật .gitignore chuẩn .NET để loại bỏ file/folder build không cần thiết khỏi repo
+[33m4b846b4[m Cập nhật sơ đồ, phân tích usecase, chuẩn hóa phân quyền actor (Customer, Host, Admin), tổng quan tích hợp hệ thống
+[33mf29ebcb[m [Frontend] Kiểm tra cấu trúc src/ đảm bảo gọn gàng, chuẩn best practice

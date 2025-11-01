@@ -7,7 +7,7 @@ using TheGrind5_EventManagement.Repositories;
 using TheGrind5_EventManagement.Services;
 using Xunit;
 
-namespace TheGrind5_EventManagement.Tests.UnitTests
+namespace TheGrind5_EventManagement.Tests.Tan
 {
     public class WalletServiceTests : IDisposable
     {

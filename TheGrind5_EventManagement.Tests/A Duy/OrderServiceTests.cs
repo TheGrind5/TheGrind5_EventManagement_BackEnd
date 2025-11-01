@@ -18,6 +18,8 @@ namespace TheGrind5_EventManagement.Tests.Services
         private readonly Mock<IOrderRepository> _mockOrderRepository;
         private readonly Mock<IOrderMapper> _mockOrderMapper;
         private readonly Mock<ITicketService> _mockTicketService;
+        private readonly Mock<IVoucherService> _mockVoucherService;
+        private readonly Mock<INotificationService> _mockNotificationService;
         private readonly EventDBContext _context;
         private readonly OrderService _orderService;
 
@@ -26,6 +28,8 @@ namespace TheGrind5_EventManagement.Tests.Services
             _mockOrderRepository = new Mock<IOrderRepository>();
             _mockOrderMapper = new Mock<IOrderMapper>();
             _mockTicketService = new Mock<ITicketService>();
+            _mockVoucherService = new Mock<IVoucherService>();
+            _mockNotificationService = new Mock<INotificationService>();
             
             // Sử dụng InMemory database thay vì mock EventDBContext
             var options = new DbContextOptionsBuilder<EventDBContext>()
@@ -38,6 +42,8 @@ namespace TheGrind5_EventManagement.Tests.Services
                 _mockOrderRepository.Object,
                 _mockOrderMapper.Object,
                 _mockTicketService.Object,
+                _mockVoucherService.Object,
+                _mockNotificationService.Object,
                 _context
             );
         }

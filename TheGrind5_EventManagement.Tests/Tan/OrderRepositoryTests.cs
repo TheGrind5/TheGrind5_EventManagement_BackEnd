@@ -5,7 +5,7 @@ using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.Repositories;
 using Xunit;
 
-namespace TheGrind5_EventManagement.Tests.UnitTests
+namespace TheGrind5_EventManagement.Tests.Tan
 {
     public class OrderRepositoryTests : IDisposable
     {

@@ -22,6 +22,37 @@ namespace TheGrind5_EventManagement.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.AISuggestion", b =>
+                {
+                    b.Property<int>("SuggestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SuggestionId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponseData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SuggestionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SuggestionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AISuggestion", (string)null);
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Campus", b =>
                 {
                     b.Property<int>("CampusId")
@@ -166,38 +197,6 @@ namespace TheGrind5_EventManagement.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("EventQuestion", (string)null);
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.EventReport", b =>
-                {
-                    b.Property<int>("ReportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReportReason")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime>("ReportedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ReportId");
-
-                    b.HasIndex("EventId");
-
-                    b.HasIndex("UserId", "EventId")
-                        .IsUnique();
-
-                    b.ToTable("EventReport", (string)null);
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Notification", b =>
@@ -374,6 +373,9 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Method")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -384,7 +386,22 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ResponseCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VnpTxnRef")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("PaymentId");
@@ -667,6 +684,17 @@ namespace TheGrind5_EventManagement.Migrations
                     b.ToTable("Wishlist", (string)null);
                 });
 
+            modelBuilder.Entity("TheGrind5_EventManagement.Models.AISuggestion", b =>
+                {
+                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
+                        .WithMany("AISuggestions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Event", b =>
                 {
                     b.HasOne("TheGrind5_EventManagement.Models.Campus", "Campus")
@@ -694,25 +722,6 @@ namespace TheGrind5_EventManagement.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("TheGrind5_EventManagement.Models.EventReport", b =>
-                {
-                    b.HasOne("TheGrind5_EventManagement.Models.Event", "Event")
-                        .WithMany()
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TheGrind5_EventManagement.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.Notification", b =>
@@ -877,6 +886,8 @@ namespace TheGrind5_EventManagement.Migrations
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.User", b =>
                 {
+                    b.Navigation("AISuggestions");
+
                     b.Navigation("Events");
 
                     b.Navigation("Notifications");

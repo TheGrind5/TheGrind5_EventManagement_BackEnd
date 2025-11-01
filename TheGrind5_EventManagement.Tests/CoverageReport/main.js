@@ -213,7 +213,7 @@ var assemblies = [
   {
     "name": "TheGrind5_EventManagement",
     "classes": [
-      { "name": "TheGrind5_EventManagement.Controllers.OrderController", "rp": "TheGrind5_EventManagement_OrderController.html", "cl": 158, "ucl": 65, "cal": 223, "tl": 390, "cb": 56, "tb": 76, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "TheGrind5_EventManagement.Controllers.OrderController", "rp": "TheGrind5_EventManagement_OrderController.html", "cl": 158, "ucl": 93, "cal": 251, "tl": 433, "cb": 56, "tb": 86, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -228,7 +228,13 @@ var riskHotspotMetrics = [
 
 var riskHotspots = [
   {
-    "assembly": "TheGrind5_EventManagement", "class": "TheGrind5_EventManagement.Controllers.OrderController", "reportPath": "TheGrind5_EventManagement_OrderController.html", "methodName": "ProcessPayment()", "methodShortName": "ProcessPayment()", "fileIndex": 0, "line": 218,
+    "assembly": "TheGrind5_EventManagement", "class": "TheGrind5_EventManagement.Controllers.OrderController", "reportPath": "TheGrind5_EventManagement_OrderController.html", "methodName": "UpdateOrder()", "methodShortName": "UpdateOrder()", "fileIndex": 0, "line": 159,
+    "metrics": [
+      { "value": 110, "exceeded": true },
+      { "value": 10, "exceeded": false },
+    ]},
+  {
+    "assembly": "TheGrind5_EventManagement", "class": "TheGrind5_EventManagement.Controllers.OrderController", "reportPath": "TheGrind5_EventManagement_OrderController.html", "methodName": "ProcessPayment()", "methodShortName": "ProcessPayment()", "fileIndex": 0, "line": 261,
     "metrics": [
       { "value": 16, "exceeded": false },
       { "value": 16, "exceeded": true },

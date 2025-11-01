@@ -115,12 +115,15 @@ echo Old results and coverage data cleaned!
 goto :eof
 
 :build_project
+echo Building project...
+cd /d "%~dp0\.."
 dotnet build --verbosity minimal
 if !ERRORLEVEL! neq 0 (
     echo Build failed!
     pause
     exit /b 1
 )
+cd /d "%~dp0"
 goto :eof
 
 :show_summary_info

@@ -11,90 +11,125 @@ namespace TheGrind5_EventManagement.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "CampusId",
-                table: "User",
-                type: "int",
-                nullable: true);
+            // Check if CampusId column exists in User table before adding
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('User') AND name = 'CampusId')
+                BEGIN
+                    ALTER TABLE [User] ADD [CampusId] int NULL;
+                END
+            ");
 
-            migrationBuilder.AddColumn<int>(
-                name: "CampusId",
-                table: "Event",
-                type: "int",
-                nullable: true);
+            // Check if CampusId column exists in Event table before adding
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Event') AND name = 'CampusId')
+                BEGIN
+                    ALTER TABLE [Event] ADD [CampusId] int NULL;
+                END
+            ");
 
-            migrationBuilder.CreateTable(
-                name: "Campus",
-                columns: table => new
-                {
-                    CampusId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Campus", x => x.CampusId);
-                });
+            // Check if Campus table exists before creating
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Campus')
+                BEGIN
+                    CREATE TABLE [Campus] (
+                        [CampusId] int NOT NULL IDENTITY(1,1),
+                        [Name] nvarchar(100) NOT NULL,
+                        [Code] nvarchar(50) NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NULL,
+                        CONSTRAINT [PK_Campus] PRIMARY KEY ([CampusId])
+                    );
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_User_CampusId",
-                table: "User",
-                column: "CampusId");
+            // Check if index exists before creating
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_User_CampusId' AND object_id = OBJECT_ID('User'))
+                BEGIN
+                    CREATE INDEX [IX_User_CampusId] ON [User] ([CampusId]);
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Event_CampusId",
-                table: "Event",
-                column: "CampusId");
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Event_CampusId' AND object_id = OBJECT_ID('Event'))
+                BEGIN
+                    CREATE INDEX [IX_Event_CampusId] ON [Event] ([CampusId]);
+                END
+            ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Event_Campus_CampusId",
-                table: "Event",
-                column: "CampusId",
-                principalTable: "Campus",
-                principalColumn: "CampusId",
-                onDelete: ReferentialAction.Restrict);
+            // Check if foreign key exists before creating
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Event_Campus_CampusId')
+                BEGIN
+                    ALTER TABLE [Event] ADD CONSTRAINT [FK_Event_Campus_CampusId] 
+                    FOREIGN KEY ([CampusId]) REFERENCES [Campus] ([CampusId]) ON DELETE NO ACTION;
+                END
+            ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_User_Campus_CampusId",
-                table: "User",
-                column: "CampusId",
-                principalTable: "Campus",
-                principalColumn: "CampusId",
-                onDelete: ReferentialAction.Restrict);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_User_Campus_CampusId')
+                BEGIN
+                    ALTER TABLE [User] ADD CONSTRAINT [FK_User_Campus_CampusId] 
+                    FOREIGN KEY ([CampusId]) REFERENCES [Campus] ([CampusId]) ON DELETE NO ACTION;
+                END
+            ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Event_Campus_CampusId",
-                table: "Event");
+            // Safely drop foreign keys if they exist
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Event_Campus_CampusId')
+                BEGIN
+                    ALTER TABLE [Event] DROP CONSTRAINT [FK_Event_Campus_CampusId];
+                END
+            ");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_User_Campus_CampusId",
-                table: "User");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_User_Campus_CampusId')
+                BEGIN
+                    ALTER TABLE [User] DROP CONSTRAINT [FK_User_Campus_CampusId];
+                END
+            ");
 
-            migrationBuilder.DropTable(
-                name: "Campus");
+            // Drop table if exists
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Campus')
+                BEGIN
+                    DROP TABLE [Campus];
+                END
+            ");
 
-            migrationBuilder.DropIndex(
-                name: "IX_User_CampusId",
-                table: "User");
+            // Drop indexes if they exist
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_User_CampusId' AND object_id = OBJECT_ID('User'))
+                BEGIN
+                    DROP INDEX [IX_User_CampusId] ON [User];
+                END
+            ");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Event_CampusId",
-                table: "Event");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Event_CampusId' AND object_id = OBJECT_ID('Event'))
+                BEGIN
+                    DROP INDEX [IX_Event_CampusId] ON [Event];
+                END
+            ");
 
-            migrationBuilder.DropColumn(
-                name: "CampusId",
-                table: "User");
+            // Drop columns if they exist
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('User') AND name = 'CampusId')
+                BEGIN
+                    ALTER TABLE [User] DROP COLUMN [CampusId];
+                END
+            ");
 
-            migrationBuilder.DropColumn(
-                name: "CampusId",
-                table: "Event");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Event') AND name = 'CampusId')
+                BEGIN
+                    ALTER TABLE [Event] DROP COLUMN [CampusId];
+                END
+            ");
         }
     }
 }

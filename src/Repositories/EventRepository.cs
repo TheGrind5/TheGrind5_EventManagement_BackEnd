@@ -58,6 +58,13 @@ namespace TheGrind5_EventManagement.Repositories
             {
                 query = query.Where(e => e.Status == request.Status);
             }
+            else
+            {
+                // Mặc định chỉ hiển thị sự kiện có status "Open" hoặc "Active"
+                // Điều này đảm bảo sự kiện mới tạo (status "Open") sẽ được hiển thị
+                // và sự kiện đang diễn ra (status "Active") cũng được hiển thị
+                query = query.Where(e => e.Status == "Open" || e.Status == "Active");
+            }
 
             // Filter by StartDate (events starting from this date)
             if (request.StartDate.HasValue)

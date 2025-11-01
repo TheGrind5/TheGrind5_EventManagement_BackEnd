@@ -37,6 +37,12 @@ const ProfilePage = () => {
 
       const response = await authAPI.getCurrentUserProfile();
       const profileData = response.data;
+      
+      // Fix avatar URL nếu cần
+      if (profileData.avatar && profileData.avatar.startsWith("/")) {
+        profileData.avatar = `${config.BASE_URL}${profileData.avatar}`;
+      }
+      
       setProfile(profileData);
       setFormData({
         fullName: profileData.fullName || '',

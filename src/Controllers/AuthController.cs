@@ -5,6 +5,7 @@ using TheGrind5_EventManagement.Repositories;
 using TheGrind5_EventManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting;
 
 namespace TheGrind5_EventManagement.Controllers
 {
@@ -14,14 +15,16 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
-        private readonly ILogger<AuthController> _logger; 
+        private readonly ILogger<AuthController> _logger;
+        private readonly IWebHostEnvironment _environment;
        
 
-        public AuthController(IAuthService authService, IUserRepository userRepository, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, IUserRepository userRepository, ILogger<AuthController> logger, IWebHostEnvironment environment)
         {
             _authService = authService;
             _userRepository = userRepository;
             _logger = logger;
+            _environment = environment;
         }
 
         [HttpPost("login")]
@@ -210,13 +213,22 @@ namespace TheGrind5_EventManagement.Controllers
                 if (userId == null)
                     return Unauthorized(new { message = "Token không hợp lệ" });
 
-                // Tạo thư mục assets/images/avatars nếu chưa tồn tại
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "assets", "images", "avatars");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                // Sử dụng ContentRootPath giống như static files config trong Program.cs
+                var contentRoot = _environment.ContentRootPath; // typically .../TheGrind5/src
+                var assetsPath = Path.Combine(contentRoot, "..", "assets", "images", "avatars");
+                var absoluteUploadsFolder = Path.GetFullPath(assetsPath);
+                
+                Console.WriteLine($"[Avatar Upload] ContentRoot: {contentRoot}");
+                Console.WriteLine($"[Avatar Upload] Absolute Path: {absoluteUploadsFolder}");
+                
+                if (!Directory.Exists(absoluteUploadsFolder))
+                {
+                    Directory.CreateDirectory(absoluteUploadsFolder);
+                    Console.WriteLine($"[Avatar Upload] Created directory: {absoluteUploadsFolder}");
+                }
 
                 // Xóa file avatar cũ (nếu có) - XÓA TRƯỚC
-                var oldFiles = Directory.GetFiles(uploadsFolder, $"user_{userId}.*");
+                var oldFiles = Directory.GetFiles(absoluteUploadsFolder, $"user_{userId}.*");
                 foreach (var oldFile in oldFiles)
                 {
                     try
@@ -233,7 +245,9 @@ namespace TheGrind5_EventManagement.Controllers
                 // Tạo tên file cố định
                 var fileExtension = Path.GetExtension(avatar.FileName);
                 var fileName = $"user_{userId}{fileExtension}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
+                var filePath = Path.Combine(absoluteUploadsFolder, fileName);
+                
+                Console.WriteLine($"[Avatar Upload] Saving to: {filePath}");
 
                 // Lưu file mới - LƯU SAU
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -268,7 +282,11 @@ namespace TheGrind5_EventManagement.Controllers
         {
             try
             {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "assets", "images", "avatars", fileName);
+                // Sử dụng ContentRootPath giống như static files config và upload
+                var contentRoot = _environment.ContentRootPath;
+                var assetsPath = Path.Combine(contentRoot, "..", "assets", "images", "avatars");
+                var absoluteUploadsFolder = Path.GetFullPath(assetsPath);
+                var filePath = Path.Combine(absoluteUploadsFolder, fileName);
                 
                 if (!System.IO.File.Exists(filePath))
                     return NotFound(new { message = "Avatar not found" });

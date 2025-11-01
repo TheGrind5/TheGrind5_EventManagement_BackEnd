@@ -71,43 +71,49 @@ namespace TheGrind5_EventManagement.Services
             if (user == null)
                 throw new ArgumentException("User not found");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // Sử dụng execution strategy để hỗ trợ retry với transaction
+            var strategy = _context.Database.CreateExecutionStrategy();
+            
+            return await strategy.ExecuteAsync(async () =>
             {
-                var balanceBefore = user.WalletBalance;
-                var balanceAfter = balanceBefore + amount;
-
-                // Update user wallet balance
-                user.WalletBalance = balanceAfter;
-                user.UpdatedAt = DateTime.UtcNow;
-                await _userRepository.UpdateUserAsync(user);
-
-                // Create transaction record
-                var walletTransaction = new WalletTransaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    UserId = userId,
-                    Amount = amount,
-                    TransactionType = "Deposit",
-                    Status = "Completed",
-                    Description = description ?? "Wallet deposit",
-                    ReferenceId = referenceId,
-                    CreatedAt = DateTime.UtcNow,
-                    CompletedAt = DateTime.UtcNow,
-                    BalanceBefore = balanceBefore,
-                    BalanceAfter = balanceAfter
-                };
+                    var balanceBefore = user.WalletBalance;
+                    var balanceAfter = balanceBefore + amount;
 
-                _context.WalletTransactions.Add(walletTransaction);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                    // Update user wallet balance
+                    user.WalletBalance = balanceAfter;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _userRepository.UpdateUserAsync(user);
 
-                return walletTransaction;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    // Create transaction record
+                    var walletTransaction = new WalletTransaction
+                    {
+                        UserId = userId,
+                        Amount = amount,
+                        TransactionType = "Deposit",
+                        Status = "Completed",
+                        Description = description ?? "Wallet deposit",
+                        ReferenceId = referenceId,
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = balanceAfter
+                    };
+
+                    _context.WalletTransactions.Add(walletTransaction);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return walletTransaction;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<WalletTransaction> WithdrawAsync(int userId, decimal amount, string? description = null, string? referenceId = null)
@@ -122,43 +128,49 @@ namespace TheGrind5_EventManagement.Services
             if (user.WalletBalance < amount)
                 throw new InvalidOperationException("Insufficient wallet balance");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // Sử dụng execution strategy để hỗ trợ retry với transaction
+            var strategy = _context.Database.CreateExecutionStrategy();
+            
+            return await strategy.ExecuteAsync(async () =>
             {
-                var balanceBefore = user.WalletBalance;
-                var balanceAfter = balanceBefore - amount;
-
-                // Update user wallet balance
-                user.WalletBalance = balanceAfter;
-                user.UpdatedAt = DateTime.UtcNow;
-                await _userRepository.UpdateUserAsync(user);
-
-                // Create transaction record
-                var walletTransaction = new WalletTransaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    UserId = userId,
-                    Amount = amount,
-                    TransactionType = "Withdraw",
-                    Status = "Completed",
-                    Description = description ?? "Wallet withdrawal",
-                    ReferenceId = referenceId,
-                    CreatedAt = DateTime.UtcNow,
-                    CompletedAt = DateTime.UtcNow,
-                    BalanceBefore = balanceBefore,
-                    BalanceAfter = balanceAfter
-                };
+                    var balanceBefore = user.WalletBalance;
+                    var balanceAfter = balanceBefore - amount;
 
-                _context.WalletTransactions.Add(walletTransaction);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                    // Update user wallet balance
+                    user.WalletBalance = balanceAfter;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _userRepository.UpdateUserAsync(user);
 
-                return walletTransaction;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    // Create transaction record
+                    var walletTransaction = new WalletTransaction
+                    {
+                        UserId = userId,
+                        Amount = amount,
+                        TransactionType = "Withdraw",
+                        Status = "Completed",
+                        Description = description ?? "Wallet withdrawal",
+                        ReferenceId = referenceId,
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = balanceAfter
+                    };
+
+                    _context.WalletTransactions.Add(walletTransaction);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return walletTransaction;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<WalletTransaction> ProcessPaymentAsync(int userId, decimal amount, int orderId, string? description = null)
@@ -173,43 +185,49 @@ namespace TheGrind5_EventManagement.Services
             if (user.WalletBalance < amount)
                 throw new InvalidOperationException("Insufficient wallet balance for payment");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // Sử dụng execution strategy để hỗ trợ retry với transaction
+            var strategy = _context.Database.CreateExecutionStrategy();
+            
+            return await strategy.ExecuteAsync(async () =>
             {
-                var balanceBefore = user.WalletBalance;
-                var balanceAfter = balanceBefore - amount;
-
-                // Update user wallet balance
-                user.WalletBalance = balanceAfter;
-                user.UpdatedAt = DateTime.UtcNow;
-                await _userRepository.UpdateUserAsync(user);
-
-                // Create transaction record
-                var walletTransaction = new WalletTransaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    UserId = userId,
-                    Amount = amount,
-                    TransactionType = "Payment",
-                    Status = "Completed",
-                    Description = description ?? $"Payment for order #{orderId}",
-                    ReferenceId = orderId.ToString(),
-                    CreatedAt = DateTime.UtcNow,
-                    CompletedAt = DateTime.UtcNow,
-                    BalanceBefore = balanceBefore,
-                    BalanceAfter = balanceAfter
-                };
+                    var balanceBefore = user.WalletBalance;
+                    var balanceAfter = balanceBefore - amount;
 
-                _context.WalletTransactions.Add(walletTransaction);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                    // Update user wallet balance
+                    user.WalletBalance = balanceAfter;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _userRepository.UpdateUserAsync(user);
 
-                return walletTransaction;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    // Create transaction record
+                    var walletTransaction = new WalletTransaction
+                    {
+                        UserId = userId,
+                        Amount = amount,
+                        TransactionType = "Payment",
+                        Status = "Completed",
+                        Description = description ?? $"Payment for order #{orderId}",
+                        ReferenceId = orderId.ToString(),
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = balanceAfter
+                    };
+
+                    _context.WalletTransactions.Add(walletTransaction);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return walletTransaction;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<WalletTransaction> ProcessRefundAsync(int userId, decimal amount, int orderId, string? description = null)
@@ -221,43 +239,49 @@ namespace TheGrind5_EventManagement.Services
             if (user == null)
                 throw new ArgumentException("User not found");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // Sử dụng execution strategy để hỗ trợ retry với transaction
+            var strategy = _context.Database.CreateExecutionStrategy();
+            
+            return await strategy.ExecuteAsync(async () =>
             {
-                var balanceBefore = user.WalletBalance;
-                var balanceAfter = balanceBefore + amount;
-
-                // Update user wallet balance
-                user.WalletBalance = balanceAfter;
-                user.UpdatedAt = DateTime.UtcNow;
-                await _userRepository.UpdateUserAsync(user);
-
-                // Create transaction record
-                var walletTransaction = new WalletTransaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    UserId = userId,
-                    Amount = amount,
-                    TransactionType = "Refund",
-                    Status = "Completed",
-                    Description = description ?? $"Refund for order #{orderId}",
-                    ReferenceId = orderId.ToString(),
-                    CreatedAt = DateTime.UtcNow,
-                    CompletedAt = DateTime.UtcNow,
-                    BalanceBefore = balanceBefore,
-                    BalanceAfter = balanceAfter
-                };
+                    var balanceBefore = user.WalletBalance;
+                    var balanceAfter = balanceBefore + amount;
 
-                _context.WalletTransactions.Add(walletTransaction);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                    // Update user wallet balance
+                    user.WalletBalance = balanceAfter;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _userRepository.UpdateUserAsync(user);
 
-                return walletTransaction;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    // Create transaction record
+                    var walletTransaction = new WalletTransaction
+                    {
+                        UserId = userId,
+                        Amount = amount,
+                        TransactionType = "Refund",
+                        Status = "Completed",
+                        Description = description ?? $"Refund for order #{orderId}",
+                        ReferenceId = orderId.ToString(),
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = balanceAfter
+                    };
+
+                    _context.WalletTransactions.Add(walletTransaction);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return walletTransaction;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<bool> HasSufficientBalanceAsync(int userId, decimal amount)

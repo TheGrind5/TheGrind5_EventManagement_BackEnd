@@ -22,6 +22,7 @@ public partial class EventDBContext : DbContext
     public DbSet<Campus> Campuses => Set<Campus>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<EventQuestion> EventQuestions => Set<EventQuestion>();
+    public DbSet<AISuggestion> AISuggestions => Set<AISuggestion>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -42,6 +43,7 @@ public partial class EventDBContext : DbContext
         b.Entity<Campus>().ToTable("Campus");
         b.Entity<Notification>().ToTable("Notification");
         b.Entity<EventQuestion>().ToTable("EventQuestion");
+        b.Entity<AISuggestion>().ToTable("AISuggestion");
         
         // Configure OtpCode primary key to match database
         b.Entity<OtpCode>()
@@ -69,6 +71,7 @@ public partial class EventDBContext : DbContext
         ConfigureCampusRelationships(b);
         ConfigureNotificationRelationships(b);
         ConfigureEventQuestionRelationships(b);
+        ConfigureAISuggestionRelationships(b);
         ConfigureDecimalPrecision(b);
         ConfigureCampusColumnMapping(b);
     }
@@ -153,12 +156,12 @@ public partial class EventDBContext : DbContext
 
     private void ConfigurePaymentRelationships(ModelBuilder b)
     {
-        // Payment -> Order : required, không cascade
+        // Payment -> Order : required, cascade delete
         b.Entity<Payment>()
          .HasOne(p => p.Order)
          .WithMany(o => o.Payments)
          .HasForeignKey(p => p.OrderId)
-         .OnDelete(DeleteBehavior.Restrict);
+         .OnDelete(DeleteBehavior.Cascade);
 
         // Cấu hình Primary Key cho Payment
         b.Entity<Payment>()
@@ -244,6 +247,20 @@ public partial class EventDBContext : DbContext
         // Primary Key cho EventQuestion
         b.Entity<EventQuestion>()
          .HasKey(eq => eq.QuestionId);
+    }
+
+    private void ConfigureAISuggestionRelationships(ModelBuilder b)
+    {
+        // AISuggestion -> User : required, no cascade
+        b.Entity<AISuggestion>()
+         .HasOne(ai => ai.User)
+         .WithMany(u => u.AISuggestions)
+         .HasForeignKey(ai => ai.UserId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        // Primary Key cho AISuggestion
+        b.Entity<AISuggestion>()
+         .HasKey(ai => ai.SuggestionId);
     }
 
     private void ConfigureDecimalPrecision(ModelBuilder b)

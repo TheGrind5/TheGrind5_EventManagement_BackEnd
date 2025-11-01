@@ -58,6 +58,8 @@ public partial class User
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
+    public virtual ICollection<AISuggestion> AISuggestions { get; set; } = new List<AISuggestion>();
+
     public int? CampusId { get; set; }
 
     public virtual Campus? Campus { get; set; }

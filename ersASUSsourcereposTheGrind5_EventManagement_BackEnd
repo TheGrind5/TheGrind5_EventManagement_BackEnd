@@ -1,0 +1,28 @@
+[33mc8a0f03[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mThuNghiem_Thien[m[33m)[m Update: Cập nhật các thay đổi cho nhánh ThuNghiem_Thien
+[33mdc5685b[m Merge origin/master into ThuNghiem_Thien - resolved conflicts keeping local changes
+[33mea41627[m[33m ([m[1;31morigin/ThuNghiem_Thien[m[33m)[m Update Event service, controller, DTOs and repository
+[33m65e8190[m chore: auto-resolve merge conflicts preferring local (ours)
+[33mc9bac2a[m chore: daily sync - backend auto commit
+[33me919737[m[33m ([m[1;31morigin/HK30B[m[33m, [m[1;31morigin/ADuy_Fix[m[33m)[m Merge pull request #49 from TheGrind5/ThuNghiem_Thien
+[33md764c54[m Xóa các file build (bin/obj) khỏi Git tracking để clean up PR
+[33m21356e5[m Cập nhật .gitignore chuẩn .NET để loại bỏ file/folder build không cần thiết khỏi repo
+[33m4b846b4[m Cập nhật sơ đồ, phân tích usecase, chuẩn hóa phân quyền actor (Customer, Host, Admin), tổng quan tích hợp hệ thống
+[33mf29ebcb[m [Frontend] Kiểm tra cấu trúc src/ đảm bảo gọn gàng, chuẩn best practice
+[33m88337cf[m Merge pull request #47 from TheGrind5/Minh
+[33m0239bd2[m Merge branch 'Minh' of https://github.com/TheGrind5/TheGrind5_EventManagement_BackEnd into Minh
+[33m6e11bff[m feat: Add Ban/Unban User functionality to Backend - Add IsBanned, BannedAt, BanReason fields to User model - Create migration AddUserBanFeature for database schema - Add POST /api/Auth/users/{userId}/ban endpoint - Add POST /api/Auth/users/{userId}/unban endpoint - Update LoginAsync to check banned status (403 error) - Update GetAllUsers to include ban information - Add BanUserRequest DTO for ban reason - Prevent banning Admin accounts
+[33m925be17[m Merge pull request #46 from TheGrind5/ThuNghiem_Thien
+[33m0cf69a5[m Merge origin/master into ThuNghiem_Thien: keep assets vault changes, resolve queries, remove legacy uploads
+[33mc7fba1f[m Merge pull request #45 from TheGrind5/Minh
+[33mca2b18d[m Normalize image vault to /assets/images; remove legacy uploads; update seed
+[33m0d660d5[m Merge branch 'master' into Minh
+[33m02e3e23[m feat: Featured Events slider + static image serving fix
+[33mac5cea8[m fix: Remove Frontend folder from Backend repo - Frontend code should be in separate repo - Add TheGrind5_EventManagement_FrontEnd/ to .gitignore
+[33m8aceec5[m feat: Add Admin API and User Management Backend - Add GetAllUsers API endpoint with Admin authorization - Update UserRepository with GetAllUsersAsync method - Add admin account creation SQL script - Update database connection string - Add migration for decimal precision - Include database setup automation scripts
+[33m18fa43e[m Add: Frontend Ä‘áº§y Ä‘á»§ tá»« GitHub + cáº­p nháº­t run.bat Ä‘á»ƒ cháº¡y cáº£ Backend vÃ  Frontend
+[33m8a6dea4[m Fix: Sá»­a run.bat - chá»‰ cháº¡y Backend vÃ¬ nhÃ¡nh Minh chÆ°a cÃ³ Frontend Ä‘áº§y Ä‘á»§
+[33mf9fc86b[m Update: Cáº­p nháº­t Ä‘Æ°á»ng dáº«n cho mÃ¡y DESKTOP-21QAC9D - sá»­ dá»¥ng relative path
+[33m342bac3[m Add: TÃ­nh nÄƒng Admin User Management vÃ  cáº­p nháº­t run.bat cho mÃ¡y local
+[33mda73f53[m Merge pull request #44 from TheGrind5/ThuNghiem_Thien
+[33mdf12421[m docs: Merge all documentation files into PROJECT_COMPLETE_GUIDE.md
+[33m97c5319[m feat: Add image storage in assets/images with auto-export functionality

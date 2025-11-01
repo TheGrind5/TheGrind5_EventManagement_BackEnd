@@ -23,5 +23,13 @@ public partial class Payment
 
     public DateTime PaymentDate { get; set; }
 
+    // VNPay specific fields
+    public string? TransactionId { get; set; }
+    public string? VnpTxnRef { get; set; }
+    public string? ResponseCode { get; set; }
+    public string? TransactionStatus { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
     public virtual Order Order { get; set; }
 }

@@ -294,7 +294,13 @@ namespace TheGrind5_EventManagement.Controllers
                     Amount = ticket.OrderItem.Order.Amount,
                     Status = ticket.OrderItem.Order.Status,
                     CreatedAt = ticket.OrderItem.Order.CreatedAt
-                } : null
+                } : new OrderInfoDTO
+                {
+                    OrderId = 0,
+                    Amount = 0,
+                    Status = "Pending",
+                    CreatedAt = DateTime.MinValue
+                }
             };
         }
 

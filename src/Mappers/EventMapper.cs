@@ -7,39 +7,40 @@ namespace TheGrind5_EventManagement.Mappers
 {
     public class EventMapper : IEventMapper
     {
-        public object MapToEventDto(Event eventData)
+    public object MapToEventDto(Event eventData)
+    {
+        var eventDetails = eventData.GetEventDetails();
+        var organizerInfo = eventData.GetOrganizerInfo(); // Lấy OrganizerInfo từ JSON
+        
+        // Construct location from address components if Location field is empty
+        var location = eventData.Location;
+        if (string.IsNullOrEmpty(location) && eventDetails != null)
         {
-            var eventDetails = eventData.GetEventDetails();
-            var organizerInfo = eventData.GetOrganizerInfo(); // Lấy OrganizerInfo từ JSON
+            var locationParts = new List<string>();
+            if (!string.IsNullOrEmpty(eventDetails.VenueName)) locationParts.Add(eventDetails.VenueName);
+            if (!string.IsNullOrEmpty(eventDetails.StreetAddress)) locationParts.Add(eventDetails.StreetAddress);
+            if (!string.IsNullOrEmpty(eventDetails.Ward)) locationParts.Add(eventDetails.Ward);
+            if (!string.IsNullOrEmpty(eventDetails.District)) locationParts.Add(eventDetails.District);
+            if (!string.IsNullOrEmpty(eventDetails.Province)) locationParts.Add(eventDetails.Province);
             
-            // Construct location from address components if Location field is empty
-            var location = eventData.Location;
-            if (string.IsNullOrEmpty(location) && eventDetails != null)
-            {
-                var locationParts = new List<string>();
-                if (!string.IsNullOrEmpty(eventDetails.VenueName)) locationParts.Add(eventDetails.VenueName);
-                if (!string.IsNullOrEmpty(eventDetails.StreetAddress)) locationParts.Add(eventDetails.StreetAddress);
-                if (!string.IsNullOrEmpty(eventDetails.Ward)) locationParts.Add(eventDetails.Ward);
-                if (!string.IsNullOrEmpty(eventDetails.District)) locationParts.Add(eventDetails.District);
-                if (!string.IsNullOrEmpty(eventDetails.Province)) locationParts.Add(eventDetails.Province);
-                
-                if (locationParts.Any())
-                    location = string.Join(", ", locationParts);
-            }
-            
-            return new
-            {
-                eventId = eventData.EventId,
-                title = eventData.Title,
-                description = eventData.Description,
-                startTime = eventData.StartTime,
-                endTime = eventData.EndTime,
-                location = location,
-                category = eventData.Category,
-                status = eventData.Status,
-                hostName = eventData.Host?.FullName,
-                hostEmail = eventData.Host?.Email,
-                eventDetails = eventDetails,
+            if (locationParts.Any())
+                location = string.Join(", ", locationParts);
+        }
+        
+        return new
+        {
+            eventId = eventData.EventId,
+            title = eventData.Title,
+            description = eventData.Description,
+            startTime = eventData.StartTime,
+            endTime = eventData.EndTime,
+            location = location,
+            category = eventData.Category,
+            campus = eventData.Campus?.Name, // Thêm campus name vào DTO
+            status = eventData.Status,
+            hostName = eventData.Host?.FullName,
+            hostEmail = eventData.Host?.Email,
+            eventDetails = eventDetails,
                 // QUAN TRỌNG: Ưu tiên EventImage/BackgroundImage trực tiếp từ EventDetails, không fallback nếu empty
                 // Chỉ fallback về images array nếu EventImage/BackgroundImage là null (không phải empty string)
                 eventImage = !string.IsNullOrEmpty(eventDetails?.EventImage) 
@@ -96,6 +97,7 @@ namespace TheGrind5_EventManagement.Mappers
                 eventMode = eventData.EventMode,
                 eventType = eventData.EventType,
                 category = eventData.Category,
+                campus = eventData.Campus?.Name, // Thêm campus name vào DTO
                 status = eventData.Status,
                 createdAt = eventData.CreatedAt,
                 updatedAt = eventData.UpdatedAt, // QUAN TRỌNG: Trả về UpdatedAt để frontend cache bust

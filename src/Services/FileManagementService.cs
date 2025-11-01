@@ -71,16 +71,16 @@ namespace TheGrind5_EventManagement.Services
             }
         }
 
-        public async Task<bool> DeleteEventImageAsync(string imageUrl)
+        public Task<bool> DeleteEventImageAsync(string imageUrl)
         {
             try
             {
                 if (string.IsNullOrEmpty(imageUrl))
-                    return false;
+                    return Task.FromResult(false);
 
                 var fileName = ExtractFileNameFromUrl(imageUrl);
                 if (string.IsNullOrEmpty(fileName))
-                    return false;
+                    return Task.FromResult(false);
 
                 var filePath = Path.Combine(_eventsFolder, fileName);
                 
@@ -88,15 +88,15 @@ namespace TheGrind5_EventManagement.Services
                 {
                     File.Delete(filePath);
                     _logger.LogInformation($"Event image deleted: {imageUrl}");
-                    return true;
+                    return Task.FromResult(true);
                 }
 
-                return false;
+                return Task.FromResult(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error deleting event image: {imageUrl}");
-                return false;
+                return Task.FromResult(false);
             }
         }
 
@@ -185,24 +185,24 @@ namespace TheGrind5_EventManagement.Services
             }
         }
 
-        public async Task<bool> ImageExistsAsync(string imageUrl)
+        public Task<bool> ImageExistsAsync(string imageUrl)
         {
             try
             {
                 if (string.IsNullOrEmpty(imageUrl))
-                    return false;
+                    return Task.FromResult(false);
 
                 var fileName = ExtractFileNameFromUrl(imageUrl);
                 if (string.IsNullOrEmpty(fileName))
-                    return false;
+                    return Task.FromResult(false);
 
                 var filePath = Path.Combine(_eventsFolder, fileName);
-                return File.Exists(filePath);
+                return Task.FromResult(File.Exists(filePath));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error checking if image exists: {imageUrl}");
-                return false;
+                return Task.FromResult(false);
             }
         }
 

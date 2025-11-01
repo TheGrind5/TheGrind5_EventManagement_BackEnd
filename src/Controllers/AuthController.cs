@@ -514,7 +514,7 @@ namespace TheGrind5_EventManagement.Controllers
                 user.Username,
                 user.FullName,
                 user.Email,
-                user.Phone,
+                user.Phone ?? string.Empty,
                 user.Role,
                 user.CreatedAt,
                 user.UpdatedAt,

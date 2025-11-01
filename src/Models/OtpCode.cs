@@ -5,7 +5,7 @@ namespace TheGrind5_EventManagement.Models;
 public class OtpCode
 {
     [Key]
-    public int OtpId { get; set; }
+    public int Id { get; set; }
     
     [Required]
     [StringLength(6)]

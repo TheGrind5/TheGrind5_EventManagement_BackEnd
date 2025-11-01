@@ -11,7 +11,7 @@ namespace TheGrind5_EventManagement.Mappers
                 user.UserId,
                 user.FullName,
                 user.Email,
-                user.Phone,
+                user.Phone ?? string.Empty,
                 user.Role,
                 user.WalletBalance,
                 user.Avatar
@@ -42,7 +42,7 @@ namespace TheGrind5_EventManagement.Mappers
                 user.Username,
                 user.FullName,
                 user.Email,
-                user.Phone,
+                user.Phone ?? string.Empty,
                 user.Role,
                 user.CreatedAt,
                 user.UpdatedAt,

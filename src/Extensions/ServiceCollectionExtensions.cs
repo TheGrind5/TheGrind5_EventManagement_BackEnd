@@ -17,11 +17,15 @@ namespace TheGrind5_EventManagement.Extensions
                 var conn = configuration.GetConnectionString("DefaultConnection");
                 if (string.IsNullOrEmpty(conn))
                     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-                
+
                 options.UseSqlServer(conn, sqlOptions =>
                 {
-                    // Disable retry strategy to avoid conflict with manual transactions
-                    // sqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+                    // Bật resiliency để xử lý lỗi mạng tạm thời và tăng timeout
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorNumbersToAdd: null);
+                    sqlOptions.CommandTimeout(60);
                 });
             });
             

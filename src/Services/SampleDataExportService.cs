@@ -311,7 +311,7 @@ namespace TheGrind5_EventManagement.Services
             }
         }
 
-        private async Task<(bool success, string newPath)> CopyImageAsync(
+        private Task<(bool success, string newPath)> CopyImageAsync(
             string sourceImageUrl,
             string newFileName,
             string imageType,
@@ -321,7 +321,7 @@ namespace TheGrind5_EventManagement.Services
             {
                 var sourceFileName = ImagePathConverter.ExtractFileNameFromUrl(sourceImageUrl);
                 if (string.IsNullOrEmpty(sourceFileName))
-                    return (false, "");
+                    return Task.FromResult((false, ""));
 
                 var sourceFolder = imageType == "events" ? _eventsFolder : _avatarsFolder;
                 var targetFolder = options.TargetFolder ?? 
@@ -341,7 +341,7 @@ namespace TheGrind5_EventManagement.Services
                     if (!File.Exists(sourcePath))
                     {
                         _logger.LogWarning($"Image not found: {sourceFileName}");
-                        return (false, "");
+                        return Task.FromResult((false, ""));
                     }
                 }
 
@@ -351,12 +351,12 @@ namespace TheGrind5_EventManagement.Services
                 File.Copy(sourcePath, targetPath, overwrite: true);
 
                 var newPath = $"/assets/images/{imageType}/{newFileName}";
-                return (true, newPath);
+                return Task.FromResult((true, newPath));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error copying image: {sourceImageUrl}");
-                return (false, "");
+                return Task.FromResult((false, ""));
             }
         }
 

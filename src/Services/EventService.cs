@@ -46,7 +46,8 @@ public class EventService : IEventService
     {
         var query = _context.Events
             .Include(e => e.TicketTypes)
-            .Include(e => e.Host)
+            .Include(e => e.Campus) // Include Campus để có thể lấy campus name
+            // Loại bỏ Include Host để tránh phụ thuộc vào các cột mới (IsBanned, BannedAt, BanReason)
             .OrderByDescending(e => e.CreatedAt)
             .AsQueryable();
 

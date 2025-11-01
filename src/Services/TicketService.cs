@@ -51,12 +51,15 @@ namespace TheGrind5_EventManagement.Services
 
         public async Task<Ticket> GetTicketByIdAsync(int ticketId)
         {
-            return await _context.Tickets
+            var ticket = await _context.Tickets
                 .Include(t => t.TicketType)
                     .ThenInclude(tt => tt.Event)
                 .Include(t => t.OrderItem)
                     .ThenInclude(oi => oi.Order)
                 .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+            if (ticket == null)
+                throw new ArgumentException("Ticket not found");
+            return ticket;
         }
 
         public async Task<IEnumerable<Ticket>> GetTicketsByEventIdAsync(int eventId)
@@ -228,11 +231,14 @@ namespace TheGrind5_EventManagement.Services
             return serialNumber;
         }
 
-        public async Task<TicketType?> GetTicketTypeByIdAsync(int ticketTypeId)
+        public async Task<TicketType> GetTicketTypeByIdAsync(int ticketTypeId)
         {
-            return await _context.TicketTypes
+            var ticketType = await _context.TicketTypes
                 .Include(tt => tt.Event)
                 .FirstOrDefaultAsync(tt => tt.TicketTypeId == ticketTypeId);
+            if (ticketType == null)
+                throw new ArgumentException("Ticket type not found");
+            return ticketType;
         }
 
         public async Task<int> GetSoldTicketsCountAsync(int ticketTypeId)

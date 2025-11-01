@@ -34,6 +34,7 @@ namespace TheGrind5_EventManagement.DTOs
         string? StreetAddress,
         string? EventType,
         string? Category,
+        string? Campus, // Thêm Campus field (tên campus như "Hà Nội", "Đà Nẵng")
         string? EventImage,
         string? BackgroundImage,
         string? EventIntroduction,
@@ -78,6 +79,7 @@ namespace TheGrind5_EventManagement.DTOs
         string? StreetAddress,
         string? EventType,
         string? Category,
+        string? Campus, // Thêm Campus field (tên campus như "Hà Nội", "Đà Nẵng")
         string? EventImage,
         string? BackgroundImage,
         string? EventIntroduction,

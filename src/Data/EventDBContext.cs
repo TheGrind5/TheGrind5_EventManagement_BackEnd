@@ -39,6 +39,15 @@ public partial class EventDBContext : DbContext
         b.Entity<Voucher>().ToTable("Voucher");
         b.Entity<Campus>().ToTable("Campus");
         
+        // Configure OtpCode primary key to match database
+        b.Entity<OtpCode>()
+         .HasKey(o => o.Id);
+        
+        // Configure Voucher DiscountPercentage precision
+        b.Entity<Voucher>()
+         .Property(v => v.DiscountPercentage)
+         .HasPrecision(5, 2);
+        
         // Configure column mappings for User table
         b.Entity<User>(entity =>
         {
@@ -55,6 +64,17 @@ public partial class EventDBContext : DbContext
         ConfigureWishlistRelationships(b);
         ConfigureCampusRelationships(b);
         ConfigureDecimalPrecision(b);
+        ConfigureCampusColumnMapping(b);
+    }
+
+    private void ConfigureCampusColumnMapping(ModelBuilder b)
+    {
+        // Map Campus model to database schema
+        b.Entity<Campus>(entity =>
+        {
+            entity.Property(e => e.Name).HasColumnName("CampusName");
+            entity.Property(e => e.Code).HasColumnName("Province");
+        });
     }
 
     private void ConfigureUserRelationships(ModelBuilder b)
@@ -189,6 +209,10 @@ public partial class EventDBContext : DbContext
     {
         b.Entity<Order>()
          .Property(o => o.Amount)
+         .HasPrecision(18, 2);
+
+        b.Entity<Order>()
+         .Property(o => o.DiscountAmount)
          .HasPrecision(18, 2);
 
         b.Entity<Payment>()

@@ -3,7 +3,9 @@ using TheGrind5_EventManagement.Models;
 using TheGrind5_EventManagement.DTOs;
 using TheGrind5_EventManagement.Business;
 using TheGrind5_EventManagement.Services;
+using TheGrind5_EventManagement.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Linq;
 using System.Text.Json;
@@ -16,11 +18,13 @@ namespace TheGrind5_EventManagement.Controllers
     {
         private readonly IEventService _eventService;
         private readonly IFileManagementService _fileManagementService;
+        private readonly EventDBContext _context;
 
-        public EventController(IEventService eventService, IFileManagementService fileManagementService)
+        public EventController(IEventService eventService, IFileManagementService fileManagementService, EventDBContext context)
         {
             _eventService = eventService;
             _fileManagementService = fileManagementService;
+            _context = context;
         }
 
         [HttpGet]
@@ -54,7 +58,7 @@ namespace TheGrind5_EventManagement.Controllers
             {
                 Console.WriteLine($"Error in GetAllEvents: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return BadRequest(new { message = "Có lá»—i xáº£y ra khi láº¥y danh sáº¡ch sá»± kiá»‡n", error = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
    
@@ -125,6 +129,17 @@ namespace TheGrind5_EventManagement.Controllers
                     return Forbid("Báº¡n không cÃ³ quyá»n chá»‰nh sá»­a sá»± kiá»‡n nÃ y");
 
                 Console.WriteLine($"Found event: {existingEvent.Title}, HostId: {existingEvent.HostId}");
+
+                // Tìm CampusId từ campus name nếu có
+                if (!string.IsNullOrWhiteSpace(request.Campus))
+                {
+                    var campus = await _context.Campuses
+                        .FirstOrDefaultAsync(c => c.Name == request.Campus || c.Code == request.Campus);
+                    if (campus != null)
+                    {
+                        existingEvent.CampusId = campus.CampusId;
+                    }
+                }
 
                 // Cáº­p nháº­t thông tin cÆ¡ báº£n cá»§a event
                 existingEvent.Title = request.Title ?? existingEvent.Title;
@@ -582,6 +597,18 @@ namespace TheGrind5_EventManagement.Controllers
                     locationString = string.Join(", ", addressParts);
                 }
 
+                // Tìm CampusId từ campus name nếu có
+                int? campusId = null;
+                if (!string.IsNullOrWhiteSpace(request.Campus))
+                {
+                    var campus = await _context.Campuses
+                        .FirstOrDefaultAsync(c => c.Name == request.Campus || c.Code == request.Campus);
+                    if (campus != null)
+                    {
+                        campusId = campus.CampusId;
+                    }
+                }
+
                 // Táº¡o event vá»›i táº¥t cáº£ thông tin
                 var eventData = new Event
                 {
@@ -594,7 +621,8 @@ namespace TheGrind5_EventManagement.Controllers
                     Location = locationString,
                     StartTime = request.StartTime,
                     EndTime = request.EndTime,
-                    Status = "Open", // Trá»±c tiáº¿p set Open vÃ¬ Ä‘Ã£ hoÃ n thÃ nh Ä‘á»§ 5 bÆ°á»›c
+                    Status = "Open", // Trá»±c tiáº¿p set Open vÃ¬ Ä'Ã£ hoÃ n thÃ nh Ä'á»§ 5 bÆ°á»›c
+                    CampusId = campusId, // Set CampusId nếu tìm thấy
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -656,8 +684,8 @@ namespace TheGrind5_EventManagement.Controllers
 
                         var ticketType = new TicketType
                         {
-                            EventId = createdEvent.EventId,
-                            TypeName = ticketRequest.TypeName.Trim(),
+                            EventId = createdEvent?.EventId ?? 0,
+                            TypeName = ticketRequest.TypeName?.Trim() ?? string.Empty,
                             Price = ticketRequest.Price,
                             Quantity = ticketRequest.Quantity,
                             MinOrder = ticketRequest.MinOrder > 0 ? ticketRequest.MinOrder : 1,
@@ -670,12 +698,12 @@ namespace TheGrind5_EventManagement.Controllers
                     }
 
                     // Thêm ticket types vào event
-                    if (createdEvent.TicketTypes == null)
-                        createdEvent.TicketTypes = new List<TicketType>();
+                    if (createdEvent?.TicketTypes == null)
+                        createdEvent!.TicketTypes = new List<TicketType>();
                     
                     foreach (var ticketType in ticketTypesToAdd)
                     {
-                        createdEvent.TicketTypes.Add(ticketType);
+                        createdEvent.TicketTypes!.Add(ticketType);
                     }
 
                     // Update event để lưu ticket types
@@ -687,7 +715,7 @@ namespace TheGrind5_EventManagement.Controllers
                 {
                     try
                     {
-                        var currentTicketTypes = createdEvent.TicketTypes?.ToList() ?? new List<TicketType>();
+                        var currentTicketTypes = createdEvent?.TicketTypes?.ToList() ?? new List<TicketType>();
                         if (currentTicketTypes.Any())
                         {
                             var layoutToSave = request.VenueLayout;
@@ -719,8 +747,8 @@ namespace TheGrind5_EventManagement.Controllers
                                                 TypeName = matched.TypeName,
                                                 Price = matched.Price,
                                                 Quantity = matched.Quantity,
-                                                MinOrder = matched.MinOrder,
-                                                MaxOrder = matched.MaxOrder,
+                                                MinOrder = matched.MinOrder ?? 1,
+                                                MaxOrder = matched.MaxOrder ?? 10,
                                                 SaleStart = matched.SaleStart,
                                                 SaleEnd = matched.SaleEnd,
                                                 Status = matched.Status ?? "Active"
@@ -730,7 +758,7 @@ namespace TheGrind5_EventManagement.Controllers
                                 }
 
                                 // Lưu lại VenueLayout đã đồng bộ
-                                createdEvent.SetVenueLayout(layoutToSave);
+                                createdEvent!.SetVenueLayout(layoutToSave);
                                 await _eventService.UpdateEventAsync(createdEvent.EventId, createdEvent);
                             }
                         }
@@ -746,7 +774,7 @@ namespace TheGrind5_EventManagement.Controllers
                                 $"Bank Account: {request.BankAccount}\n" +
                                 $"Tax Info: {request.TaxInfo}";
                 
-                createdEvent.Description = createdEvent.Description + "\n\n" + paymentInfo;
+                createdEvent!.Description = (createdEvent.Description ?? string.Empty) + "\n\n" + paymentInfo;
                 await _eventService.UpdateEventAsync(createdEvent.EventId, createdEvent);
 
                 Console.WriteLine($"Complete event created successfully with ID: {createdEvent.EventId}");
@@ -775,6 +803,18 @@ namespace TheGrind5_EventManagement.Controllers
                 if (userId == null)
                     return Unauthorized(new { message = "Token không há»£p lá»‡" });
 
+                // Tìm CampusId từ campus name nếu có
+                int? campusId = null;
+                if (!string.IsNullOrWhiteSpace(request.Campus))
+                {
+                    var campus = await _context.Campuses
+                        .FirstOrDefaultAsync(c => c.Name == request.Campus || c.Code == request.Campus);
+                    if (campus != null)
+                    {
+                        campusId = campus.CampusId;
+                    }
+                }
+
                 // Táº¡o event vá»›i thông tin bÆ°á»›c 1
                 var eventData = new Event
                 {
@@ -784,11 +824,17 @@ namespace TheGrind5_EventManagement.Controllers
                     EventMode = request.EventMode,
                     EventType = request.EventType,
                     Category = request.Category,
+                    CampusId = campusId, // Set CampusId nếu tìm thấy
                     Status = "Draft",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var createdEvent = await _eventService.CreateEventAsync(eventData);
+                
+                if (createdEvent == null)
+                {
+                    return BadRequest("Failed to create event");
+                }
                 
                 // Set JSON data using helper methods
                 var eventDetails = new EventDetailsData
@@ -805,7 +851,7 @@ namespace TheGrind5_EventManagement.Controllers
                     SpecialGuests = request.SpecialGuests,
                     SpecialExperience = request.SpecialExperience
                 };
-                createdEvent.SetEventDetails(eventDetails);
+                createdEvent!.SetEventDetails(eventDetails);
                 
                 var termsAndConditions = new TermsAndConditionsData
                 {
@@ -1146,14 +1192,14 @@ namespace TheGrind5_EventManagement.Controllers
                                 var matched = eventTicketTypes.FirstOrDefault(t => t.TicketTypeId == area.TicketTypeId.Value);
                                 if (matched != null)
                                 {
-                                    area.LinkedTicket = new LinkedTicketSnapshot
+                                            area.LinkedTicket = new LinkedTicketSnapshot
                                     {
                                         TicketTypeId = matched.TicketTypeId,
                                         TypeName = matched.TypeName,
                                         Price = matched.Price,
-                                        Quantity = matched.Quantity,
-                                        MinOrder = matched.MinOrder,
-                                        MaxOrder = matched.MaxOrder,
+                                                Quantity = matched.Quantity,
+                                                MinOrder = matched.MinOrder ?? 1,
+                                                MaxOrder = matched.MaxOrder ?? 10,
                                         SaleStart = matched.SaleStart,
                                         SaleEnd = matched.SaleEnd,
                                         Status = matched.Status ?? "Active"

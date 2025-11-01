@@ -139,12 +139,15 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("PaymentMethod")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -194,11 +197,11 @@ namespace TheGrind5_EventManagement.Migrations
 
             modelBuilder.Entity("TheGrind5_EventManagement.Models.OtpCode", b =>
                 {
-                    b.Property<int>("OtpId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OtpId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -221,7 +224,7 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<DateTime?>("UsedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("OtpId");
+                    b.HasKey("Id");
 
                     b.ToTable("OtpCode", (string)null);
                 });
@@ -353,6 +356,12 @@ namespace TheGrind5_EventManagement.Migrations
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("BanReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("BannedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("CampusId")
                         .HasColumnType("int");
 
@@ -418,7 +427,8 @@ namespace TheGrind5_EventManagement.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("DiscountPercentage")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");

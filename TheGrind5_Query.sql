@@ -1,3 +1,6 @@
+USE master;
+GO
+
 IF DB_ID('EventDB') IS NOT NULL
 BEGIN
     ALTER DATABASE EventDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -6,12 +9,9 @@ END;
 GO
 CREATE DATABASE EventDB COLLATE Vietnamese_CI_AI;
 GO
-USE EventDB;
+ALTER DATABASE EventDB SET MULTI_USER;
 GO
-
--- Bật mức tương thích hỗ trợ các hàm JSON (SQL Server 2016+/Compat >= 130)
--- Bỏ thiết lập compatibility level vì một số môi trường chỉ hỗ trợ 90/100/110
--- Lưu ý: Các phần xử lý JSON sẽ dùng REPLACE thuần T-SQL thay vì JSON_VALUE/JSON_MODIFY
+USE EventDB;
 GO
 
 CREATE TABLE [User](
@@ -28,10 +28,7 @@ CREATE TABLE [User](
     -- User Profile Fields (Added for profile management)
     Avatar NVARCHAR(MAX),           -- Profile avatar image path
     DateOfBirth DATETIME2,          -- User's date of birth
-    Gender NVARCHAR(MAX),            -- User's gender
-    BanReason NVARCHAR(255) NULL,   -- Lý do bị cấm (mới)
-    BannedAt DATETIME2 NULL,        -- Thời gian bị cấm (mới)
-    IsBanned BIT NOT NULL DEFAULT 0 -- Trạng thái banned (mới)
+    Gender NVARCHAR(MAX)             -- User's gender
 );
 
 CREATE TABLE Event(
@@ -199,12 +196,28 @@ CREATE TABLE OtpCode(
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
 );
 
+-- Campus table for FPT campuses
+CREATE TABLE Campus(
+    CampusId INT IDENTITY(1,1) PRIMARY KEY,
+    CampusName NVARCHAR(255) NOT NULL UNIQUE,
+    Province NVARCHAR(255) NOT NULL,
+    Address NVARCHAR(MAX),
+    Phone NVARCHAR(20),
+    Email NVARCHAR(255),
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0)
+);
+
 -- Additional indexes for new tables
 CREATE INDEX IX_WalletTransaction_UserId ON WalletTransaction(UserId);
 CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
 CREATE INDEX IX_WalletTransaction_CreatedAt ON WalletTransaction(CreatedAt);
 CREATE INDEX IX_OtpCode_Email ON OtpCode(Email);
 CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
+CREATE INDEX IX_Campus_CampusName ON Campus(CampusName);
+CREATE INDEX IX_Campus_Province ON Campus(Province);
+CREATE INDEX IX_Campus_IsActive ON Campus(IsActive);
 
 -- Indexes for Event table (simplified)
 CREATE INDEX IX_Event_EventMode ON Event(EventMode);
@@ -217,48 +230,54 @@ CREATE INDEX IX_Event_EndTime ON Event(EndTime);
 -- Additional indexes for Voucher table
 CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
 
--- ============================================================
--- IMAGE NORMALIZATION SUPPORT (assets/images/*)
--- - Chuẩn hóa đường dẫn ảnh về dạng /assets/images/{events|avatars}/...
--- ============================================================
+-- ============================================
+-- Migration Script: Ensure OrganizerInfo column exists
+-- ============================================
+-- Script này đảm bảo cột OrganizerInfo tồn tại trong bảng Event
+-- Nếu database đã có cột này thì không cần chạy lại
+-- ============================================
+
+-- Kiểm tra và thêm cột OrganizerInfo nếu chưa có
+IF NOT EXISTS (
+    SELECT 1 
+    FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = 'Event' 
+    AND COLUMN_NAME = 'OrganizerInfo'
+    AND TABLE_SCHEMA = 'dbo'
+)
+BEGIN
+    ALTER TABLE Event
+    ADD OrganizerInfo NVARCHAR(MAX) NULL;
+    
+    PRINT 'Đã thêm cột OrganizerInfo vào bảng Event';
+END
+ELSE
+BEGIN
+    PRINT 'Cột OrganizerInfo đã tồn tại trong bảng Event';
+END
 GO
 
--- Chuẩn hóa dữ liệu ảnh bằng REPLACE thuần (không dùng JSON functions)
+-- ============================================
+-- Cấu trúc JSON của OrganizerInfo:
+-- ============================================
+-- {
+--   "OrganizerLogo": "string",      -- Đường dẫn ảnh logo ban tổ chức
+--   "OrganizerName": "string",      -- Tên ban tổ chức
+--   "OrganizerInfo": "string"       -- Thông tin chi tiết về ban tổ chức
+-- }
+-- ============================================
 
--- 1) User Avatars
-UPDATE [User]
-SET Avatar = 
-    REPLACE(
-      REPLACE(
-        REPLACE(
-          REPLACE(ISNULL(Avatar, ''), 'http://localhost:5000', ''),
-        'https://localhost:5001', ''),
-      '/uploads/avatars/', '/assets/images/avatars/'),
-    '/wwwroot/uploads/avatars/', '/assets/images/avatars/')
-WHERE Avatar IS NOT NULL;
+-- ============================================
+-- Insert Campus Data: 5 FPT Campuses
+-- ============================================
+INSERT INTO Campus (CampusName, Province, IsActive, CreatedAt)
+VALUES
+    (N'Hà Nội', N'Hà Nội', 1, SYSDATETIME()),
+    (N'Đà Nẵng', N'Đà Nẵng', 1, SYSDATETIME()),
+    (N'Quy Nhơn', N'Quy Nhơn', 1, SYSDATETIME()),
+    (N'TP. Hồ Chí Minh', N'TP. Hồ Chí Minh', 1, SYSDATETIME()),
+    (N'Cần Thơ', N'Cần Thơ', 1, SYSDATETIME());
 
--- 2) Event Organizer Logo trong OrganizerInfo JSON (thay thế chuỗi thô)
-UPDATE Event
-SET OrganizerInfo = 
-    REPLACE(
-      REPLACE(
-        REPLACE(
-          REPLACE(ISNULL(OrganizerInfo, ''), 'http://localhost:5000', ''),
-        'https://localhost:5001', ''),
-      '/wwwroot/uploads/avatars/', '/assets/images/avatars/'),
-    '/uploads/avatars/', '/assets/images/avatars/')
-WHERE OrganizerInfo IS NOT NULL;
-
--- 3) EventDetails JSON: thay thế đường dẫn ảnh thô (EventImage, BackgroundImage, images[])
-UPDATE Event
-SET EventDetails = 
-    REPLACE(
-      REPLACE(
-        REPLACE(
-          REPLACE(
-            REPLACE(ISNULL(EventDetails, ''), 'http://localhost:5000', ''),
-          'https://localhost:5001', ''),
-        '/wwwroot/uploads/events/', '/assets/images/events/'),
-      '/uploads/events/', '/assets/images/events/'),
-    '\\', '/')
-WHERE EventDetails IS NOT NULL;
+PRINT 'Đã thêm 5 campus vào bảng Campus';
+GO
+-- ============================================

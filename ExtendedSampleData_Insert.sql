@@ -17,6 +17,7 @@ DELETE FROM Wishlist;
 DELETE FROM WalletTransaction;
 DELETE FROM OtpCode;
 DELETE FROM [User];
+DELETE FROM Campus;
 
 DBCC CHECKIDENT ('Payment', RESEED, 0);
 DBCC CHECKIDENT ('Ticket', RESEED, 0);
@@ -29,6 +30,7 @@ DBCC CHECKIDENT ('Wishlist', RESEED, 0);
 DBCC CHECKIDENT ('WalletTransaction', RESEED, 0);
 DBCC CHECKIDENT ('OtpCode', RESEED, 0);
 DBCC CHECKIDENT ('[User]', RESEED, 0);
+DBCC CHECKIDENT ('Campus', RESEED, 0);
 
 -- Insert Users
 SET IDENTITY_INSERT [User] ON;
@@ -49,6 +51,20 @@ INSERT INTO [User] (UserId, Username, FullName, Email, PasswordHash, Phone, Role
 VALUES (5, 'testwallet', N'Test Wallet User', 'testwallet@example.com', '$2a$11$DeIW.c5wburPqu.9eeGZFucgHpogn/DHtnvEkJdbd8uGH/6BBIb5u', '0123456789', 'Customer', 999999.99, GETUTCDATE(), GETUTCDATE(), NULL, '1990-09-25', N'Nam');
 
 SET IDENTITY_INSERT [User] OFF;
+
+-- ========================================
+-- Insert Campus Data: 5 FPT Campuses
+-- ========================================
+INSERT INTO Campus (CampusName, Province, IsActive, CreatedAt)
+VALUES
+    (N'Hà Nội', N'Hà Nội', 1, SYSDATETIME()),
+    (N'Đà Nẵng', N'Đà Nẵng', 1, SYSDATETIME()),
+    (N'Quy Nhơn', N'Quy Nhơn', 1, SYSDATETIME()),
+    (N'TP. Hồ Chí Minh', N'TP. Hồ Chí Minh', 1, SYSDATETIME()),
+    (N'Cần Thơ', N'Cần Thơ', 1, SYSDATETIME());
+
+PRINT 'Đã thêm 5 campus vào bảng Campus';
+GO
 
 -- ========================================
 -- CREATE ADMIN ACCOUNT
@@ -778,6 +794,7 @@ SET IDENTITY_INSERT TicketType OFF;
 SELECT 'Users:' as Info, COUNT(*) as Count FROM [User];
 SELECT 'Events:' as Info, COUNT(*) as Count FROM Event;
 SELECT 'Ticket Types:' as Info, COUNT(*) as Count FROM TicketType;
+SELECT 'Campus:' as Info, COUNT(*) as Count FROM Campus;
 PRINT 'Sample data loaded successfully!';
 
 GO

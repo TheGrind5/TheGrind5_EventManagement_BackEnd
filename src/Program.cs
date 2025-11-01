@@ -5,6 +5,8 @@ using System.Linq;
 using TheGrind5_EventManagement.Extensions;
 using TheGrind5_EventManagement.Constants;
 using TheGrind5_EventManagement.Middleware;
+using Microsoft.EntityFrameworkCore;
+using TheGrind5_EventManagement.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -139,5 +141,91 @@ app.UseCors(AppConstants.CORS_POLICY_NAME);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Auto-apply migrations on startup to ensure database exists/updated
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<EventDBContext>();
+    var conn = db.Database.GetDbConnection();
+    Console.WriteLine($"[DB] Provider: {conn.GetType().Name}");
+    Console.WriteLine($"[DB] Connection: {conn.ConnectionString}");
+    
+    // Check if database was created from TheGrind5_Query.sql
+    try
+    {
+        var hasUserTable = db.Database.ExecuteSqlRaw(@"
+            SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'User'
+        ") > 0;
+        
+        if (hasUserTable)
+        {
+            Console.WriteLine("[Migration] Database tables already exist from TheGrind5_Query.sql");
+            Console.WriteLine("[Migration] Attempting to apply pending migrations...");
+            
+            // Try to apply migrations, but catch and ignore errors about existing objects
+            try
+            {
+                db.Database.Migrate();
+                Console.WriteLine("[Migration] Migrations applied successfully");
+            }
+            catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+            {
+                // Ignore errors about existing objects (tables, indexes, etc.)
+                if (sqlEx.Message.Contains("already an object named") || 
+                    sqlEx.Message.Contains("There is already an object") ||
+                    sqlEx.Number == 2714 || // SQL error: There is already an object named
+                    sqlEx.Number == 1913 || // SQL error: Cannot create index because it already exists
+                    sqlEx.Number == 1750)   // SQL error: Could not create constraint
+                {
+                    Console.WriteLine($"[Migration] Skipped existing objects - this is normal if database was created from SQL script");
+                }
+                else
+                {
+                    Console.WriteLine($"[Migration] SQL Error ({sqlEx.Number}): {sqlEx.Message.Split('\n').FirstOrDefault()}");
+                }
+            }
+            catch (Exception migrateEx)
+            {
+                Console.WriteLine($"[Migration] Migration error (non-SQL): {migrateEx.Message}");
+            }
+        }
+        else
+        {
+            // Fresh database, apply all migrations
+            Console.WriteLine("[Migration] Fresh database detected, applying all migrations...");
+            db.Database.Migrate();
+            Console.WriteLine("[Migration] All migrations applied successfully");
+        }
+    }
+    catch (Exception checkEx)
+    {
+        Console.WriteLine($"[Migration] Error checking database: {checkEx.Message}");
+        // Try to apply migrations anyway
+        try
+        {
+            db.Database.Migrate();
+        }
+        catch (Exception migrateEx2)
+        {
+            Console.WriteLine($"[Migration] Migration failed: {migrateEx2.Message}");
+        }
+    }
+    
+    try
+    {
+        var eventsCount = db.Events.Count();
+        Console.WriteLine($"[DB] Events count = {eventsCount}");
+    }
+    catch (Exception countEx)
+    {
+        Console.WriteLine($"[DB] Count error: {countEx.Message}");
+    }
+}
+catch (Exception migrateEx)
+{
+    Console.WriteLine($"[Migration] WARNING: {migrateEx.Message}");
+    // Don't fail the app, just log the error
+}
 
 app.Run();

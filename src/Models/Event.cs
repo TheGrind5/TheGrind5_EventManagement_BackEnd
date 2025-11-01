@@ -14,7 +14,7 @@ public partial class Event
 
     [Required]
     [MaxLength(100)]
-    public string Title { get; set; }
+    public required string Title { get; set; }
 
     public string? Description { get; set; }
 
@@ -49,7 +49,7 @@ public partial class Event
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual User Host { get; set; }
+    public virtual User? Host { get; set; }
 
     public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 

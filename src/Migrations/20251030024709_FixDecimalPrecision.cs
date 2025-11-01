@@ -10,30 +10,13 @@ namespace TheGrind5_EventManagement.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "DiscountAmount",
-                table: "Order",
-                type: "decimal(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<string>(
-                name: "VoucherCode",
-                table: "Order",
-                type: "nvarchar(max)",
-                nullable: true);
+            // No-op: columns were added in a previous migration
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "DiscountAmount",
-                table: "Order");
-
-            migrationBuilder.DropColumn(
-                name: "VoucherCode",
-                table: "Order");
+            // No-op: nothing to drop because Up was a no-op
         }
     }
 }

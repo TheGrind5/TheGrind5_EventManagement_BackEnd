@@ -420,7 +420,7 @@ VALUES (
 -- Ticket Types cho Event 5: Workshop Nấu Ăn Healthy
 INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
 VALUES (
-    5, -- EventId của Workshop Nấu Ăn Healthy
+    6, -- EventId của Workshop Nấu Ăn Healthy
     N'Vé Thường',
     280000, -- 280k VND
     40, -- 40 vé
@@ -433,7 +433,7 @@ VALUES (
 
 INSERT INTO TicketType (EventId, TypeName, Price, Quantity, MinOrder, MaxOrder, SaleStart, SaleEnd, Status)
 VALUES (
-    5, -- EventId của Workshop Nấu Ăn Healthy
+    6, -- EventId của Workshop Nấu Ăn Healthy
     N'Vé Cặp Đôi',
     500000, -- 500k VND (giá cho 2 người)
     20, -- 20 cặp (40 người)

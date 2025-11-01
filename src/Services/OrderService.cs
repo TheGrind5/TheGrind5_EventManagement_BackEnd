@@ -19,6 +19,7 @@ namespace TheGrind5_EventManagement.Services
         private readonly IOrderMapper _orderMapper;
         private readonly ITicketService _ticketService;
         private readonly IVoucherService _voucherService;
+        private readonly INotificationService _notificationService;
         private readonly EventDBContext _context;
 
         public OrderService(
@@ -26,12 +27,14 @@ namespace TheGrind5_EventManagement.Services
             IOrderMapper orderMapper,
             ITicketService ticketService,
             IVoucherService voucherService,
+            INotificationService notificationService,
             EventDBContext context)
         {
             _orderRepository = orderRepository;
             _orderMapper = orderMapper;
             _ticketService = ticketService;
             _voucherService = voucherService;
+            _notificationService = notificationService;
             _context = context;
         }
 
@@ -156,6 +159,17 @@ namespace TheGrind5_EventManagement.Services
                 // Commit transaction
                 await transaction.CommitAsync();
 
+                // 🔔 Tạo notification sau khi tạo order thành công
+                try
+                {
+                    await _notificationService.CreateOrderConfirmationNotificationAsync(customerId, createdOrder.OrderId);
+                }
+                catch (Exception notifEx)
+                {
+                    // Log lỗi nhưng không fail toàn bộ order creation
+                    Console.WriteLine($"⚠️ Lỗi khi tạo notification cho order {createdOrder.OrderId}: {notifEx.Message}");
+                }
+
                 // Map thành response DTO
                 return _orderMapper.MapToCreateOrderResponse(createdOrder);
             }
@@ -238,6 +252,34 @@ namespace TheGrind5_EventManagement.Services
             }
         }
 
+        public async Task<bool> UpdateOrderAsync(int orderId, UpdateOrderRequest request)
+        {
+            try
+            {
+                var order = await _orderRepository.GetOrderByIdAsync(orderId);
+                if (order == null)
+                    return false;
+
+                // Update fields if provided
+                if (request.OrderAnswers != null)
+                    order.OrderAnswers = request.OrderAnswers;
+
+                // Note: Recipient fields are not in Order model yet, add if needed
+                // if (request.RecipientName != null) order.RecipientName = request.RecipientName;
+                // if (request.RecipientPhone != null) order.RecipientPhone = request.RecipientPhone;
+                // if (request.RecipientEmail != null) order.RecipientEmail = request.RecipientEmail;
+
+                order.UpdatedAt = DateTime.UtcNow;
+                
+                var result = await _orderRepository.UpdateOrderAsync(orderId, order);
+                return result != null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating order: {ex.Message}", ex);
+            }
+        }
+
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {
             try
@@ -249,10 +291,25 @@ namespace TheGrind5_EventManagement.Services
 
                 var result = await _orderRepository.UpdateOrderStatusAsync(orderId, status);
                 
-                // If order is paid, create tickets
+                // If order is paid, create tickets and send notification
                 if (result && status == "Paid")
                 {
                     await CreateTicketsForOrderAsync(orderId);
+                    
+                    // 🔔 Tạo notification khi payment thành công
+                    try
+                    {
+                        var order = await _orderRepository.GetOrderByIdAsync(orderId);
+                        if (order != null)
+                        {
+                            await _notificationService.CreatePaymentSuccessNotificationAsync(order.CustomerId, orderId);
+                        }
+                    }
+                    catch (Exception notifEx)
+                    {
+                        // Log lỗi nhưng không fail toàn bộ payment
+                        Console.WriteLine($"⚠️ Lỗi khi tạo notification cho payment order {orderId}: {notifEx.Message}");
+                    }
                 }
                 
                 return result;

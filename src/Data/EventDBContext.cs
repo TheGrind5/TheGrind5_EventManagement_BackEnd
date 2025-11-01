@@ -20,6 +20,8 @@ public partial class EventDBContext : DbContext
     public DbSet<Wishlist> Wishlists => Set<Wishlist>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<Campus> Campuses => Set<Campus>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<EventQuestion> EventQuestions => Set<EventQuestion>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -38,6 +40,8 @@ public partial class EventDBContext : DbContext
         b.Entity<Wishlist>().ToTable("Wishlist");
         b.Entity<Voucher>().ToTable("Voucher");
         b.Entity<Campus>().ToTable("Campus");
+        b.Entity<Notification>().ToTable("Notification");
+        b.Entity<EventQuestion>().ToTable("EventQuestion");
         
         // Configure OtpCode primary key to match database
         b.Entity<OtpCode>()
@@ -63,6 +67,8 @@ public partial class EventDBContext : DbContext
         ConfigureWalletRelationships(b);
         ConfigureWishlistRelationships(b);
         ConfigureCampusRelationships(b);
+        ConfigureNotificationRelationships(b);
+        ConfigureEventQuestionRelationships(b);
         ConfigureDecimalPrecision(b);
         ConfigureCampusColumnMapping(b);
     }
@@ -106,6 +112,13 @@ public partial class EventDBContext : DbContext
 
     private void ConfigureOrderRelationships(ModelBuilder b)
     {
+        // Order -> Event : optional, không cascade
+        b.Entity<Order>()
+         .HasOne<Event>()
+         .WithMany()
+         .HasForeignKey(o => o.EventId)
+         .OnDelete(DeleteBehavior.Restrict);
+
         // OrderItem -> Order : required, không cascade
         b.Entity<OrderItem>()
          .HasOne(oi => oi.Order)
@@ -185,7 +198,7 @@ public partial class EventDBContext : DbContext
         // Unique constraint: mỗi user chỉ có 1 wishlist item cho mỗi TicketType
         b.Entity<Wishlist>()
          .HasIndex(w => new { w.UserId, w.TicketTypeId })
-         .IsUnique();
+            .IsUnique();
     }
 
     private void ConfigureCampusRelationships(ModelBuilder b)
@@ -203,6 +216,34 @@ public partial class EventDBContext : DbContext
          .WithMany(c => c.Users)
          .HasForeignKey(u => u.CampusId)
          .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    private void ConfigureNotificationRelationships(ModelBuilder b)
+    {
+        // Notification -> User : required, cascade delete
+        b.Entity<Notification>()
+         .HasOne(n => n.User)
+         .WithMany(u => u.Notifications)
+         .HasForeignKey(n => n.UserId)
+         .OnDelete(DeleteBehavior.Cascade);
+
+        // Primary Key cho Notification
+        b.Entity<Notification>()
+         .HasKey(n => n.NotificationId);
+    }
+
+    private void ConfigureEventQuestionRelationships(ModelBuilder b)
+    {
+        // EventQuestion -> Event : required, cascade delete
+        b.Entity<EventQuestion>()
+         .HasOne(eq => eq.Event)
+         .WithMany(e => e.EventQuestions)
+         .HasForeignKey(eq => eq.EventId)
+         .OnDelete(DeleteBehavior.Cascade);
+
+        // Primary Key cho EventQuestion
+        b.Entity<EventQuestion>()
+         .HasKey(eq => eq.QuestionId);
     }
 
     private void ConfigureDecimalPrecision(ModelBuilder b)

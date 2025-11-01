@@ -20,6 +20,9 @@ namespace TheGrind5_EventManagement.Business
         // Lấy order theo ID (trả về Model)
         Task<Order?> GetOrderModelByIdAsync(int orderId);
         
+        // Cập nhật order
+        Task<bool> UpdateOrderAsync(int orderId, UpdateOrderRequest request);
+        
         // Cập nhật order status
         Task<bool> UpdateOrderStatusAsync(int orderId, string status);
         
@@ -36,5 +39,14 @@ namespace TheGrind5_EventManagement.Business
         // Mapping methods
         OrderDTO MapToOrderDto(Order order);
         Order MapFromCreateOrderRequest(CreateOrderRequestDTO request, int customerId);
+    }
+
+    // Helper DTO for UpdateOrder
+    public record UpdateOrderRequest
+    {
+        public string? OrderAnswers { get; init; }
+        public string? RecipientName { get; init; }
+        public string? RecipientPhone { get; init; }
+        public string? RecipientEmail { get; init; }
     }
 }

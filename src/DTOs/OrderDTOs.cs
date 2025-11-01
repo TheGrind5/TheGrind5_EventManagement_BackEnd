@@ -44,6 +44,7 @@ namespace TheGrind5_EventManagement.DTOs
     {
         public int OrderId { get; init; }
         public int CustomerId { get; init; }
+        public int EventId { get; init; }
         public string CustomerName { get; init; } = string.Empty;
         public string CustomerEmail { get; init; } = string.Empty;
         public decimal Amount { get; init; }
@@ -75,6 +76,7 @@ namespace TheGrind5_EventManagement.DTOs
     {
         public int OrderId { get; init; }
         public int CustomerId { get; init; }
+        public int EventId { get; init; }
         public string CustomerName { get; init; } = string.Empty;
         public string CustomerEmail { get; init; } = string.Empty;
         public decimal Amount { get; init; }

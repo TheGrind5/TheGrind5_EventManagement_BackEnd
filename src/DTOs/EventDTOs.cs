@@ -168,4 +168,17 @@ namespace TheGrind5_EventManagement.DTOs
         DateTime SaleEnd,
         string Status
     );
+
+    /// <summary>
+    /// Search and Filter Events Request DTO
+    /// </summary>
+    public class EventSearchRequest : PagedRequest
+    {
+        public string? SearchTerm { get; set; }
+        public string? Category { get; set; }
+        public string? EventMode { get; set; } // Online/Offline
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? Status { get; set; } // Draft/Open/Closed/Cancelled
+    }
 }

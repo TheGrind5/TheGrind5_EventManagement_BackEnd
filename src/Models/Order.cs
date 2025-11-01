@@ -12,6 +12,8 @@ public partial class Order
 
     public int CustomerId { get; set; }
 
+    public int EventId { get; set; }
+
     [Range(0, double.MaxValue, ErrorMessage = "Amount must be non-negative")]
     public decimal Amount { get; set; }
 
@@ -24,6 +26,8 @@ public partial class Order
 
     [Range(0, double.MaxValue, ErrorMessage = "DiscountAmount must be non-negative")]
     public decimal DiscountAmount { get; set; }
+
+    public string? OrderAnswers { get; set; } // JSON: Answers to event questions {questionId: answer}
 
     public DateTime CreatedAt { get; set; }
 

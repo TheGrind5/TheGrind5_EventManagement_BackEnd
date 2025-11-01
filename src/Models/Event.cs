@@ -53,6 +53,8 @@ public partial class Event
 
     public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 
+    public virtual ICollection<EventQuestion> EventQuestions { get; set; } = new List<EventQuestion>();
+
     public int? CampusId { get; set; }
 
     public virtual Campus? Campus { get; set; }

@@ -73,6 +73,41 @@ namespace TheGrind5_EventManagement.DTOs
             bool Success,
             string Message
         );
+
+        /// <summary>
+        /// DTO hiển thị thông tin order trong danh sách Admin
+        /// </summary>
+        public record OrderManagementDto(
+            int OrderId,
+            string CustomerName,
+            string CustomerEmail,
+            string TicketInfo,  // Format: "EventTitle - TicketTypeName"
+            int Quantity,        // Tổng số lượng vé đã mua
+            decimal Amount,
+            DateTime CreatedAt
+        );
+
+        /// <summary>
+        /// Request để lấy danh sách orders với filter và pagination
+        /// </summary>
+        public record GetOrdersRequest(
+            string? SearchTerm = null,     // Tìm kiếm theo tên khách hàng, email, event title
+            int PageNumber = 1,
+            int PageSize = 10,
+            string SortBy = "CreatedAt",   // CreatedAt, Amount, CustomerName
+            string SortOrder = "desc"      // asc hoặc desc
+        );
+
+        /// <summary>
+        /// Response trả về danh sách orders với pagination
+        /// </summary>
+        public record GetOrdersResponse(
+            List<OrderManagementDto> Orders,
+            int TotalCount,
+            int PageNumber,
+            int PageSize,
+            int TotalPages
+        );
     }
 }
 

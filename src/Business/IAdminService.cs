@@ -21,6 +21,11 @@ namespace TheGrind5_EventManagement.Business
         /// Lấy thông tin chi tiết của một user
         /// </summary>
         Task<AdminDTOs.UserManagementDto?> GetUserByIdAsync(int userId);
+
+        /// <summary>
+        /// Lấy danh sách orders với filter và pagination
+        /// </summary>
+        Task<AdminDTOs.GetOrdersResponse> GetAllOrdersAsync(AdminDTOs.GetOrdersRequest request);
     }
 }
 

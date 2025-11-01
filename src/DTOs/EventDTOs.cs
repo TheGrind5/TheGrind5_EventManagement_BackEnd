@@ -180,5 +180,7 @@ namespace TheGrind5_EventManagement.DTOs
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public string? Status { get; set; } // Draft/Open/Closed/Cancelled
+        public string? Location { get; set; } // Tìm kiếm theo địa điểm
+        public string? City { get; set; } // Tìm kiếm theo thành phố/campus
     }
 }

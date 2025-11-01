@@ -9,6 +9,12 @@ REM Tìm thư mục Frontend - tìm trong thư mục cha (cùng cấp với Back
 set "FRONTEND_DIR="
 set "PARENT_DIR=%BACKEND_DIR%.."
 
+REM Trước tiên thử tìm chính xác tên TheGrind5_EventManagement_FrontEnd
+if exist "%PARENT_DIR%\TheGrind5_EventManagement_FrontEnd\package.json" (
+    set "FRONTEND_DIR=%PARENT_DIR%\TheGrind5_EventManagement_FrontEnd"
+    goto :found_frontend
+)
+
 REM Tìm các thư mục cùng cấp với Backend có tên chứa "TheGrind5" và "FrontEnd"
 for /d %%d in ("%PARENT_DIR%\*TheGrind5*FrontEnd*") do (
     if exist "%%d\package.json" (
@@ -27,8 +33,15 @@ for /d %%d in ("%PARENT_DIR%\*FrontEnd*") do (
 
 :found_frontend
 
-REM Kiểm tra Backend (silent)
+REM Hiển thị thông tin nếu không tìm thấy Frontend
+if "%FRONTEND_DIR%"=="" (
+    echo Warning: Frontend directory not found. Only Backend will be started.
+    echo Looking for: %PARENT_DIR%\TheGrind5_EventManagement_FrontEnd
+)
+
+REM Kiểm tra Backend
 if not exist "%BACKEND_SRC%\Program.cs" (
+    echo Error: Backend source directory not found at %BACKEND_SRC%
     exit /b 1
 )
 

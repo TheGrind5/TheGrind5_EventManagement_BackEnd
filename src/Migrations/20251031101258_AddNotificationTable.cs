@@ -11,38 +11,52 @@ namespace TheGrind5_EventManagement.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Notification",
-                columns: table => new
-                {
-                    NotificationId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RelatedEventId = table.Column<int>(type: "int", nullable: true),
-                    RelatedOrderId = table.Column<int>(type: "int", nullable: true),
-                    RelatedTicketId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Notification", x => x.NotificationId);
-                    table.ForeignKey(
-                        name: "FK_Notification_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "UserID",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            // Kiểm tra bảng Notification đã tồn tại chưa (có thể đã được tạo từ TheGrind5_Query.sql)
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Notification')
+                BEGIN
+                    CREATE TABLE [Notification] (
+                        [NotificationId] int NOT NULL IDENTITY(1,1),
+                        [UserId] int NOT NULL,
+                        [Title] nvarchar(200) NOT NULL,
+                        [Content] nvarchar(max) NULL,
+                        [Type] nvarchar(max) NOT NULL,
+                        [IsRead] bit NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [ReadAt] datetime2 NULL,
+                        [RelatedEventId] int NULL,
+                        [RelatedOrderId] int NULL,
+                        [RelatedTicketId] int NULL,
+                        CONSTRAINT [PK_Notification] PRIMARY KEY ([NotificationId])
+                    );
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Notification_UserId",
-                table: "Notification",
-                column: "UserId");
+            // Kiểm tra và tạo Foreign Key nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+                    WHERE TABLE_NAME = 'Notification' 
+                    AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+                )
+                BEGIN
+                    ALTER TABLE [Notification]
+                    ADD CONSTRAINT [FK_Notification_User] 
+                    FOREIGN KEY ([UserId]) REFERENCES [User] ([UserID]) ON DELETE CASCADE;
+                END
+            ");
+
+            // Kiểm tra và tạo Index nếu chưa tồn tại
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT * FROM sys.indexes 
+                    WHERE name = 'IX_Notification_UserId' 
+                    AND object_id = OBJECT_ID('Notification')
+                )
+                BEGIN
+                    CREATE INDEX [IX_Notification_UserId] ON [Notification] ([UserId]);
+                END
+            ");
         }
 
         /// <inheritdoc />

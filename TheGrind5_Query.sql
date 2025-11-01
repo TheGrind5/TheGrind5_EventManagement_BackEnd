@@ -28,7 +28,13 @@ CREATE TABLE [User](
     -- User Profile Fields (Added for profile management)
     Avatar NVARCHAR(MAX),           -- Profile avatar image path
     DateOfBirth DATETIME2,          -- User's date of birth
-    Gender NVARCHAR(MAX)             -- User's gender
+    Gender NVARCHAR(MAX),           -- User's gender
+    -- Ban properties
+    IsBanned BIT NOT NULL DEFAULT 0,
+    BannedAt DATETIME2(0) NULL,
+    BanReason NVARCHAR(MAX) NULL,
+    -- Campus reference
+    CampusId INT NULL               -- Foreign key to Campus table
 );
 
 CREATE TABLE Event(
@@ -51,28 +57,28 @@ CREATE TABLE Event(
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0) NULL,
     CampusId INT NULL,              -- Foreign key to Campus table (mới)
-    CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId) ON DELETE CASCADE
+    CONSTRAINT FK_Event_Host FOREIGN KEY (HostId) REFERENCES [User](UserId) ON DELETE NO ACTION
 );
 
 CREATE TABLE TicketType(
     TicketTypeId INT IDENTITY(1,1) PRIMARY KEY,
     EventId INT NOT NULL,
     TypeName NVARCHAR(100) NOT NULL,
-    Price DECIMAL(10,2) NOT NULL CHECK (Price >= 0),
+    Price DECIMAL(18,2) NOT NULL CHECK (Price >= 0),
     Quantity INT NOT NULL CHECK (Quantity >= 0),
     MinOrder INT DEFAULT 1 CHECK (MinOrder >= 1),
     MaxOrder INT,
     SaleStart DATETIME2(0) NOT NULL,
     SaleEnd DATETIME2(0) NOT NULL,
     Status VARCHAR(16) NOT NULL DEFAULT 'Active' CHECK (Status IN ('Active','Inactive')),
-    CONSTRAINT FK_TicketType_Event FOREIGN KEY (EventId) REFERENCES Event(EventId) ON DELETE CASCADE
+    CONSTRAINT FK_TicketType_Event FOREIGN KEY (EventId) REFERENCES Event(EventId) ON DELETE NO ACTION
 );
 
 CREATE TABLE [Order](
     OrderId INT IDENTITY(1,1) PRIMARY KEY,
     CustomerId INT NOT NULL,
     EventId INT NOT NULL, -- Foreign key to Event table (added for ticket booking flow)
-    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
+    Amount DECIMAL(18,2) NOT NULL CHECK (Amount >= 0),
     Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Paid','Failed','Cancelled','Refunded')),
     PaymentMethod VARCHAR(50),
     VoucherCode NVARCHAR(50),
@@ -80,7 +86,7 @@ CREATE TABLE [Order](
     OrderAnswers NVARCHAR(MAX) NULL, -- JSON string: {questionId: answer} for event questions (added for ticket booking flow)
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0),
-    CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    CONSTRAINT FK_Order_Customer FOREIGN KEY (CustomerId) REFERENCES [User](UserId) ON DELETE NO ACTION,
     CONSTRAINT FK_Order_Event_EventId FOREIGN KEY (EventId) REFERENCES [Event](EventId) ON DELETE NO ACTION
 );
 
@@ -91,7 +97,7 @@ CREATE TABLE OrderItem(
     Quantity INT NOT NULL CHECK (Quantity > 0),
     SeatNo NVARCHAR(100),
     Status VARCHAR(16) DEFAULT 'Reserved' CHECK (Status IN ('Reserved','Confirmed','Cancelled')),
-    CONSTRAINT FK_OrderItem_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId) ON DELETE CASCADE,
+    CONSTRAINT FK_OrderItem_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId) ON DELETE NO ACTION,
     CONSTRAINT FK_OrderItem_TicketType FOREIGN KEY (TicketTypeId) REFERENCES TicketType(TicketTypeId) ON DELETE NO ACTION
 );
 
@@ -111,10 +117,17 @@ CREATE TABLE Ticket(
 CREATE TABLE Payment(
     PaymentId INT IDENTITY(1,1) PRIMARY KEY,
     OrderId INT NOT NULL,
-    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
+    Amount DECIMAL(18,2) NOT NULL CHECK (Amount >= 0),
     Method VARCHAR(50) NOT NULL,
     Status VARCHAR(16) NOT NULL DEFAULT 'Initiated' CHECK (Status IN ('Initiated','Succeeded','Failed','Refunded')),
     PaymentDate DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    -- VNPay specific fields
+    TransactionId NVARCHAR(MAX) NULL,
+    VnpTxnRef NVARCHAR(MAX) NULL,
+    ResponseCode NVARCHAR(MAX) NULL,
+    TransactionStatus NVARCHAR(MAX) NULL,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2(0) NULL,
     CONSTRAINT FK_Payment_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId) ON DELETE CASCADE
 );
 
@@ -131,6 +144,33 @@ CREATE TABLE Wishlist(
     CONSTRAINT UQ_Wishlist_User_TicketType UNIQUE (UserId, TicketTypeId)
 );
 
+-- Notification table for user notifications
+CREATE TABLE Notification(
+    NotificationId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Content NVARCHAR(MAX) NULL,
+    Type NVARCHAR(MAX) NOT NULL CHECK (Type IN ('EventReminder','EventUpdate','PaymentSuccess','Refund','OrderConfirmation','EventCancelled','NewMessage')),
+    IsRead BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    ReadAt DATETIME2(0) NULL,
+    RelatedEventId INT NULL,
+    RelatedOrderId INT NULL,
+    RelatedTicketId INT NULL,
+    CONSTRAINT FK_Notification_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE
+);
+
+-- AISuggestion table for AI-generated suggestions
+CREATE TABLE AISuggestion(
+    SuggestionId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    SuggestionType NVARCHAR(MAX) NOT NULL CHECK (SuggestionType IN ('EventRecommendation','ChatbotQA','PricingSuggestion','ContentGeneration')),
+    RequestData NVARCHAR(MAX) NULL, -- JSON
+    ResponseData NVARCHAR(MAX) NULL, -- JSON
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_AISuggestion_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE NO ACTION
+);
+
 -- Voucher table for discount management
 CREATE TABLE Voucher(
     VoucherId INT IDENTITY(1,1) PRIMARY KEY,
@@ -144,10 +184,11 @@ CREATE TABLE Voucher(
 );
 
 -- Campus table for FPT campuses
+-- Note: Name maps to CampusName column, Code maps to Province column in database
 CREATE TABLE Campus(
     CampusId INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(100) NOT NULL,
-    Code NVARCHAR(50) NULL,
+    CampusName NVARCHAR(100) NOT NULL,  -- Maps from Name property
+    Province NVARCHAR(50) NULL,          -- Maps from Code property
     CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2(0) NULL
 );
@@ -167,6 +208,32 @@ CREATE TABLE EventQuestion(
     UpdatedAt DATETIME2(0) NULL,
     CONSTRAINT FK_EventQuestion_Event_EventId 
         FOREIGN KEY (EventId) REFERENCES [Event](EventId) ON DELETE CASCADE
+);
+
+-- WalletTransaction table for tracking wallet operations
+CREATE TABLE WalletTransaction(
+    TransactionId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL CHECK (Amount > 0),
+    TransactionType VARCHAR(30) NOT NULL CHECK (TransactionType IN ('Deposit','Withdraw','Payment','Refund','Transfer_In','Transfer_Out')),
+    Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Completed','Failed','Cancelled')),
+    Description NVARCHAR(500),
+    ReferenceId NVARCHAR(100), -- Reference to OrderId, PaymentId, etc.
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
+    CompletedAt DATETIME2(0),
+    BalanceBefore DECIMAL(18,2) NOT NULL,
+    BalanceAfter DECIMAL(18,2) NOT NULL,
+    CONSTRAINT FK_WalletTransaction_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE NO ACTION
+);
+
+-- OtpCode table for OTP verification
+CREATE TABLE OtpCode(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Email NVARCHAR(255) NOT NULL,
+    Code NVARCHAR(10) NOT NULL,
+    ExpiresAt DATETIME2(0) NOT NULL,
+    IsUsed BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
 );
 
 GO
@@ -197,6 +264,7 @@ ADD CONSTRAINT FK_Event_Campus_CampusId FOREIGN KEY (CampusId) REFERENCES Campus
 
 GO
 
+-- Indexes
 CREATE INDEX IX_Event_HostId ON Event(HostId);
 CREATE INDEX IX_TicketType_EventId ON TicketType(EventId);
 CREATE INDEX IX_User_CampusId ON [User](CampusId);
@@ -215,45 +283,8 @@ CREATE INDEX IX_Wishlist_AddedAt ON Wishlist(AddedAt);
 CREATE INDEX IX_Voucher_VoucherCode ON Voucher(VoucherCode);
 CREATE INDEX IX_Voucher_ValidFrom ON Voucher(ValidFrom);
 CREATE INDEX IX_Voucher_ValidTo ON Voucher(ValidTo);
-
--- WalletTransaction table for tracking wallet operations
-CREATE TABLE WalletTransaction(
-    TransactionId INT IDENTITY(1,1) PRIMARY KEY,
-    UserId INT NOT NULL,
-    Amount DECIMAL(18,2) NOT NULL CHECK (Amount > 0),
-    TransactionType VARCHAR(30) NOT NULL CHECK (TransactionType IN ('Deposit','Withdraw','Payment','Refund','Transfer_In','Transfer_Out')),
-    Status VARCHAR(16) NOT NULL DEFAULT 'Pending' CHECK (Status IN ('Pending','Completed','Failed','Cancelled')),
-    Description NVARCHAR(500),
-    ReferenceId NVARCHAR(100), -- Reference to OrderId, PaymentId, etc.
-    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
-    CompletedAt DATETIME2(0),
-    BalanceBefore DECIMAL(18,2) NOT NULL,
-    BalanceAfter DECIMAL(18,2) NOT NULL,
-    CONSTRAINT FK_WalletTransaction_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE
-);
-
--- OtpCode table for OTP verification
-CREATE TABLE OtpCode(
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    Email NVARCHAR(255) NOT NULL,
-    Code NVARCHAR(10) NOT NULL,
-    ExpiresAt DATETIME2(0) NOT NULL,
-    IsUsed BIT NOT NULL DEFAULT 0,
-    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
-);
-
--- Campus table for FPT campuses
-CREATE TABLE Campus(
-    CampusId INT IDENTITY(1,1) PRIMARY KEY,
-    CampusName NVARCHAR(255) NOT NULL UNIQUE,
-    Province NVARCHAR(255) NOT NULL,
-    Address NVARCHAR(MAX),
-    Phone NVARCHAR(20),
-    Email NVARCHAR(255),
-    IsActive BIT NOT NULL DEFAULT 1,
-    CreatedAt DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2(0)
-);
+CREATE INDEX IX_Notification_UserId ON Notification(UserId);
+CREATE INDEX IX_AISuggestion_UserId ON AISuggestion(UserId);
 
 -- Additional indexes for new tables
 CREATE INDEX IX_WalletTransaction_UserId ON WalletTransaction(UserId);
@@ -261,9 +292,6 @@ CREATE INDEX IX_WalletTransaction_Status ON WalletTransaction(Status);
 CREATE INDEX IX_WalletTransaction_CreatedAt ON WalletTransaction(CreatedAt);
 CREATE INDEX IX_OtpCode_Email ON OtpCode(Email);
 CREATE INDEX IX_OtpCode_ExpiresAt ON OtpCode(ExpiresAt);
-CREATE INDEX IX_Campus_CampusName ON Campus(CampusName);
-CREATE INDEX IX_Campus_Province ON Campus(Province);
-CREATE INDEX IX_Campus_IsActive ON Campus(IsActive);
 
 -- Indexes for Event table (simplified)
 CREATE INDEX IX_Event_EventMode ON Event(EventMode);
@@ -275,33 +303,6 @@ CREATE INDEX IX_Event_EndTime ON Event(EndTime);
 
 -- Additional indexes for Voucher table
 CREATE INDEX IX_Voucher_ValidFrom_ValidTo ON Voucher(ValidFrom, ValidTo);
-
--- ============================================
--- Migration Script: Ensure OrganizerInfo column exists
--- ============================================
--- Script này đảm bảo cột OrganizerInfo tồn tại trong bảng Event
--- Nếu database đã có cột này thì không cần chạy lại
--- ============================================
-
--- Kiểm tra và thêm cột OrganizerInfo nếu chưa có
-IF NOT EXISTS (
-    SELECT 1 
-    FROM INFORMATION_SCHEMA.COLUMNS 
-    WHERE TABLE_NAME = 'Event' 
-    AND COLUMN_NAME = 'OrganizerInfo'
-    AND TABLE_SCHEMA = 'dbo'
-)
-BEGIN
-    ALTER TABLE Event
-    ADD OrganizerInfo NVARCHAR(MAX) NULL;
-    
-    PRINT 'Đã thêm cột OrganizerInfo vào bảng Event';
-END
-ELSE
-BEGIN
-    PRINT 'Cột OrganizerInfo đã tồn tại trong bảng Event';
-END
-GO
 
 -- ============================================
 -- Cấu trúc JSON của OrganizerInfo:
@@ -316,13 +317,13 @@ GO
 -- ============================================
 -- Insert Campus Data: 5 FPT Campuses
 -- ============================================
-INSERT INTO Campus (CampusName, Province, IsActive, CreatedAt)
+INSERT INTO Campus (CampusName, Province, CreatedAt)
 VALUES
-    (N'Hà Nội', N'Hà Nội', 1, SYSDATETIME()),
-    (N'Đà Nẵng', N'Đà Nẵng', 1, SYSDATETIME()),
-    (N'Quy Nhơn', N'Quy Nhơn', 1, SYSDATETIME()),
-    (N'TP. Hồ Chí Minh', N'TP. Hồ Chí Minh', 1, SYSDATETIME()),
-    (N'Cần Thơ', N'Cần Thơ', 1, SYSDATETIME());
+    (N'Hà Nội', N'Hà Nội', SYSDATETIME()),
+    (N'Đà Nẵng', N'Đà Nẵng', SYSDATETIME()),
+    (N'Quy Nhơn', N'Quy Nhơn', SYSDATETIME()),
+    (N'TP. Hồ Chí Minh', N'TP. Hồ Chí Minh', SYSDATETIME()),
+    (N'Cần Thơ', N'Cần Thơ', SYSDATETIME());
 
 PRINT 'Đã thêm 5 campus vào bảng Campus';
 GO
